@@ -44,105 +44,105 @@ public final class StaffControlScreen {
 
         setButton(
                 container,
-                10,
+                StaffControlAction.STAFF_MODE.slot(),
                 Items.ENCHANTED_BOOK,
                 "Staff Mode"
         );
 
         setButton(
                 container,
-                11,
+                StaffControlAction.MODE_STYLE.slot(),
                 Items.AMETHYST_SHARD,
                 "Mode Style"
         );
 
         setButton(
                 container,
-                12,
+                StaffControlAction.VANISH.slot(),
                 Items.POTION,
                 "Vanish"
         );
 
         setButton(
                 container,
-                13,
+                StaffControlAction.PLAYERS.slot(),
                 Items.PLAYER_HEAD,
                 "Players"
         );
 
         setButton(
                 container,
-                14,
+                StaffControlAction.TELEPORT.slot(),
                 Items.ENDER_PEARL,
                 "Teleport Tools"
         );
 
         setButton(
                 container,
-                15,
+                StaffControlAction.FREEZE.slot(),
                 Items.PACKED_ICE,
                 "Freeze"
         );
 
         setButton(
                 container,
-                16,
+                StaffControlAction.REPORTS.slot(),
                 Items.WRITABLE_BOOK,
                 "Reports"
         );
 
         setButton(
                 container,
-                19,
+                StaffControlAction.NOTES.slot(),
                 Items.WRITTEN_BOOK,
                 "Staff Notes"
         );
 
         setButton(
                 container,
-                20,
+                StaffControlAction.INSPECTION.slot(),
                 Items.SPYGLASS,
                 "Inspection"
         );
 
         setButton(
                 container,
-                21,
+                StaffControlAction.HISTORY.slot(),
                 Items.CLOCK,
                 "History"
         );
 
         setButton(
                 container,
-                22,
+                StaffControlAction.PUNISHMENTS.slot(),
                 Items.ANVIL,
                 "Punishments"
         );
 
         setButton(
                 container,
-                23,
+                StaffControlAction.STAFF_CHAT.slot(),
                 Items.ECHO_SHARD,
                 "Staff Chat"
         );
 
         setButton(
                 container,
-                24,
+                StaffControlAction.ALERTS.slot(),
                 Items.BELL,
                 "Staff Alerts"
         );
 
         setButton(
                 container,
-                25,
+                StaffControlAction.SETTINGS.slot(),
                 Items.COMPARATOR,
                 "Settings"
         );
 
         setButton(
                 container,
-                49,
+                StaffControlAction.CLOSE.slot(),
                 Items.BARRIER,
                 "Close"
         );

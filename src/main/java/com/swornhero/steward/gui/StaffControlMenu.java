@@ -9,6 +9,8 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 public final class StaffControlMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
@@ -112,14 +114,78 @@ public final class StaffControlMenu extends AbstractContainerMenu {
             ContainerInput input,
             Player player
     ) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        // Only process Steward's 54 control-panel slots.
+        if (slotId < 0 || slotId >= MENU_SIZE) {
+            return;
+        }
+
+        StaffControlAction action =
+                StaffControlAction.fromSlot(slotId);
+
+        // Borders and empty slots have no assigned action.
+        if (action == null) {
+            return;
+        }
+
+        handleAction(serverPlayer, action);
+
         /*
-         * Steward's control panel is currently completely read-only.
-         *
-         * The client and server still need matching slot layouts, but no
-         * vanilla click handling should occur while this menu is open.
-         *
          * Do not call super.clicked(...).
+         * This keeps all item movement, swapping, dragging,
+         * dropping, and duplication behavior blocked.
          */
+    }
+
+    private void handleAction(
+            ServerPlayer player,
+            StaffControlAction action
+    ) {
+        switch (action) {
+            case CLOSE -> player.closeContainer();
+
+            case PLAYERS -> player.sendSystemMessage(
+                    Component.literal(
+                            "The Steward player browser will open here."
+                    )
+            );
+
+            case FREEZE -> player.sendSystemMessage(
+                    Component.literal(
+                            "Select a player before using the freeze tool."
+                    )
+            );
+
+            default -> player.sendSystemMessage(
+                    Component.literal(
+                            actionDisplayName(action)
+                                    + " is not available yet."
+                    )
+            );
+        }
+    }
+
+    private String actionDisplayName(StaffControlAction action) {
+        return switch (action) {
+            case STAFF_MODE -> "Staff Mode";
+            case MODE_STYLE -> "Mode Style";
+            case VANISH -> "Vanish";
+            case PLAYERS -> "Players";
+            case TELEPORT -> "Teleport Tools";
+            case FREEZE -> "Freeze";
+            case REPORTS -> "Reports";
+            case NOTES -> "Staff Notes";
+            case INSPECTION -> "Inspection";
+            case HISTORY -> "History";
+            case PUNISHMENTS -> "Punishments";
+            case STAFF_CHAT -> "Staff Chat";
+            case ALERTS -> "Staff Alerts";
+            case SETTINGS -> "Settings";
+            case CLOSE -> "Close";
+        };
     }
 
     @Override
