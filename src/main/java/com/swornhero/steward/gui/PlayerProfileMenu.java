@@ -12,42 +12,32 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Map;
 import java.util.UUID;
 
-public final class PlayerBrowserMenu
+public final class PlayerProfileMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int PREVIOUS_PAGE_SLOT = 45;
-    public static final int PAGE_INFO_SLOT = 47;
-    public static final int BACK_SLOT = 49;
-    public static final int NEXT_PAGE_SLOT = 51;
-    public static final int CLOSE_SLOT = 53;
-
     private final Container menuContainer;
-    private final Map<Integer, UUID> playerSlots;
-    private final int page;
-    private final int totalPages;
+    private final UUID targetUuid;
+    private final int browserPage;
 
-    public PlayerBrowserMenu(
+    public PlayerProfileMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
-            Map<Integer, UUID> playerSlots,
-            int page,
-            int totalPages
+            UUID targetUuid,
+            int browserPage
     ) {
         super(MenuType.GENERIC_9x6, containerId);
 
         checkContainerSize(menuContainer, MENU_SIZE);
 
         this.menuContainer = menuContainer;
-        this.playerSlots = Map.copyOf(playerSlots);
-        this.page = page;
-        this.totalPages = totalPages;
+        this.targetUuid = targetUuid;
+        this.browserPage = browserPage;
 
         this.menuContainer.startOpen(playerInventory.player);
 
@@ -55,7 +45,7 @@ public final class PlayerBrowserMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public PlayerBrowserMenu(
+    public PlayerProfileMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -63,9 +53,8 @@ public final class PlayerBrowserMenu
                 containerId,
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
-                Map.of(),
-                0,
-                1
+                new UUID(0L, 0L),
+                0
         );
     }
 
@@ -138,7 +127,7 @@ public final class PlayerBrowserMenu
             ContainerInput input,
             Player player
     ) {
-        if (!(player instanceof ServerPlayer serverPlayer)) {
+        if (!(player instanceof ServerPlayer viewer)) {
             return;
         }
 
@@ -146,62 +135,40 @@ public final class PlayerBrowserMenu
             return;
         }
 
-        UUID targetUuid = playerSlots.get(slotId);
+        PlayerProfileAction action =
+                PlayerProfileAction.fromSlot(slotId);
 
-        if (targetUuid != null) {
-            handlePlayerSelection(
-                    serverPlayer,
-                    targetUuid
-            );
-
+        if (action == null) {
             return;
         }
 
-        switch (slotId) {
-            case PREVIOUS_PAGE_SLOT -> {
-                if (page > 0) {
-                    PlayerBrowserScreen.open(
-                            serverPlayer,
-                            page - 1
-                    );
-                }
-            }
-
-            case NEXT_PAGE_SLOT -> {
-                if (page + 1 < totalPages) {
-                    PlayerBrowserScreen.open(
-                            serverPlayer,
-                            page + 1
-                    );
-                }
-            }
-
-            case BACK_SLOT ->
-                    StaffControlScreen.open(serverPlayer);
-
-            case CLOSE_SLOT ->
-                    serverPlayer.closeContainer();
-
-            default -> {
-                // Border, page indicator, or empty slot.
-            }
-        }
+        handleAction(viewer, action);
 
         /*
          * Never call super.clicked(...).
-         * This browser is a navigation interface, not an inventory.
+         * This is a navigation interface, not an inventory.
          */
     }
 
-    private void handlePlayerSelection(
+    private void handleAction(
             ServerPlayer viewer,
-            UUID targetUuid
+            PlayerProfileAction action
     ) {
         ServerPlayer target =
                 viewer.level()
                         .getServer()
                         .getPlayerList()
                         .getPlayer(targetUuid);
+
+        if (action == PlayerProfileAction.BACK) {
+            PlayerBrowserScreen.open(viewer, browserPage);
+            return;
+        }
+
+        if (action == PlayerProfileAction.CLOSE) {
+            viewer.closeContainer();
+            return;
+        }
 
         if (target == null) {
             viewer.sendSystemMessage(
@@ -210,15 +177,80 @@ public final class PlayerBrowserMenu
                     )
             );
 
-            PlayerBrowserScreen.open(viewer, page);
+            PlayerBrowserScreen.open(viewer, browserPage);
             return;
         }
 
-        PlayerProfileScreen.open(
-                viewer,
-                targetUuid,
-                page
-        );
+        switch (action) {
+            case PLAYER_INFO -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "Viewing profile for "
+                                    + target.getName().getString()
+                    )
+            );
+
+            case TELEPORT_TO -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "Teleport to "
+                                    + target.getName().getString()
+                                    + " will be added later."
+                    )
+            );
+
+            case BRING_HERE -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "Bring "
+                                    + target.getName().getString()
+                                    + " here will be added later."
+                    )
+            );
+
+            case FREEZE -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "Freeze action selected for "
+                                    + target.getName().getString()
+                    )
+            );
+
+            case INSPECT -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "Inventory inspection selected for "
+                                    + target.getName().getString()
+                    )
+            );
+
+            case REPORTS -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "Reports selected for "
+                                    + target.getName().getString()
+                    )
+            );
+
+            case NOTES -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "Staff notes selected for "
+                                    + target.getName().getString()
+                    )
+            );
+
+            case HISTORY -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "History selected for "
+                                    + target.getName().getString()
+                    )
+            );
+
+            case PUNISHMENTS -> viewer.sendSystemMessage(
+                    Component.literal(
+                            "Punishments selected for "
+                                    + target.getName().getString()
+                    )
+            );
+
+            case BACK, CLOSE -> {
+                // Handled before checking the target.
+            }
+        }
     }
 
     @Override
