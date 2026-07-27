@@ -2,10 +2,12 @@ package com.swornhero.steward.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.swornhero.steward.gui.StaffControlScreen;
+import net.minecraft.server.level.ServerPlayer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
 
 public final class StewardCommands {
 
@@ -44,13 +46,11 @@ public final class StewardCommands {
 
     private static int openStaffMenu(
             CommandContext<CommandSourceStack> context
-    ) {
-        context.getSource().sendSuccess(
-                () -> Component.literal(
-                        "Steward staff menu will open here."
-                ),
-                false
-        );
+    ) throws CommandSyntaxException {
+        ServerPlayer player =
+                context.getSource().getPlayerOrException();
+
+        StaffControlScreen.open(player);
 
         return 1;
     }
