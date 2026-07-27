@@ -1,0 +1,150 @@
+package com.swornhero.steward.freeze;
+
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public final class FreezeService {
+    private static final Map<UUID, FreezePosition> FROZEN_PLAYERS =
+            new HashMap<>();
+
+    private FreezeService() {
+        // Utility class
+    }
+
+    public static void register() {
+        ServerTickEvents.END_SERVER_TICK.register(
+                FreezeService::onEndServerTick
+        );
+    }
+
+    public static boolean isFrozen(UUID playerUuid) {
+        return FROZEN_PLAYERS.containsKey(playerUuid);
+    }
+
+    public static boolean isFrozen(ServerPlayer player) {
+        return isFrozen(player.getUUID());
+    }
+
+    public static boolean freeze(
+            ServerPlayer staff,
+            ServerPlayer target
+    ) {
+        if (isFrozen(target)) {
+            return false;
+        }
+
+        FreezePosition position = new FreezePosition(
+                target.level()
+                        .dimension()
+                        .identifier(),
+                target.getX(),
+                target.getY(),
+                target.getZ(),
+                target.getYRot(),
+                target.getXRot()
+        );
+
+        FROZEN_PLAYERS.put(target.getUUID(), position);
+
+        target.setDeltaMovement(0.0D, 0.0D, 0.0D);
+        target.fallDistance = 0.0F;
+
+        target.sendSystemMessage(
+                Component.literal(
+                        "You have been frozen by a staff member."
+                )
+        );
+
+        target.sendSystemMessage(
+                Component.literal(
+                        "Please remain connected and wait for instructions."
+                )
+        );
+
+        staff.sendSystemMessage(
+                Component.literal(
+                        target.getName().getString()
+                                + " has been frozen."
+                )
+        );
+
+        return true;
+    }
+
+    public static boolean unfreeze(
+            ServerPlayer staff,
+            ServerPlayer target
+    ) {
+        FreezePosition removed =
+                FROZEN_PLAYERS.remove(target.getUUID());
+
+        if (removed == null) {
+            return false;
+        }
+
+        target.setDeltaMovement(0.0D, 0.0D, 0.0D);
+
+        target.sendSystemMessage(
+                Component.literal(
+                        "You are no longer frozen."
+                )
+        );
+
+        staff.sendSystemMessage(
+                Component.literal(
+                        target.getName().getString()
+                                + " has been unfrozen."
+                )
+        );
+
+        return true;
+    }
+
+    public static boolean toggle(
+            ServerPlayer staff,
+            ServerPlayer target
+    ) {
+        if (isFrozen(target)) {
+            return unfreeze(staff, target);
+        }
+
+        return freeze(staff, target);
+    }
+
+    private static void onEndServerTick(
+            MinecraftServer server
+    ) {
+        if (FROZEN_PLAYERS.isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<UUID, FreezePosition> entry
+                : FROZEN_PLAYERS.entrySet()) {
+
+            ServerPlayer player =
+                    server.getPlayerList()
+                            .getPlayer(entry.getKey());
+
+            if (player == null) {
+                continue;
+            }
+
+            FreezePosition position = entry.getValue();
+
+            player.setDeltaMovement(0.0D, 0.0D, 0.0D);
+            player.fallDistance = 0.0F;
+
+            player.teleportTo(
+                    position.x(),
+                    position.y(),
+                    position.z()
+            );
+        }
+    }
+}

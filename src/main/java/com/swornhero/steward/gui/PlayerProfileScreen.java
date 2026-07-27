@@ -12,6 +12,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.TooltipDisplay;
 
+import com.swornhero.steward.freeze.FreezeService;
+
 import java.util.LinkedHashSet;
 import java.util.UUID;
 
@@ -93,11 +95,13 @@ public final class PlayerProfileScreen {
                 "Bring Player Here"
         );
 
+        boolean frozen = FreezeService.isFrozen(target);
+
         setButton(
                 container,
                 PlayerProfileAction.FREEZE.slot(),
-                Items.PACKED_ICE,
-                "Freeze Player"
+                frozen ? Items.MAGMA_CREAM : Items.PACKED_ICE,
+                frozen ? "Unfreeze Player" : "Freeze Player"
         );
 
         setButton(

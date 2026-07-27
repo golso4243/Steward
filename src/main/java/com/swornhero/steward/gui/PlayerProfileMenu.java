@@ -12,6 +12,8 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import com.swornhero.steward.freeze.FreezeService;
+
 import java.util.UUID;
 
 public final class PlayerProfileMenu
@@ -205,12 +207,15 @@ public final class PlayerProfileMenu
                     )
             );
 
-            case FREEZE -> viewer.sendSystemMessage(
-                    Component.literal(
-                            "Freeze action selected for "
-                                    + target.getName().getString()
-                    )
-            );
+            case FREEZE -> {
+                FreezeService.toggle(viewer, target);
+
+                PlayerProfileScreen.open(
+                        viewer,
+                        targetUuid,
+                        browserPage
+                );
+            }
 
             case INSPECT -> viewer.sendSystemMessage(
                     Component.literal(
