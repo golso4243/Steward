@@ -1,5 +1,6 @@
 package com.swornhero.steward.gui;
 
+import com.swornhero.steward.freeze.FreezeService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -12,12 +13,9 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-import com.swornhero.steward.freeze.FreezeService;
-
 import java.util.UUID;
 
-public final class PlayerProfileMenu
-        extends AbstractContainerMenu {
+public final class PlayerProfileMenu extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
@@ -163,7 +161,11 @@ public final class PlayerProfileMenu
                         .getPlayer(targetUuid);
 
         if (action == PlayerProfileAction.BACK) {
-            PlayerBrowserScreen.open(viewer, browserPage);
+            PlayerBrowserScreen.open(
+                    viewer,
+                    browserPage
+            );
+
             return;
         }
 
@@ -179,7 +181,11 @@ public final class PlayerProfileMenu
                     )
             );
 
-            PlayerBrowserScreen.open(viewer, browserPage);
+            PlayerBrowserScreen.open(
+                    viewer,
+                    browserPage
+            );
+
             return;
         }
 
@@ -208,9 +214,22 @@ public final class PlayerProfileMenu
             );
 
             case FREEZE -> {
-                FreezeService.toggle(viewer, target);
+                if (FreezeService.isFrozen(target)) {
+                    FreezeService.unfreeze(
+                            viewer,
+                            target
+                    );
 
-                PlayerProfileScreen.open(
+                    PlayerProfileScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage
+                    );
+
+                    return;
+                }
+
+                FreezeReasonScreen.open(
                         viewer,
                         targetUuid,
                         browserPage

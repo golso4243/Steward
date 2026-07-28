@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.swornhero.steward.gui.FreezeReasonMenu;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class ServerGamePacketListenerMixin {
@@ -105,6 +106,7 @@ public abstract class ServerGamePacketListenerMixin {
     private boolean steward$isStewardMenuOpen() {
         return player.containerMenu instanceof StaffControlMenu
                 || player.containerMenu instanceof PlayerBrowserMenu
-                || player.containerMenu instanceof PlayerProfileMenu;
+                || player.containerMenu instanceof PlayerProfileMenu
+                || player.containerMenu instanceof FreezeReasonMenu;
     }
 }

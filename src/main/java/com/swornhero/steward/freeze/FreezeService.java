@@ -45,7 +45,8 @@ public final class FreezeService {
 
     public static boolean freeze(
             ServerPlayer staff,
-            ServerPlayer target
+            ServerPlayer target,
+            String reason
     ) {
         if (isFrozen(target)) {
             return false;
@@ -66,7 +67,7 @@ public final class FreezeService {
                 staff.getUUID(),
                 staff.getName().getString(),
                 position,
-                "Staff investigation",
+                reason,
                 Instant.now()
         );
 
@@ -155,7 +156,8 @@ public final class FreezeService {
 
     public static boolean toggle(
             ServerPlayer staff,
-            ServerPlayer target
+            ServerPlayer target,
+            String reason
     ) {
         if (isFrozen(target)) {
             return unfreeze(
@@ -166,7 +168,8 @@ public final class FreezeService {
 
         return freeze(
                 staff,
-                target
+                target,
+                reason
         );
     }
 
