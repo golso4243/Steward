@@ -271,8 +271,8 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                     )
             );
 
-            case BACK, CLOSE -> {
-                // Handled before checking the target.
+            default -> {
+                // BACK and CLOSE are handled before this switch.
             }
         }
     }
