@@ -32,6 +32,14 @@ public final class FreezeConnectionService {
             return;
         }
 
+        FreezeRecord record =
+                FreezeService.getRecord(player);
+
+        if (record != null) {
+            record.recordDisconnect();
+            FreezeAuditService.recordDisconnect(record);
+        }
+
         String playerName = player.getName().getString();
 
         Component alert = Component.literal(
@@ -49,6 +57,14 @@ public final class FreezeConnectionService {
     ) {
         if (!FreezeService.isFrozen(player)) {
             return;
+        }
+
+        FreezeRecord record =
+                FreezeService.getRecord(player);
+
+        if (record != null) {
+            record.recordReconnect();
+            FreezeAuditService.recordReconnect(record);
         }
 
         player.setDeltaMovement(0.0D, 0.0D, 0.0D);

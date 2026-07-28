@@ -7,14 +7,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Relative;
 
-import java.util.Set;
-
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public final class FreezeService {
-    private static final Map<UUID, FreezePosition> FROZEN_PLAYERS =
+    private static final Map<UUID, FreezeRecord> FROZEN_PLAYERS =
             new HashMap<>();
 
     private FreezeService() {
@@ -35,6 +35,14 @@ public final class FreezeService {
         return isFrozen(player.getUUID());
     }
 
+    public static FreezeRecord getRecord(UUID playerUuid) {
+        return FROZEN_PLAYERS.get(playerUuid);
+    }
+
+    public static FreezeRecord getRecord(ServerPlayer player) {
+        return getRecord(player.getUUID());
+    }
+
     public static boolean freeze(
             ServerPlayer staff,
             ServerPlayer target
@@ -52,10 +60,22 @@ public final class FreezeService {
                 target.getXRot()
         );
 
+        FreezeRecord record = new FreezeRecord(
+                target.getUUID(),
+                target.getName().getString(),
+                staff.getUUID(),
+                staff.getName().getString(),
+                position,
+                "Staff investigation",
+                Instant.now()
+        );
+
         FROZEN_PLAYERS.put(
                 target.getUUID(),
-                position
+                record
         );
+
+        FreezeAuditService.recordFreeze(record);
 
         target.setDeltaMovement(
                 0.0D,
@@ -91,14 +111,25 @@ public final class FreezeService {
             ServerPlayer staff,
             ServerPlayer target
     ) {
-        FreezePosition removed =
+        FreezeRecord record =
                 FROZEN_PLAYERS.remove(
                         target.getUUID()
                 );
 
-        if (removed == null) {
+        if (record == null) {
             return false;
         }
+
+        record.complete(
+                staff.getUUID(),
+                staff.getName().getString(),
+                Instant.now()
+        );
+
+        FreezeAuditService.recordUnfreeze(
+                record,
+                staff
+        );
 
         target.setDeltaMovement(
                 0.0D,
@@ -146,7 +177,7 @@ public final class FreezeService {
             return;
         }
 
-        for (Map.Entry<UUID, FreezePosition> entry
+        for (Map.Entry<UUID, FreezeRecord> entry
                 : FROZEN_PLAYERS.entrySet()) {
 
             ServerPlayer player =
@@ -158,7 +189,7 @@ public final class FreezeService {
             }
 
             FreezePosition position =
-                    entry.getValue();
+                    entry.getValue().position();
 
             player.setDeltaMovement(
                     0.0D,
