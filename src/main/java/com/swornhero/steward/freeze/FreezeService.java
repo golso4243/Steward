@@ -132,6 +132,8 @@ public final class FreezeService {
                 staff
         );
 
+        FreezeHistoryService.add(record);
+
         target.setDeltaMovement(
                 0.0D,
                 0.0D,
