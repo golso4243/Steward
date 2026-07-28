@@ -64,6 +64,26 @@ public final class FreezeService {
         return getRecord(player.getUUID());
     }
 
+    public static Map<UUID, FreezeRecord> getActiveRecords() {
+        return Map.copyOf(FROZEN_PLAYERS);
+    }
+
+    public static FreezeRecord getRecordByName(
+            String playerName
+    ) {
+        for (FreezeRecord record
+                : FROZEN_PLAYERS.values()) {
+
+            if (record.targetName()
+                    .equalsIgnoreCase(playerName)) {
+
+                return record;
+            }
+        }
+
+        return null;
+    }
+
     public static boolean freeze(
             ServerPlayer staff,
             ServerPlayer target,
@@ -135,10 +155,18 @@ public final class FreezeService {
             ServerPlayer staff,
             ServerPlayer target
     ) {
+        return unfreeze(
+                staff,
+                target.getUUID()
+        );
+    }
+
+    public static boolean unfreeze(
+            ServerPlayer staff,
+            UUID targetUuid
+    ) {
         FreezeRecord record =
-                FROZEN_PLAYERS.remove(
-                        target.getUUID()
-                );
+                FROZEN_PLAYERS.remove(targetUuid);
 
         if (record == null) {
             return false;
@@ -159,21 +187,29 @@ public final class FreezeService {
 
         saveActiveFreezes();
 
-        target.setDeltaMovement(
-                0.0D,
-                0.0D,
-                0.0D
-        );
+        ServerPlayer onlineTarget =
+                staff.level()
+                        .getServer()
+                        .getPlayerList()
+                        .getPlayer(targetUuid);
 
-        target.sendSystemMessage(
-                Component.literal(
-                        "You are no longer frozen."
-                )
-        );
+        if (onlineTarget != null) {
+            onlineTarget.setDeltaMovement(
+                    0.0D,
+                    0.0D,
+                    0.0D
+            );
+
+            onlineTarget.sendSystemMessage(
+                    Component.literal(
+                            "You are no longer frozen."
+                    )
+            );
+        }
 
         staff.sendSystemMessage(
                 Component.literal(
-                        target.getName().getString()
+                        record.targetName()
                                 + " has been unfrozen."
                 )
         );
