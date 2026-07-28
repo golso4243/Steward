@@ -3,9 +3,7 @@ package com.swornhero.steward.mixin;
 import com.swornhero.steward.freeze.FreezeCommandService;
 import com.swornhero.steward.freeze.FreezeProtectionService;
 import com.swornhero.steward.freeze.FreezeService;
-import com.swornhero.steward.gui.PlayerBrowserMenu;
-import com.swornhero.steward.gui.PlayerProfileMenu;
-import com.swornhero.steward.gui.StaffControlMenu;
+import com.swornhero.steward.gui.*;
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
@@ -17,7 +15,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import com.swornhero.steward.gui.FreezeReasonMenu;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class ServerGamePacketListenerMixin {
@@ -107,6 +104,8 @@ public abstract class ServerGamePacketListenerMixin {
         return player.containerMenu instanceof StaffControlMenu
                 || player.containerMenu instanceof PlayerBrowserMenu
                 || player.containerMenu instanceof PlayerProfileMenu
-                || player.containerMenu instanceof FreezeReasonMenu;
+                || player.containerMenu instanceof FreezeReasonMenu
+                || player.containerMenu instanceof FreezeHistoryMenu
+                || player.containerMenu instanceof FreezeHistoryDetailMenu;
     }
 }

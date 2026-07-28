@@ -257,11 +257,10 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                     )
             );
 
-            case HISTORY -> viewer.sendSystemMessage(
-                    Component.literal(
-                            "History selected for "
-                                    + target.getName().getString()
-                    )
+            case HISTORY -> FreezeHistoryScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
             );
 
             case PUNISHMENTS -> viewer.sendSystemMessage(
