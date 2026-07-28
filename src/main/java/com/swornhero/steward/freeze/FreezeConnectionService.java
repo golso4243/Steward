@@ -64,14 +64,20 @@ public final class FreezeConnectionService {
         FreezeRecord record =
                 FreezeService.getRecord(player);
 
-        if (record != null) {
-            record.recordReconnect();
-            FreezeService.saveActiveFreezes();
-            FreezeAuditService.recordReconnect(record);
+        if (record == null) {
+            return;
         }
 
-        player.setDeltaMovement(0.0D, 0.0D, 0.0D);
-        player.fallDistance = 0.0F;
+        record.recordReconnect();
+        FreezeService.saveActiveFreezes();
+        FreezeAuditService.recordReconnect(record);
+
+        boolean usedFallback =
+                FreezeService.restoreFrozenPlayer(
+                        server,
+                        player,
+                        record
+                );
 
         player.sendSystemMessage(
                 Component.literal(
@@ -80,11 +86,30 @@ public final class FreezeConnectionService {
                 )
         );
 
-        Component alert = Component.literal(
-                "[Steward] "
-                        + player.getName().getString()
-                        + " reconnected while still frozen."
+        player.sendSystemMessage(
+                Component.literal(
+                        "Freeze reason: "
+                                + record.reason()
+                )
         );
+
+        Component alert;
+
+        if (usedFallback) {
+            alert = Component.literal(
+                    "[Steward] "
+                            + player.getName().getString()
+                            + " reconnected while frozen, but their "
+                            + "saved location was unavailable or unsafe. "
+                            + "Their current safe location was used as the fallback."
+            );
+        } else {
+            alert = Component.literal(
+                    "[Steward] "
+                            + player.getName().getString()
+                            + " reconnected while still frozen."
+            );
+        }
 
         notifyStaff(server, alert);
     }

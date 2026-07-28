@@ -6,6 +6,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Relative;
+import com.swornhero.steward.Steward;
+import net.minecraft.core.BlockPos;
+
+import java.util.HashSet;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -17,8 +21,201 @@ public final class FreezeService {
     private static final Map<UUID, FreezeRecord> FROZEN_PLAYERS =
             new HashMap<>();
 
+    private static final Set<UUID> FALLBACK_WARNED_PLAYERS =
+            new HashSet<>();
+
     private FreezeService() {
         // Utility class
+    }
+
+    public static boolean restoreFrozenPlayer(
+            MinecraftServer server,
+            ServerPlayer player,
+            FreezeRecord record
+    ) {
+        FreezePosition savedPosition =
+                record.position();
+
+        ServerLevel targetLevel =
+                server.getLevel(
+                        savedPosition.dimension()
+                );
+
+        boolean useFallback =
+                targetLevel == null
+                        || !isUsableFreezePosition(
+                        targetLevel,
+                        savedPosition
+                );
+
+        FreezePosition destination =
+                useFallback
+                        ? createFallbackPosition(player)
+                        : savedPosition;
+
+        ServerLevel destinationLevel =
+                server.getLevel(
+                        destination.dimension()
+                );
+
+        if (destinationLevel == null) {
+            /*
+             * The fallback uses the Overworld, so this should only
+             * happen during a severe server/world initialization issue.
+             */
+            Steward.LOGGER.error(
+                    "Unable to restore frozen player {} because "
+                            + "neither the saved dimension nor the "
+                            + "fallback dimension is available.",
+                    record.targetName()
+            );
+
+            return false;
+        }
+
+        player.setDeltaMovement(
+                0.0D,
+                0.0D,
+                0.0D
+        );
+
+        player.fallDistance = 0.0F;
+
+        boolean wrongDimension =
+                !player.level()
+                        .dimension()
+                        .equals(
+                                destination.dimension()
+                        );
+
+        if (wrongDimension) {
+            player.teleportTo(
+                    destinationLevel,
+                    destination.x(),
+                    destination.y(),
+                    destination.z(),
+                    Set.<Relative>of(),
+                    destination.yaw(),
+                    destination.pitch(),
+                    false
+            );
+        } else {
+            player.teleportTo(
+                    destination.x(),
+                    destination.y(),
+                    destination.z()
+            );
+
+            player.setYRot(destination.yaw());
+            player.setXRot(destination.pitch());
+        }
+
+        /*
+         * Correct any client-side inventory prediction that occurred
+         * while the player was reconnecting or being restored.
+         */
+        player.getInventory().setChanged();
+        player.inventoryMenu.sendAllDataToRemote();
+
+        if (player.containerMenu != player.inventoryMenu) {
+            player.containerMenu.sendAllDataToRemote();
+        }
+
+        if (useFallback) {
+            warnAboutFallback(
+                    record,
+                    savedPosition,
+                    destination
+            );
+        } else {
+            FALLBACK_WARNED_PLAYERS.remove(
+                    record.targetUuid()
+            );
+        }
+
+        return useFallback;
+    }
+
+    private static boolean isUsableFreezePosition(
+            ServerLevel level,
+            FreezePosition position
+    ) {
+        if (!Double.isFinite(position.x())
+                || !Double.isFinite(position.y())
+                || !Double.isFinite(position.z())) {
+
+            return false;
+        }
+
+        BlockPos feetPosition =
+                BlockPos.containing(
+                        position.x(),
+                        position.y(),
+                        position.z()
+                );
+
+        BlockPos headPosition =
+                feetPosition.above();
+
+        boolean feetBlocked =
+                !level.getBlockState(feetPosition)
+                        .getCollisionShape(
+                                level,
+                                feetPosition
+                        )
+                        .isEmpty();
+
+        boolean headBlocked =
+                !level.getBlockState(headPosition)
+                        .getCollisionShape(
+                                level,
+                                headPosition
+                        )
+                        .isEmpty();
+
+        return !feetBlocked && !headBlocked;
+    }
+
+    private static FreezePosition createFallbackPosition(
+            ServerPlayer player
+    ) {
+        return new FreezePosition(
+                player.level().dimension(),
+                player.getX(),
+                player.getY(),
+                player.getZ(),
+                player.getYRot(),
+                player.getXRot()
+        );
+    }
+
+    private static void warnAboutFallback(
+            FreezeRecord record,
+            FreezePosition savedPosition,
+            FreezePosition fallbackPosition
+    ) {
+        if (!FALLBACK_WARNED_PLAYERS.add(
+                record.targetUuid()
+        )) {
+            return;
+        }
+
+        Steward.LOGGER.warn(
+                "Frozen player {} could not be restored to "
+                        + "{} at [{}, {}, {}]. "
+                        + "Using fallback {} at [{}, {}, {}].",
+                record.targetName(),
+                savedPosition.dimension()
+                        .identifier(),
+                savedPosition.x(),
+                savedPosition.y(),
+                savedPosition.z(),
+                fallbackPosition.dimension()
+                        .identifier(),
+                fallbackPosition.x(),
+                fallbackPosition.y(),
+                fallbackPosition.z()
+        );
     }
 
     public static void register() {
@@ -171,6 +368,9 @@ public final class FreezeService {
         if (record == null) {
             return false;
         }
+        FALLBACK_WARNED_PLAYERS.remove(
+                targetUuid
+        );
 
         record.complete(
                 staff.getUUID(),
@@ -261,52 +461,10 @@ public final class FreezeService {
                 continue;
             }
 
-            FreezePosition position =
-                    entry.getValue().position();
-
-            player.setDeltaMovement(
-                    0.0D,
-                    0.0D,
-                    0.0D
-            );
-
-            player.fallDistance = 0.0F;
-
-            ServerLevel frozenLevel =
-                    server.getLevel(
-                            position.dimension()
-                    );
-
-            if (frozenLevel == null) {
-                continue;
-            }
-
-            boolean wrongDimension =
-                    !player.level()
-                            .dimension()
-                            .equals(
-                                    position.dimension()
-                            );
-
-            if (wrongDimension) {
-                player.teleportTo(
-                        frozenLevel,
-                        position.x(),
-                        position.y(),
-                        position.z(),
-                        Set.<Relative>of(),
-                        position.yaw(),
-                        position.pitch(),
-                        false
-                );
-
-                continue;
-            }
-
-            player.teleportTo(
-                    position.x(),
-                    position.y(),
-                    position.z()
+            restoreFrozenPlayer(
+                    server,
+                    player,
+                    entry.getValue()
             );
         }
     }
