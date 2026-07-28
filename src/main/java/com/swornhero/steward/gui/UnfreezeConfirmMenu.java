@@ -1,5 +1,7 @@
 package com.swornhero.steward.gui;
 
+import com.swornhero.steward.freeze.FreezeService;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -13,21 +15,21 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class ActiveFreezeDetailMenu
+public final class UnfreezeConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 48;
-    public static final int UNFREEZE_SLOT = 49;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CONFIRM_SLOT = 48;
+    public static final int CANCEL_SLOT = 50;
+    public static final int CLOSE_SLOT = 53;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int activeFreezePage;
 
-    public ActiveFreezeDetailMenu(
+    public UnfreezeConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
@@ -57,7 +59,7 @@ public final class ActiveFreezeDetailMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public ActiveFreezeDetailMenu(
+    public UnfreezeConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -181,14 +183,10 @@ public final class ActiveFreezeDetailMenu
         }
 
         switch (slotId) {
-            case BACK_SLOT ->
-                    ActiveFreezeScreen.open(
-                            viewer,
-                            activeFreezePage
-                    );
+            case CONFIRM_SLOT -> confirmUnfreeze(viewer);
 
-            case UNFREEZE_SLOT ->
-                    UnfreezeConfirmScreen.open(
+            case CANCEL_SLOT ->
+                    ActiveFreezeDetailScreen.open(
                             viewer,
                             targetUuid,
                             activeFreezePage
@@ -198,9 +196,32 @@ public final class ActiveFreezeDetailMenu
                     viewer.closeContainer();
 
             default -> {
-                // Detail items are informational only.
+                // Information, border, or empty slot.
             }
         }
+    }
+
+    private void confirmUnfreeze(
+            ServerPlayer viewer
+    ) {
+        boolean unfrozen =
+                FreezeService.unfreeze(
+                        viewer,
+                        targetUuid
+                );
+
+        if (!unfrozen) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That freeze is no longer active."
+                    )
+            );
+        }
+
+        ActiveFreezeScreen.open(
+                viewer,
+                activeFreezePage
+        );
     }
 
     @Override
