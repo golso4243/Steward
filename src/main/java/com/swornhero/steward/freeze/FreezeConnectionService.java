@@ -37,6 +37,7 @@ public final class FreezeConnectionService {
 
         if (record != null) {
             record.recordDisconnect();
+            FreezeService.saveActiveFreezes();
             FreezeAuditService.recordDisconnect(record);
         }
 
@@ -64,6 +65,7 @@ public final class FreezeConnectionService {
 
         if (record != null) {
             record.recordReconnect();
+            FreezeService.saveActiveFreezes();
             FreezeAuditService.recordReconnect(record);
         }
 

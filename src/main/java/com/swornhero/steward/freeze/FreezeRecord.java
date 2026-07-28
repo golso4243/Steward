@@ -99,6 +99,17 @@ public final class FreezeRecord {
         reconnectCount++;
     }
 
+    public void restoreConnectionCounts(
+            int disconnectCount,
+            int reconnectCount
+    ) {
+        this.disconnectCount =
+                Math.max(0, disconnectCount);
+
+        this.reconnectCount =
+                Math.max(0, reconnectCount);
+    }
+
     public void complete(
             UUID staffUuid,
             String staffName,

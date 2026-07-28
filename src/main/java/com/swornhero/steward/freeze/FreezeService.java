@@ -22,8 +22,29 @@ public final class FreezeService {
     }
 
     public static void register() {
+        restoreActiveFreezes();
+
         ServerTickEvents.END_SERVER_TICK.register(
                 FreezeService::onEndServerTick
+        );
+    }
+
+    private static void restoreActiveFreezes() {
+        FROZEN_PLAYERS.clear();
+
+        for (FreezeRecord record
+                : ActiveFreezeStorageService.load()) {
+
+            FROZEN_PLAYERS.put(
+                    record.targetUuid(),
+                    record
+            );
+        }
+    }
+
+    public static void saveActiveFreezes() {
+        ActiveFreezeStorageService.save(
+                FROZEN_PLAYERS.values()
         );
     }
 
@@ -75,6 +96,8 @@ public final class FreezeService {
                 target.getUUID(),
                 record
         );
+
+        saveActiveFreezes();
 
         FreezeAuditService.recordFreeze(record);
 
@@ -133,6 +156,8 @@ public final class FreezeService {
         );
 
         FreezeHistoryService.add(record);
+
+        saveActiveFreezes();
 
         target.setDeltaMovement(
                 0.0D,
