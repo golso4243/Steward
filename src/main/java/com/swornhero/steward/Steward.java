@@ -1,6 +1,7 @@
 package com.swornhero.steward;
 
 import com.swornhero.steward.command.StewardCommands;
+import com.swornhero.steward.freeze.PendingNotificationService;
 import com.swornhero.steward.freeze.FreezeService;
 import com.swornhero.steward.freeze.FreezeProtectionService;
 import com.swornhero.steward.freeze.FreezeConnectionService;
@@ -21,6 +22,7 @@ public final class Steward implements ModInitializer {
 		LOGGER.info("{} is initializing.", MOD_NAME);
 
 		FreezeHistoryService.register();
+		PendingNotificationService.register();
 
 		StewardCommands.register();
 		FreezeService.register();

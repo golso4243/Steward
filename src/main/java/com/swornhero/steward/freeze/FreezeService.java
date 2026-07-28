@@ -205,16 +205,23 @@ public final class FreezeService {
                             "You are no longer frozen."
                     )
             );
+
+            onlineTarget.sendSystemMessage(
+                    Component.literal(
+                            "You were unfrozen by "
+                                    + staff.getName().getString()
+                                    + "."
+                    )
+            );
+        } else {
+            PendingNotificationService.queueUnfreezeNotice(
+                    record.targetUuid(),
+                    record.targetName(),
+                    staff.getUUID(),
+                    staff.getName().getString()
+            );
         }
-
-        staff.sendSystemMessage(
-                Component.literal(
-                        record.targetName()
-                                + " has been unfrozen."
-                )
-        );
-
-        return true;
+    return true;
     }
 
     public static boolean toggle(

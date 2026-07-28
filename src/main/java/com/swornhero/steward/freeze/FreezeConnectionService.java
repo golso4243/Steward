@@ -56,6 +56,7 @@ public final class FreezeConnectionService {
             ServerPlayer player,
             MinecraftServer server
     ) {
+        PendingNotificationService.deliverPendingNotice(player);
         if (!FreezeService.isFrozen(player)) {
             return;
         }
