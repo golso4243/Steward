@@ -1,9 +1,10 @@
 package com.swornhero.steward.freeze;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 public record FreezePosition(
-        Identifier dimension,
+        ResourceKey<Level> dimension,
         double x,
         double y,
         double z,

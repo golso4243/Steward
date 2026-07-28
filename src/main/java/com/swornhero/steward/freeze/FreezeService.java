@@ -3,7 +3,11 @@ package com.swornhero.steward.freeze;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Relative;
+
+import java.util.Set;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,9 +44,7 @@ public final class FreezeService {
         }
 
         FreezePosition position = new FreezePosition(
-                target.level()
-                        .dimension()
-                        .identifier(),
+                target.level().dimension(),
                 target.getX(),
                 target.getY(),
                 target.getZ(),
@@ -50,9 +52,17 @@ public final class FreezeService {
                 target.getXRot()
         );
 
-        FROZEN_PLAYERS.put(target.getUUID(), position);
+        FROZEN_PLAYERS.put(
+                target.getUUID(),
+                position
+        );
 
-        target.setDeltaMovement(0.0D, 0.0D, 0.0D);
+        target.setDeltaMovement(
+                0.0D,
+                0.0D,
+                0.0D
+        );
+
         target.fallDistance = 0.0F;
 
         target.sendSystemMessage(
@@ -82,13 +92,19 @@ public final class FreezeService {
             ServerPlayer target
     ) {
         FreezePosition removed =
-                FROZEN_PLAYERS.remove(target.getUUID());
+                FROZEN_PLAYERS.remove(
+                        target.getUUID()
+                );
 
         if (removed == null) {
             return false;
         }
 
-        target.setDeltaMovement(0.0D, 0.0D, 0.0D);
+        target.setDeltaMovement(
+                0.0D,
+                0.0D,
+                0.0D
+        );
 
         target.sendSystemMessage(
                 Component.literal(
@@ -111,10 +127,16 @@ public final class FreezeService {
             ServerPlayer target
     ) {
         if (isFrozen(target)) {
-            return unfreeze(staff, target);
+            return unfreeze(
+                    staff,
+                    target
+            );
         }
 
-        return freeze(staff, target);
+        return freeze(
+                staff,
+                target
+        );
     }
 
     private static void onEndServerTick(
@@ -135,10 +157,47 @@ public final class FreezeService {
                 continue;
             }
 
-            FreezePosition position = entry.getValue();
+            FreezePosition position =
+                    entry.getValue();
 
-            player.setDeltaMovement(0.0D, 0.0D, 0.0D);
+            player.setDeltaMovement(
+                    0.0D,
+                    0.0D,
+                    0.0D
+            );
+
             player.fallDistance = 0.0F;
+
+            ServerLevel frozenLevel =
+                    server.getLevel(
+                            position.dimension()
+                    );
+
+            if (frozenLevel == null) {
+                continue;
+            }
+
+            boolean wrongDimension =
+                    !player.level()
+                            .dimension()
+                            .equals(
+                                    position.dimension()
+                            );
+
+            if (wrongDimension) {
+                player.teleportTo(
+                        frozenLevel,
+                        position.x(),
+                        position.y(),
+                        position.z(),
+                        Set.<Relative>of(),
+                        position.yaw(),
+                        position.pitch(),
+                        false
+                );
+
+                continue;
+            }
 
             player.teleportTo(
                     position.x(),
