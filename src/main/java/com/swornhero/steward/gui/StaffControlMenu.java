@@ -149,11 +149,8 @@ public final class StaffControlMenu extends AbstractContainerMenu {
 
             case PLAYERS -> PlayerBrowserScreen.open(player);
 
-            case FREEZE -> player.sendSystemMessage(
-                    Component.literal(
-                            "Select a player before using the freeze tool."
-                    )
-            );
+            case ACTIVE_FREEZES ->
+                    ActiveFreezeScreen.open(player);
 
             default -> player.sendSystemMessage(
                     Component.literal(
@@ -171,7 +168,7 @@ public final class StaffControlMenu extends AbstractContainerMenu {
             case VANISH -> "Vanish";
             case PLAYERS -> "Players";
             case TELEPORT -> "Teleport Tools";
-            case FREEZE -> "Freeze";
+            case ACTIVE_FREEZES -> "Active Freezes";
             case REPORTS -> "Reports";
             case NOTES -> "Staff Notes";
             case INSPECTION -> "Inspection";

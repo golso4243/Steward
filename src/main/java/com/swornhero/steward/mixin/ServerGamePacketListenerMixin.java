@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.swornhero.steward.gui.ActiveFreezeMenu;
+import com.swornhero.steward.gui.ActiveFreezeDetailMenu;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class ServerGamePacketListenerMixin {
@@ -106,6 +108,8 @@ public abstract class ServerGamePacketListenerMixin {
                 || player.containerMenu instanceof PlayerProfileMenu
                 || player.containerMenu instanceof FreezeReasonMenu
                 || player.containerMenu instanceof FreezeHistoryMenu
-                || player.containerMenu instanceof FreezeHistoryDetailMenu;
+                || player.containerMenu instanceof FreezeHistoryDetailMenu
+                || player.containerMenu instanceof ActiveFreezeMenu
+                || player.containerMenu instanceof ActiveFreezeDetailMenu;
     }
 }

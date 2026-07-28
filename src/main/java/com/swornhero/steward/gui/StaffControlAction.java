@@ -6,7 +6,7 @@ public enum StaffControlAction {
     VANISH(12),
     PLAYERS(13),
     TELEPORT(14),
-    FREEZE(15),
+    ACTIVE_FREEZES(15),
     REPORTS(16),
 
     NOTES(19),

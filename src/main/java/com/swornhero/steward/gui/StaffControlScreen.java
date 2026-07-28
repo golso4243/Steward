@@ -79,9 +79,9 @@ public final class StaffControlScreen {
 
         setButton(
                 container,
-                StaffControlAction.FREEZE.slot(),
+                StaffControlAction.ACTIVE_FREEZES.slot(),
                 Items.PACKED_ICE,
-                "Freeze"
+                "Active Freezes"
         );
 
         setButton(
