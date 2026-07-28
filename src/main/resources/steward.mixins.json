@@ -1,9 +1,11 @@
 {
 	"required": true,
-	"package": "com.swornhero.mixin",
+	"package": "com.swornhero.steward.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"ExampleMixin"
+		"ServerGamePacketListenerMixin",
+		"ItemEntityMixin",
+		"ExperienceOrbMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

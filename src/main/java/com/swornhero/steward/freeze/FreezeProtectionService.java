@@ -106,6 +106,13 @@ public final class FreezeProtectionService {
         return InteractionResult.FAIL;
     }
 
+    public static void denyAndResynchronize(
+            ServerPlayer player
+    ) {
+        resynchronizeInventory(player);
+        sendFrozenMessage(player);
+    }
+
     private static void resynchronizeInventory(
             ServerPlayer player
     ) {
