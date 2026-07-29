@@ -36,6 +36,7 @@ public final class FreezeService {
             ServerPlayer player,
             FreezeRecord record
     ) {
+
         FreezePosition savedPosition =
                 record.position();
 
@@ -334,13 +335,9 @@ public final class FreezeService {
 
         FreezeAuditService.recordFreeze(record);
 
-        target.setDeltaMovement(
-                0.0D,
-                0.0D,
-                0.0D
+        maintainFrozenPlayerSafety(
+                target
         );
-
-        target.fallDistance = 0.0F;
 
         target.sendSystemMessage(
                 Component.literal(
@@ -526,6 +523,32 @@ public final class FreezeService {
         );
     }
 
+    public static void maintainFrozenPlayerSafety(
+            ServerPlayer player
+    ) {
+        player.setDeltaMovement(
+                0.0D,
+                0.0D,
+                0.0D
+        );
+
+        player.fallDistance = 0.0F;
+
+        if (FreezePolicyService.get()
+                .extinguishFrozenPlayers()) {
+
+            player.setRemainingFireTicks(0);
+        }
+
+        if (FreezePolicyService.get()
+                .restoreAirWhileFrozen()) {
+
+            player.setAirSupply(
+                    player.getMaxAirSupply()
+            );
+        }
+    }
+
     private static void onEndServerTick(
             MinecraftServer server
     ) {
@@ -548,6 +571,10 @@ public final class FreezeService {
                     server,
                     player,
                     entry.getValue()
+            );
+
+            maintainFrozenPlayerSafety(
+                    player
             );
         }
     }

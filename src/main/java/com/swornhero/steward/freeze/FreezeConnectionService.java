@@ -96,6 +96,10 @@ public final class FreezeConnectionService {
                         record
                 );
 
+        FreezeService.maintainFrozenPlayerSafety(
+                player
+        );
+
         player.sendSystemMessage(
                 Component.literal(
                         "You are still frozen. "

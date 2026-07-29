@@ -7,6 +7,7 @@ import com.swornhero.steward.freeze.FreezeProtectionService;
 import com.swornhero.steward.freeze.FreezeConnectionService;
 import com.swornhero.steward.freeze.FreezeHistoryService;
 import com.swornhero.steward.config.FreezePolicyService;
+import com.swornhero.steward.freeze.FreezeDamageService;
 
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public final class Steward implements ModInitializer {
 
 		StewardCommands.register();
 		FreezeService.register();
+		FreezeDamageService.register();
 		FreezeProtectionService.register();
 		FreezeConnectionService.register();
 

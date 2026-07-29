@@ -46,7 +46,16 @@ public final class FreezePolicyService {
               "fallbackStaffAlerts": true,
 
               "_comment_fallbackConsoleWarnings": "Write fallback restoration warnings to the server console.",
-              "fallbackConsoleWarnings": true
+              "fallbackConsoleWarnings": true,
+            
+              "_comment_preventDamageWhileFrozen": "Prevent all incoming damage while a player is frozen. Recommended: true.",
+              "preventDamageWhileFrozen": true,
+            
+              "_comment_extinguishFrozenPlayers": "Continuously extinguish frozen players so fire cannot remain active.",
+              "extinguishFrozenPlayers": true,
+            
+              "_comment_restoreAirWhileFrozen": "Continuously restore a frozen player's air supply to prevent drowning.",
+              "restoreAirWhileFrozen": true,
             
               "_comment_allowedCommands": "Commands frozen players may use. Enter only the root command without a leading slash.",
               "allowedCommands": [
