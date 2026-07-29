@@ -9,9 +9,10 @@
 	],
 	"contact": {
 		"homepage": "https://www.swornhero.com",
-		"sources": "https://github.com/golso4243/Steward"
+		"sources": "https://github.com/golso4243/Steward",
+		"issues": "https://github.com/golso4243/Steward/issues"
 	},
-	"license": "CC0-1.0",
+	"license": "MPL 2.0",
 	"icon": "assets/steward/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -23,6 +24,9 @@
 		],
 		"fabric-datagen": [
 			"com.swornhero.steward.StewardDataGenerator"
+		],
+		"modmenu": [
+			"com.swornhero.steward.compat.modmenu.StewardModMenuIntegration"
 		]
 	},
 	"mixins": [
@@ -38,5 +42,17 @@
 		"java": ">=25",
 		"fabric-api": "*",
 		"luckperms": "*"
+	},
+	"suggests": {
+		"modmenu": "*"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"steward.website": "https://www.swornhero.com",
+				"steward.documentation": "https://www.swornhero.com/docs/steward",
+				"steward.discord": "https://discord.gg/YOUR_INVITE"
+			}
+		}
 	}
 }

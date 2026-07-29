@@ -9,13 +9,18 @@ group = project.maven_group
 repositories {
 	mavenCentral()
 
+	maven {
+		name = "TerraformersMC"
+		url = "https://maven.terraformersmc.com/"
+	}
+
+	def modrinthRepository = maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+	}
+
 	exclusiveContent {
-		forRepository {
-			maven {
-				name = "Modrinth"
-				url = "https://api.modrinth.com/maven"
-			}
-		}
+		forRepositories(modrinthRepository)
 
 		filter {
 			includeGroup "maven.modrinth"
@@ -42,17 +47,26 @@ fabricApi {
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
+	// LuckPerms API used by Steward's common/server code.
 	compileOnly "net.luckperms:api:5.4"
 
+	// LuckPerms available when running the development environment.
 	runtimeOnly "maven.modrinth:Vebnzrzj:UHUghDkV"
+
+	// Mod Menu API is only needed by Steward's client source set.
+	clientCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+	// Install Mod Menu when launching the development client.
+	clientRuntimeOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 processResources {
 	def version = project.version
+
 	inputs.property "version", version
 
 	filesMatching("fabric.mod.json") {
@@ -61,13 +75,10 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 25
+	options.release = 25
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
 	sourceCompatibility = JavaVersion.VERSION_25
@@ -76,14 +87,14 @@ java {
 
 jar {
 	def projectName = project.name
+
 	inputs.property "projectName", projectName
 
 	from("LICENSE") {
-		rename { "${it}_$projectName"}
+		rename { "${it}_${projectName}" }
 	}
 }
 
-// configure the maven publication
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
@@ -91,11 +102,7 @@ publishing {
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+		// Add Maven publishing repositories here when needed.
 	}
 }
