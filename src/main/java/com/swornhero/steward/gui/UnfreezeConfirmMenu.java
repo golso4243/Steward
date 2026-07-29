@@ -224,27 +224,33 @@ public final class UnfreezeConfirmMenu
                 StewardPermissions
                         .FREEZE_UNFREEZE_OFFLINE
         )) {
-
             return;
         }
 
-        boolean unfrozen =
-                FreezeService.unfreeze(
-                        viewer,
-                        targetUuid
-                );
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "[Steward] Checking staff hierarchy..."
+                )
+        );
 
-        if (!unfrozen) {
-            viewer.sendSystemMessage(
-                    Component.literal(
-                            "That freeze is no longer active."
-                    )
-            );
-        }
-
-        ActiveFreezeScreen.open(
+        FreezeService.unfreezeAuthorized(
                 viewer,
-                activeFreezePage
+                targetUuid,
+                unfrozen -> {
+                    if (!unfrozen) {
+                        viewer.sendSystemMessage(
+                                Component.literal(
+                                        "That freeze is no longer active "
+                                                + "or the action was denied."
+                                )
+                        );
+                    }
+
+                    ActiveFreezeScreen.open(
+                            viewer,
+                            activeFreezePage
+                    );
+                }
         );
     }
 
