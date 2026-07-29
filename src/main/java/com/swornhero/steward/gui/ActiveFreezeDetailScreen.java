@@ -182,7 +182,7 @@ public final class ActiveFreezeDetailScreen {
                 container,
                 24,
                 Items.ENDER_EYE,
-                "Dimension: "
+                "Original Dimension: "
                         + record.position()
                         .dimension()
                         .identifier()
@@ -192,7 +192,7 @@ public final class ActiveFreezeDetailScreen {
                 container,
                 29,
                 Items.COMPASS,
-                "X: "
+                "Original X: "
                         + formatCoordinate(
                         record.position().x()
                 )
@@ -202,7 +202,7 @@ public final class ActiveFreezeDetailScreen {
                 container,
                 31,
                 Items.COMPASS,
-                "Y: "
+                "Original Y: "
                         + formatCoordinate(
                         record.position().y()
                 )
@@ -212,10 +212,20 @@ public final class ActiveFreezeDetailScreen {
                 container,
                 33,
                 Items.COMPASS,
-                "Z: "
+                "Original Z: "
                         + formatCoordinate(
                         record.position().z()
                 )
+        );
+
+        setButton(
+                container,
+                37,
+                Items.RECOVERY_COMPASS,
+                "Current Dimension: "
+                        + record.currentPosition()
+                        .dimension()
+                        .identifier()
         );
 
         setButton(
@@ -228,10 +238,47 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
+                39,
+                Items.COMPASS,
+                "Current X: "
+                        + formatCoordinate(
+                        record.currentPosition().x()
+                )
+        );
+
+        setButton(
+                container,
+                41,
+                Items.COMPASS,
+                "Current Y: "
+                        + formatCoordinate(
+                        record.currentPosition().y()
+                )
+        );
+
+        setButton(
+                container,
                 42,
                 Items.LEVER,
                 "Reconnects: "
                         + record.reconnectCount()
+        );
+
+        setButton(
+                container,
+                43,
+                Items.COMPASS,
+                "Current Z: "
+                        + formatCoordinate(
+                        record.currentPosition().z()
+                )
+        );
+
+        setButton(
+                container,
+                ActiveFreezeDetailMenu.RELOCATE_SLOT,
+                Items.ENDER_PEARL,
+                "Bring Player Here"
         );
 
         setButton(

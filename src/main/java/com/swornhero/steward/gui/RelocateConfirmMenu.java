@@ -1,5 +1,6 @@
 package com.swornhero.steward.gui;
 
+import com.swornhero.steward.freeze.FreezeService;
 import com.swornhero.steward.permission.StewardPermissions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -14,22 +15,21 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class ActiveFreezeDetailMenu
+public final class RelocateConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int RELOCATE_SLOT = 47;
-    public static final int BACK_SLOT = 48;
-    public static final int UNFREEZE_SLOT = 49;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CONFIRM_SLOT = 48;
+    public static final int CANCEL_SLOT = 50;
+    public static final int CLOSE_SLOT = 53;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int activeFreezePage;
 
-    public ActiveFreezeDetailMenu(
+    public RelocateConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
@@ -48,8 +48,7 @@ public final class ActiveFreezeDetailMenu
 
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
-        this.activeFreezePage =
-                activeFreezePage;
+        this.activeFreezePage = activeFreezePage;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -59,7 +58,7 @@ public final class ActiveFreezeDetailMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public ActiveFreezeDetailMenu(
+    public RelocateConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -178,62 +177,60 @@ public final class ActiveFreezeDetailMenu
             return;
         }
 
-        if (!StewardPermissions.require(
-                viewer,
-                StewardPermissions.FREEZE_VIEW
-        )) {
-            viewer.closeContainer();
-            return;
-        }
-
         if (slotId < 0 || slotId >= MENU_SIZE) {
             return;
         }
 
         switch (slotId) {
-            case RELOCATE_SLOT -> {
-                if (!StewardPermissions.require(
-                        viewer,
-                        StewardPermissions.FREEZE_RELOCATE
-                )) {
-                    return;
-                }
+            case CONFIRM_SLOT ->
+                    confirmRelocation(viewer);
 
-                RelocateConfirmScreen.open(
-                        viewer,
-                        targetUuid,
-                        activeFreezePage
-                );
-            }
-
-            case BACK_SLOT ->
-                    ActiveFreezeScreen.open(
+            case CANCEL_SLOT ->
+                    ActiveFreezeDetailScreen.open(
                             viewer,
+                            targetUuid,
                             activeFreezePage
                     );
-
-            case UNFREEZE_SLOT -> {
-                if (!StewardPermissions.require(
-                        viewer,
-                        StewardPermissions.FREEZE_UNFREEZE
-                )) {
-                    return;
-                }
-
-                UnfreezeConfirmScreen.open(
-                        viewer,
-                        targetUuid,
-                        activeFreezePage
-                );
-            }
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
 
             default -> {
-                // Detail items are informational only.
+                // Information, border, or empty slot.
             }
         }
+    }
+
+    private void confirmRelocation(
+            ServerPlayer viewer
+    ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_RELOCATE
+        )) {
+            return;
+        }
+
+        boolean relocated =
+                FreezeService.relocateToStaff(
+                        viewer,
+                        targetUuid
+                );
+
+        if (!FreezeService.isFrozen(targetUuid)) {
+            ActiveFreezeScreen.open(
+                    viewer,
+                    activeFreezePage
+            );
+
+            return;
+        }
+
+        ActiveFreezeDetailScreen.open(
+                viewer,
+                targetUuid,
+                activeFreezePage
+        );
     }
 
     @Override

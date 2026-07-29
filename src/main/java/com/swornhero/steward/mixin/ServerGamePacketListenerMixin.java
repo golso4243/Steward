@@ -155,6 +155,7 @@ public abstract class ServerGamePacketListenerMixin {
                 || player.containerMenu instanceof FreezeHistoryDetailMenu
                 || player.containerMenu instanceof ActiveFreezeMenu
                 || player.containerMenu instanceof ActiveFreezeDetailMenu
-                || player.containerMenu instanceof UnfreezeConfirmMenu;
+                || player.containerMenu instanceof UnfreezeConfirmMenu
+                || player.containerMenu instanceof RelocateConfirmMenu;
     }
 }

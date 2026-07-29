@@ -43,6 +43,47 @@ public final class FreezeAuditService {
         );
     }
 
+    public static void recordRelocation(
+            FreezeRecord record,
+            ServerPlayer staff,
+            FreezePosition previousPosition,
+            FreezePosition newPosition,
+            String note
+    ) {
+        Steward.LOGGER.info(
+                "[Freeze] {} was relocated while frozen by {}. "
+                        + "Original freeze location: {} at [{}, {}, {}]. "
+                        + "Previous anchor: {} at [{}, {}, {}]. "
+                        + "New anchor: {} at [{}, {}, {}]. "
+                        + "Note: {}",
+                record.targetName(),
+                staff.getName().getString(),
+
+                record.position()
+                        .dimension()
+                        .identifier(),
+                formatCoordinate(record.position().x()),
+                formatCoordinate(record.position().y()),
+                formatCoordinate(record.position().z()),
+
+                previousPosition
+                        .dimension()
+                        .identifier(),
+                formatCoordinate(previousPosition.x()),
+                formatCoordinate(previousPosition.y()),
+                formatCoordinate(previousPosition.z()),
+
+                newPosition
+                        .dimension()
+                        .identifier(),
+                formatCoordinate(newPosition.x()),
+                formatCoordinate(newPosition.y()),
+                formatCoordinate(newPosition.z()),
+
+                note
+        );
+    }
+
     public static void recordUnfreeze(
             FreezeRecord record,
             ServerPlayer staff

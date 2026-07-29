@@ -2,6 +2,8 @@ package com.swornhero.steward.freeze;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class FreezeRecord {
     private final UUID targetUuid;
@@ -11,6 +13,11 @@ public final class FreezeRecord {
     private final String frozenByName;
 
     private final FreezePosition position;
+    private FreezePosition currentPosition;
+
+    private final List<FreezeRelocation> relocations =
+            new ArrayList<>();
+
     private final String reason;
     private final Instant frozenAt;
 
@@ -57,6 +64,59 @@ public final class FreezeRecord {
 
     public FreezePosition position() {
         return position;
+    }
+
+    public FreezePosition currentPosition() {
+        if (currentPosition == null) {
+            return position;
+        }
+
+        return currentPosition;
+    }
+
+    public List<FreezeRelocation> relocations() {
+        if (relocations == null) {
+            return List.of();
+        }
+
+        return List.copyOf(relocations);
+    }
+
+    public void relocate(
+            FreezePosition newPosition,
+            UUID staffUuid,
+            String staffName,
+            String note
+    ) {
+        FreezePosition previousPosition =
+                currentPosition();
+
+        relocations.add(
+                new FreezeRelocation(
+                        previousPosition,
+                        newPosition,
+                        staffUuid,
+                        staffName,
+                        Instant.now(),
+                        note
+                )
+        );
+
+        currentPosition = newPosition;
+    }
+
+    public void restoreCurrentPosition(
+            FreezePosition restoredPosition
+    ) {
+        currentPosition = restoredPosition;
+    }
+
+    public void removeLatestRelocation() {
+        if (!relocations.isEmpty()) {
+            relocations.remove(
+                    relocations.size() - 1
+            );
+        }
     }
 
     public String reason() {

@@ -29,6 +29,9 @@ public final class StewardPermissions {
     public static final Identifier FREEZE_MANAGE =
             create("freeze.manage");
 
+    public static final Identifier FREEZE_RELOCATE =
+            create("freeze.relocate");
+
     public static final Identifier FREEZE_ALERTS =
             create("freeze.alerts");
 

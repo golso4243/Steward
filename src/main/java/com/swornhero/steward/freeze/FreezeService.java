@@ -38,7 +38,7 @@ public final class FreezeService {
     ) {
 
         FreezePosition savedPosition =
-                record.position();
+                record.currentPosition();
 
         ServerLevel targetLevel =
                 server.getLevel(
@@ -502,6 +502,157 @@ public final class FreezeService {
             );
         }
     return true;
+    }
+
+    public static boolean relocateToStaff(
+            ServerPlayer staff,
+            UUID targetUuid
+    ) {
+        FreezeRecord record =
+                FROZEN_PLAYERS.get(targetUuid);
+
+        if (record == null) {
+            staff.sendSystemMessage(
+                    Component.literal(
+                            "[Steward] That player is no longer frozen."
+                    )
+            );
+
+            return false;
+        }
+
+        MinecraftServer server =
+                staff.level().getServer();
+
+        ServerPlayer target =
+                server.getPlayerList()
+                        .getPlayer(targetUuid);
+
+        if (target == null) {
+            staff.sendSystemMessage(
+                    Component.literal(
+                            "[Steward] Frozen players must be online "
+                                    + "before they can be relocated."
+                    )
+            );
+
+            return false;
+        }
+
+        if (!StaffHierarchyService.requireCanAct(
+                staff,
+                target
+        )) {
+            return false;
+        }
+
+        FreezePosition previousPosition =
+                record.currentPosition();
+
+        FreezePosition newPosition =
+                new FreezePosition(
+                        staff.level().dimension(),
+                        staff.getX(),
+                        staff.getY(),
+                        staff.getZ(),
+                        staff.getYRot(),
+                        staff.getXRot()
+                );
+
+        ServerLevel destinationLevel =
+                server.getLevel(
+                        newPosition.dimension()
+                );
+
+        if (destinationLevel == null
+                || !isUsableFreezePosition(
+                destinationLevel,
+                newPosition
+        )) {
+            staff.sendSystemMessage(
+                    Component.literal(
+                            "[Steward] Your current location is not "
+                                    + "safe for frozen-player relocation."
+                    )
+            );
+
+            return false;
+        }
+
+        String relocationNote =
+                "Player relocated by staff to a safe location "
+                        + "while remaining frozen.";
+
+        record.relocate(
+                newPosition,
+                staff.getUUID(),
+                staff.getName().getString(),
+                relocationNote
+        );
+
+        saveActiveFreezes();
+
+        boolean usedFallback =
+                restoreFrozenPlayer(
+                        server,
+                        target,
+                        record
+                );
+
+        if (usedFallback) {
+            record.restoreCurrentPosition(
+                    previousPosition
+            );
+
+            record.removeLatestRelocation();
+            saveActiveFreezes();
+
+            restoreFrozenPlayer(
+                    server,
+                    target,
+                    record
+            );
+
+            staff.sendSystemMessage(
+                    Component.literal(
+                            "[Steward] Relocation failed. "
+                                    + "The previous freeze anchor "
+                                    + "was restored."
+                    )
+            );
+
+            return false;
+        }
+
+        maintainFrozenPlayerSafety(
+                target
+        );
+
+        FreezeAuditService.recordRelocation(
+                record,
+                staff,
+                previousPosition,
+                newPosition,
+                relocationNote
+        );
+
+        target.sendSystemMessage(
+                Component.literal(
+                        "A staff member moved you to a safe location. "
+                                + "You are still frozen."
+                )
+        );
+
+        staff.sendSystemMessage(
+                Component.literal(
+                        "[Steward] "
+                                + target.getName().getString()
+                                + " was relocated to your position "
+                                + "and remains frozen."
+                )
+        );
+
+        return true;
     }
 
     public static boolean toggle(
