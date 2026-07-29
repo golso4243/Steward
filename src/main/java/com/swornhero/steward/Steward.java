@@ -1,13 +1,13 @@
 package com.swornhero.steward;
 
 import com.swornhero.steward.command.StewardCommands;
-import com.swornhero.steward.freeze.PendingNotificationService;
-import com.swornhero.steward.freeze.FreezeService;
-import com.swornhero.steward.freeze.FreezeProtectionService;
-import com.swornhero.steward.freeze.FreezeConnectionService;
-import com.swornhero.steward.freeze.FreezeHistoryService;
+import com.swornhero.steward.module.freeze.service.PendingNotificationService;
+import com.swornhero.steward.module.freeze.service.FreezeService;
+import com.swornhero.steward.module.freeze.service.FreezeProtectionService;
+import com.swornhero.steward.module.freeze.service.FreezeConnectionService;
+import com.swornhero.steward.module.freeze.service.FreezeHistoryService;
 import com.swornhero.steward.config.FreezePolicyService;
-import com.swornhero.steward.freeze.FreezeDamageService;
+import com.swornhero.steward.module.freeze.service.FreezeDamageService;
 
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;

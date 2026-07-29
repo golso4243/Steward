@@ -1,4 +1,4 @@
-package com.swornhero.steward.freeze;
+package com.swornhero.steward.module.freeze.service;
 
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;

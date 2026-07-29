@@ -1,8 +1,8 @@
 package com.swornhero.steward.mixin;
 
-import com.swornhero.steward.freeze.FreezeCommandService;
-import com.swornhero.steward.freeze.FreezeProtectionService;
-import com.swornhero.steward.freeze.FreezeService;
+import com.swornhero.steward.module.freeze.service.FreezeCommandService;
+import com.swornhero.steward.module.freeze.service.FreezeProtectionService;
+import com.swornhero.steward.module.freeze.service.FreezeService;
 import com.swornhero.steward.gui.*;
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;

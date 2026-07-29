@@ -1,6 +1,6 @@
 package com.swornhero.steward.mixin;
 
-import com.swornhero.steward.freeze.FreezeService;
+import com.swornhero.steward.module.freeze.service.FreezeService;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;

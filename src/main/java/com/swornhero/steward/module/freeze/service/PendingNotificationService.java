@@ -1,10 +1,11 @@
-package com.swornhero.steward.freeze;
+package com.swornhero.steward.module.freeze.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.swornhero.steward.Steward;
+import com.swornhero.steward.module.freeze.model.PendingUnfreezeNotice;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 

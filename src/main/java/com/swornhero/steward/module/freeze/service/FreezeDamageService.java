@@ -1,4 +1,4 @@
-package com.swornhero.steward.freeze;
+package com.swornhero.steward.module.freeze.service;
 
 import com.swornhero.steward.config.FreezePolicyService;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;

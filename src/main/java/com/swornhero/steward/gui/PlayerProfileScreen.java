@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.TooltipDisplay;
 
-import com.swornhero.steward.freeze.FreezeService;
+import com.swornhero.steward.module.freeze.service.FreezeService;
 
 import java.util.LinkedHashSet;
 import java.util.UUID;

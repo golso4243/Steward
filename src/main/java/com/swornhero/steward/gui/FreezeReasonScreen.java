@@ -1,6 +1,6 @@
 package com.swornhero.steward.gui;
 
-import com.swornhero.steward.freeze.FreezeReason;
+import com.swornhero.steward.module.freeze.model.FreezeReason;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;

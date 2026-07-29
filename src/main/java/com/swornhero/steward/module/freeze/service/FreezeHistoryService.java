@@ -1,4 +1,4 @@
-package com.swornhero.steward.freeze;
+package com.swornhero.steward.module.freeze.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

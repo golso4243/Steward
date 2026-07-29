@@ -1,4 +1,4 @@
-package com.swornhero.steward.freeze;
+package com.swornhero.steward.module.freeze.service;
 
 import com.swornhero.steward.config.FreezePolicyService;
 import com.swornhero.steward.module.freeze.model.FreezeRecord;
