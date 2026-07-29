@@ -1,11 +1,11 @@
-package com.swornhero.steward.command;
+package com.swornhero.steward.core.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.swornhero.steward.core.gui.StaffControlScreen;
-import com.swornhero.steward.permission.StewardPermissions;
-import com.swornhero.steward.status.StewardStatusService;
+import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.status.StewardStatusService;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;

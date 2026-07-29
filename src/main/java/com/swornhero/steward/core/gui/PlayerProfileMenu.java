@@ -15,7 +15,7 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import com.swornhero.steward.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StewardPermissions;
 
 import java.util.UUID;
 

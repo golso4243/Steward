@@ -1,4 +1,4 @@
-package com.swornhero.steward.status;
+package com.swornhero.steward.core.status;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;

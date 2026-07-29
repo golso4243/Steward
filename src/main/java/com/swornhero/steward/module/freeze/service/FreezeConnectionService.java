@@ -2,7 +2,7 @@ package com.swornhero.steward.module.freeze.service;
 
 import com.swornhero.steward.module.freeze.config.FreezePolicyService;
 import com.swornhero.steward.module.freeze.model.FreezeRecord;
-import com.swornhero.steward.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StewardPermissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;

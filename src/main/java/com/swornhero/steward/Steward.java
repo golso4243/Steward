@@ -1,6 +1,6 @@
 package com.swornhero.steward;
 
-import com.swornhero.steward.command.StewardCommands;
+import com.swornhero.steward.core.command.StewardCommands;
 import com.swornhero.steward.module.freeze.service.PendingNotificationService;
 import com.swornhero.steward.module.freeze.service.FreezeService;
 import com.swornhero.steward.module.freeze.service.FreezeProtectionService;

@@ -1,4 +1,4 @@
-package com.swornhero.steward.permission;
+package com.swornhero.steward.core.permission;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;

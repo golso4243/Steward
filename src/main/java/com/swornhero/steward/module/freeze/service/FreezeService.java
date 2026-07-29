@@ -4,7 +4,7 @@ import com.swornhero.steward.module.freeze.config.FreezePolicyService;
 import com.swornhero.steward.module.freeze.model.FreezePosition;
 import com.swornhero.steward.module.freeze.model.FreezeRecord;
 import com.swornhero.steward.module.freeze.storage.ActiveFreezeStorageService;
-import com.swornhero.steward.permission.StaffHierarchyService;
+import com.swornhero.steward.core.permission.StaffHierarchyService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;

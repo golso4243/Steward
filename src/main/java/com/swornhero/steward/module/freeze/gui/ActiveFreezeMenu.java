@@ -3,7 +3,7 @@ package com.swornhero.steward.module.freeze.gui;
 import com.swornhero.steward.core.gui.StaffControlScreen;
 import com.swornhero.steward.module.freeze.model.FreezeRecord;
 import com.swornhero.steward.module.freeze.service.FreezeService;
-import com.swornhero.steward.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StewardPermissions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;

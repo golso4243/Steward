@@ -1,4 +1,4 @@
-package com.swornhero.steward.permission;
+package com.swornhero.steward.core.permission;
 
 import com.swornhero.steward.Steward;
 import net.luckperms.api.LuckPerms;

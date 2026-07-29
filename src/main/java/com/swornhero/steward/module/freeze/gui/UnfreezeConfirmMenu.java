@@ -1,6 +1,6 @@
 package com.swornhero.steward.module.freeze.gui;
 
-import com.swornhero.steward.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.freeze.service.FreezeService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
