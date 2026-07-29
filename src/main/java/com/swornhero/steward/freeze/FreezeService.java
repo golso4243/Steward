@@ -1,5 +1,6 @@
 package com.swornhero.steward.freeze;
 
+import com.swornhero.steward.permission.StaffHierarchyService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -8,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Relative;
 import com.swornhero.steward.Steward;
 import net.minecraft.core.BlockPos;
+import java.util.function.Consumer;
 
 import java.util.HashSet;
 
@@ -286,6 +288,14 @@ public final class FreezeService {
             ServerPlayer target,
             String reason
     ) {
+
+        if (!StaffHierarchyService.requireCanAct(
+                staff,
+                target
+        )) {
+            return false;
+        }
+
         if (isFrozen(target)) {
             return false;
         }
@@ -352,13 +362,78 @@ public final class FreezeService {
             ServerPlayer staff,
             ServerPlayer target
     ) {
-        return unfreeze(
+        if (!StaffHierarchyService.requireCanAct(
+                staff,
+                target
+        )) {
+            return false;
+        }
+
+        return completeUnfreeze(
                 staff,
                 target.getUUID()
         );
     }
 
-    public static boolean unfreeze(
+    public static void unfreezeAuthorized(
+            ServerPlayer staff,
+            UUID targetUuid,
+            Consumer<Boolean> completion
+    ) {
+        StaffHierarchyService.checkCanActOnUuid(
+                staff,
+                targetUuid
+        ).whenComplete(
+                (result, throwable) -> {
+                    MinecraftServer server =
+                            staff.level()
+                                    .getServer();
+
+                    server.execute(
+                            () -> {
+                                if (throwable != null) {
+                                    Steward.LOGGER.error(
+                                            "Failed to resolve hierarchy "
+                                                    + "for offline unfreeze.",
+                                            throwable
+                                    );
+
+                                    staff.sendSystemMessage(
+                                            Component.literal(
+                                                    "[Steward] Unable to "
+                                                            + "verify the target's "
+                                                            + "staff hierarchy."
+                                            )
+                                    );
+
+                                    completion.accept(false);
+                                    return;
+                                }
+
+                                if (!result.allowed()) {
+                                    StaffHierarchyService.sendDenial(
+                                            staff,
+                                            result
+                                    );
+
+                                    completion.accept(false);
+                                    return;
+                                }
+
+                                boolean unfrozen =
+                                        completeUnfreeze(
+                                                staff,
+                                                targetUuid
+                                        );
+
+                                completion.accept(unfrozen);
+                            }
+                    );
+                }
+        );
+    }
+
+    public static boolean completeUnfreeze(
             ServerPlayer staff,
             UUID targetUuid
     ) {

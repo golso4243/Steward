@@ -32,6 +32,9 @@ public final class StewardPermissions {
     public static final Identifier FREEZE_ALERTS =
             create("freeze.alerts");
 
+    public static final Identifier FREEZE_BYPASS_HIERARCHY =
+            create("freeze.bypass-hierarchy");
+
     private StewardPermissions() {
         // Utility class
     }
