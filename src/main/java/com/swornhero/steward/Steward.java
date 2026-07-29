@@ -6,6 +6,7 @@ import com.swornhero.steward.freeze.FreezeService;
 import com.swornhero.steward.freeze.FreezeProtectionService;
 import com.swornhero.steward.freeze.FreezeConnectionService;
 import com.swornhero.steward.freeze.FreezeHistoryService;
+import com.swornhero.steward.config.FreezePolicyService;
 
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -20,6 +21,8 @@ public final class Steward implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		LOGGER.info("{} is initializing.", MOD_NAME);
+
+		FreezePolicyService.register();
 
 		FreezeHistoryService.register();
 		PendingNotificationService.register();

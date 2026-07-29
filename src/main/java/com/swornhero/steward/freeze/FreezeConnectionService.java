@@ -1,5 +1,6 @@
 package com.swornhero.steward.freeze;
 
+import com.swornhero.steward.config.FreezePolicyService;
 import com.swornhero.steward.permission.StewardPermissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.chat.Component;
@@ -15,12 +16,18 @@ public final class FreezeConnectionService {
     public static void register() {
         ServerPlayConnectionEvents.DISCONNECT.register(
                 (handler, server) ->
-                        handleDisconnect(handler.player, server)
+                        handleDisconnect(
+                                handler.player,
+                                server
+                        )
         );
 
         ServerPlayConnectionEvents.JOIN.register(
                 (handler, sender, server) ->
-                        handleJoin(handler.player, server)
+                        handleJoin(
+                                handler.player,
+                                server
+                        )
         );
     }
 
@@ -41,22 +48,32 @@ public final class FreezeConnectionService {
             FreezeAuditService.recordDisconnect(record);
         }
 
-        String playerName = player.getName().getString();
+        if (!FreezePolicyService.get()
+                .disconnectAlerts()) {
+            return;
+        }
 
-        Component alert = Component.literal(
-                "[Steward] "
-                        + playerName
-                        + " disconnected while frozen."
+        Component alert =
+                Component.literal(
+                        "[Steward] "
+                                + player.getName().getString()
+                                + " disconnected while frozen."
+                );
+
+        notifyStaff(
+                server,
+                alert
         );
-
-        notifyStaff(server, alert);
     }
 
     private static void handleJoin(
             ServerPlayer player,
             MinecraftServer server
     ) {
-        PendingNotificationService.deliverPendingNotice(player);
+        PendingNotificationService.deliverPendingNotice(
+                player
+        );
+
         if (!FreezeService.isFrozen(player)) {
             return;
         }
@@ -86,32 +103,51 @@ public final class FreezeConnectionService {
                 )
         );
 
-        player.sendSystemMessage(
-                Component.literal(
-                        "Freeze reason: "
-                                + record.reason()
-                )
-        );
+        if (FreezePolicyService.get()
+                .showReasonOnReconnect()) {
 
-        Component alert;
-
-        if (usedFallback) {
-            alert = Component.literal(
-                    "[Steward] "
-                            + player.getName().getString()
-                            + " reconnected while frozen, but their "
-                            + "saved location was unavailable or unsafe. "
-                            + "Their current safe location was used as the fallback."
-            );
-        } else {
-            alert = Component.literal(
-                    "[Steward] "
-                            + player.getName().getString()
-                            + " reconnected while still frozen."
+            player.sendSystemMessage(
+                    Component.literal(
+                            "Freeze reason: "
+                                    + record.reason()
+                    )
             );
         }
 
-        notifyStaff(server, alert);
+        if (!FreezePolicyService.get()
+                .reconnectAlerts()) {
+            return;
+        }
+
+        Component alert;
+
+        if (usedFallback
+                && FreezePolicyService.get()
+                .fallbackStaffAlerts()) {
+
+            alert =
+                    Component.literal(
+                            "[Steward] "
+                                    + player.getName().getString()
+                                    + " reconnected while frozen, "
+                                    + "but their saved location was "
+                                    + "unavailable or unsafe. Their "
+                                    + "current safe location was used "
+                                    + "as the fallback."
+                    );
+        } else {
+            alert =
+                    Component.literal(
+                            "[Steward] "
+                                    + player.getName().getString()
+                                    + " reconnected while still frozen."
+                    );
+        }
+
+        notifyStaff(
+                server,
+                alert
+        );
     }
 
     private static void notifyStaff(
@@ -122,7 +158,9 @@ public final class FreezeConnectionService {
                 : server.getPlayerList().getPlayers()) {
 
             if (canReceiveStaffAlerts(onlinePlayer)) {
-                onlinePlayer.sendSystemMessage(message);
+                onlinePlayer.sendSystemMessage(
+                        message
+                );
             }
         }
     }

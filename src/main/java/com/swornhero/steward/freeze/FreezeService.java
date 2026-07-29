@@ -1,5 +1,6 @@
 package com.swornhero.steward.freeze;
 
+import com.swornhero.steward.config.FreezePolicyService;
 import com.swornhero.steward.permission.StaffHierarchyService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.network.chat.Component;
@@ -196,6 +197,11 @@ public final class FreezeService {
             FreezePosition savedPosition,
             FreezePosition fallbackPosition
     ) {
+        if (!FreezePolicyService.get()
+                .fallbackConsoleWarnings()) {
+
+            return;
+        }
         if (!FALLBACK_WARNED_PLAYERS.add(
                 record.targetUuid()
         )) {
@@ -488,7 +494,9 @@ public final class FreezeService {
                                     + "."
                     )
             );
-        } else {
+        } else if (FreezePolicyService.get()
+                .offlineUnfreezeNotices()) {
+
             PendingNotificationService.queueUnfreezeNotice(
                     record.targetUuid(),
                     record.targetName(),
