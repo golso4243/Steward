@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.swornhero.steward.Steward;
+import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
+import com.swornhero.steward.module.freeze.model.FreezeRecord;
 
 import java.io.IOException;
 import java.io.Reader;

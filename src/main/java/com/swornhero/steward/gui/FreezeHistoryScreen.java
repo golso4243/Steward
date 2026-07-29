@@ -1,6 +1,6 @@
 package com.swornhero.steward.gui;
 
-import com.swornhero.steward.freeze.FreezeHistoryEntry;
+import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import com.swornhero.steward.freeze.FreezeHistoryService;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;

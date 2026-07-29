@@ -1,4 +1,4 @@
-package com.swornhero.steward.freeze;
+package com.swornhero.steward.module.freeze.model;
 
 import java.time.Instant;
 import java.util.List;

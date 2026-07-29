@@ -1,7 +1,7 @@
 package com.swornhero.steward.gui;
 
 import com.swornhero.steward.permission.StewardPermissions;
-import com.swornhero.steward.freeze.FreezeHistoryEntry;
+import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;

@@ -1,4 +1,4 @@
-package com.swornhero.steward.freeze;
+package com.swornhero.steward.module.freeze.model;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;

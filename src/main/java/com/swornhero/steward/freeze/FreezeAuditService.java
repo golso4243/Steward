@@ -1,6 +1,8 @@
 package com.swornhero.steward.freeze;
 
 import com.swornhero.steward.Steward;
+import com.swornhero.steward.module.freeze.model.FreezePosition;
+import com.swornhero.steward.module.freeze.model.FreezeRecord;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.time.Duration;

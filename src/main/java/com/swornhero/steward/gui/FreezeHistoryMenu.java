@@ -1,8 +1,7 @@
 package com.swornhero.steward.gui;
 
 import com.swornhero.steward.permission.StewardPermissions;
-import com.swornhero.steward.freeze.FreezeHistoryEntry;
-import net.minecraft.network.chat.Component;
+import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
