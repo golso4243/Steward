@@ -11,6 +11,9 @@ public final class StewardPermissions {
     public static final Identifier STAFF_OPEN =
             create("staff.open");
 
+    public static final Identifier STATUS_VIEW =
+            create("status.view");
+
     public static final Identifier FREEZE_USE =
             create("freeze.use");
 
