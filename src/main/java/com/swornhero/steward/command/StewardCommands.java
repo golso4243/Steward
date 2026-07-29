@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import com.swornhero.steward.permission.StewardPermissions;
 
 public final class StewardCommands {
 
@@ -38,9 +39,12 @@ public final class StewardCommands {
         );
     }
 
-    private static boolean canUseStaffCommands(CommandSourceStack source) {
-        return source.permissions().hasPermission(
-                net.minecraft.server.permissions.Permissions.COMMANDS_MODERATOR
+    private static boolean canUseStaffCommands(
+            CommandSourceStack source
+    ) {
+        return StewardPermissions.has(
+                source,
+                StewardPermissions.STAFF_OPEN
         );
     }
 

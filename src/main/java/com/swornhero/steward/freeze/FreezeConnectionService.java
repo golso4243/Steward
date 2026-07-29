@@ -1,10 +1,10 @@
 package com.swornhero.steward.freeze;
 
+import com.swornhero.steward.permission.StewardPermissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.permissions.Permissions;
 
 public final class FreezeConnectionService {
 
@@ -130,8 +130,9 @@ public final class FreezeConnectionService {
     private static boolean canReceiveStaffAlerts(
             ServerPlayer player
     ) {
-        return player.permissions().hasPermission(
-                Permissions.COMMANDS_MODERATOR
+        return StewardPermissions.has(
+                player,
+                StewardPermissions.FREEZE_ALERTS
         );
     }
 }

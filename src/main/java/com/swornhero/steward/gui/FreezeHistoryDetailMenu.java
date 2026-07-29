@@ -1,5 +1,6 @@
 package com.swornhero.steward.gui;
 
+import com.swornhero.steward.permission.StewardPermissions;
 import com.swornhero.steward.freeze.FreezeHistoryEntry;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -173,6 +174,14 @@ public final class FreezeHistoryDetailMenu
             Player player
     ) {
         if (!(player instanceof ServerPlayer viewer)) {
+            return;
+        }
+
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_HISTORY
+        )) {
+            viewer.closeContainer();
             return;
         }
 

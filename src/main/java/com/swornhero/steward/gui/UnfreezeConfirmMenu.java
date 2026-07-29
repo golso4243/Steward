@@ -1,5 +1,6 @@
 package com.swornhero.steward.gui;
 
+import com.swornhero.steward.permission.StewardPermissions;
 import com.swornhero.steward.freeze.FreezeService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -204,6 +205,29 @@ public final class UnfreezeConfirmMenu
     private void confirmUnfreeze(
             ServerPlayer viewer
     ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_UNFREEZE
+        )) {
+            return;
+        }
+
+        ServerPlayer onlineTarget =
+                viewer.level()
+                        .getServer()
+                        .getPlayerList()
+                        .getPlayer(targetUuid);
+
+        if (onlineTarget == null
+                && !StewardPermissions.require(
+                viewer,
+                StewardPermissions
+                        .FREEZE_UNFREEZE_OFFLINE
+        )) {
+
+            return;
+        }
+
         boolean unfrozen =
                 FreezeService.unfreeze(
                         viewer,

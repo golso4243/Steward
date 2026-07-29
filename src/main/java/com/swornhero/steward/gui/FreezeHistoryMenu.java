@@ -1,5 +1,6 @@
 package com.swornhero.steward.gui;
 
+import com.swornhero.steward.permission.StewardPermissions;
 import com.swornhero.steward.freeze.FreezeHistoryEntry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -193,6 +194,14 @@ public final class FreezeHistoryMenu
             Player player
     ) {
         if (!(player instanceof ServerPlayer viewer)) {
+            return;
+        }
+
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_HISTORY
+        )) {
+            viewer.closeContainer();
             return;
         }
 

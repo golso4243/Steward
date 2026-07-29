@@ -1,6 +1,7 @@
 package com.swornhero.steward.gui;
 
 import com.swornhero.steward.freeze.FreezeReason;
+import com.swornhero.steward.permission.StewardPermissions;
 import com.swornhero.steward.freeze.FreezeService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -213,6 +214,18 @@ public final class FreezeReasonMenu
             ServerPlayer viewer,
             FreezeReason reason
     ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_USE
+        )) {
+            PlayerProfileScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
+            return;
+        }
         ServerPlayer target =
                 viewer.level()
                         .getServer()

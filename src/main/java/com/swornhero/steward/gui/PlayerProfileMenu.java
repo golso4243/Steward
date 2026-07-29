@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import com.swornhero.steward.permission.StewardPermissions;
 
 import java.util.UUID;
 
@@ -215,17 +216,31 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
 
             case FREEZE -> {
                 if (FreezeService.isFrozen(target)) {
-                    FreezeService.unfreeze(
+                    if (!StewardPermissions.require(
                             viewer,
-                            target
-                    );
+                            StewardPermissions.FREEZE_UNFREEZE
+                    )) {
+                        return;
+                    }
 
-                    PlayerProfileScreen.open(
+                    /*
+                     * Open the active-freeze details instead of directly
+                     * unfreezing the player. This preserves the confirmation
+                     * workflow.
+                     */
+                    ActiveFreezeDetailScreen.open(
                             viewer,
                             targetUuid,
-                            browserPage
+                            0
                     );
 
+                    return;
+                }
+
+                if (!StewardPermissions.require(
+                        viewer,
+                        StewardPermissions.FREEZE_USE
+                )) {
                     return;
                 }
 
@@ -257,11 +272,20 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                     )
             );
 
-            case HISTORY -> FreezeHistoryScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage
-            );
+            case HISTORY -> {
+                if (!StewardPermissions.require(
+                        viewer,
+                        StewardPermissions.FREEZE_HISTORY
+                )) {
+                    return;
+                }
+
+                FreezeHistoryScreen.open(
+                        viewer,
+                        targetUuid,
+                        browserPage
+                );
+            }
 
             case PUNISHMENTS -> viewer.sendSystemMessage(
                     Component.literal(

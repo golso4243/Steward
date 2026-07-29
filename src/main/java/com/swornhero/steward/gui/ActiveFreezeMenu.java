@@ -2,6 +2,7 @@ package com.swornhero.steward.gui;
 
 import com.swornhero.steward.freeze.FreezeRecord;
 import com.swornhero.steward.freeze.FreezeService;
+import com.swornhero.steward.permission.StewardPermissions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -183,6 +184,14 @@ public final class ActiveFreezeMenu
             Player player
     ) {
         if (!(player instanceof ServerPlayer viewer)) {
+            return;
+        }
+
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_MANAGE
+        )) {
+            viewer.closeContainer();
             return;
         }
 

@@ -1,5 +1,6 @@
 package com.swornhero.steward.gui;
 
+import com.swornhero.steward.permission.StewardPermissions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -176,6 +177,14 @@ public final class ActiveFreezeDetailMenu
             return;
         }
 
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_VIEW
+        )) {
+            viewer.closeContainer();
+            return;
+        }
+
         if (slotId < 0 || slotId >= MENU_SIZE) {
             return;
         }
@@ -187,12 +196,20 @@ public final class ActiveFreezeDetailMenu
                             activeFreezePage
                     );
 
-            case UNFREEZE_SLOT ->
-                    UnfreezeConfirmScreen.open(
-                            viewer,
-                            targetUuid,
-                            activeFreezePage
-                    );
+            case UNFREEZE_SLOT -> {
+                if (!StewardPermissions.require(
+                        viewer,
+                        StewardPermissions.FREEZE_UNFREEZE
+                )) {
+                    return;
+                }
+
+                UnfreezeConfirmScreen.open(
+                        viewer,
+                        targetUuid,
+                        activeFreezePage
+                );
+            }
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();

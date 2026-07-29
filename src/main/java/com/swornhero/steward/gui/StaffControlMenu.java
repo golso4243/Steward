@@ -11,6 +11,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import com.swornhero.steward.permission.StewardPermissions;
 
 public final class StaffControlMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
@@ -149,8 +150,16 @@ public final class StaffControlMenu extends AbstractContainerMenu {
 
             case PLAYERS -> PlayerBrowserScreen.open(player);
 
-            case ACTIVE_FREEZES ->
-                    ActiveFreezeScreen.open(player);
+            case ACTIVE_FREEZES -> {
+                if (!StewardPermissions.require(
+                        player,
+                        StewardPermissions.FREEZE_MANAGE
+                )) {
+                    return;
+                }
+
+                ActiveFreezeScreen.open(player);
+            }
 
             default -> player.sendSystemMessage(
                     Component.literal(
