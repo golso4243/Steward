@@ -6,7 +6,7 @@ import com.swornhero.steward.module.freeze.service.FreezeService;
 import com.swornhero.steward.module.freeze.service.FreezeProtectionService;
 import com.swornhero.steward.module.freeze.service.FreezeConnectionService;
 import com.swornhero.steward.module.freeze.service.FreezeHistoryService;
-import com.swornhero.steward.config.FreezePolicyService;
+import com.swornhero.steward.module.freeze.config.FreezePolicyService;
 import com.swornhero.steward.module.freeze.service.FreezeDamageService;
 
 import net.fabricmc.api.ModInitializer;

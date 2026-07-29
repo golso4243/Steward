@@ -1,4 +1,4 @@
-package com.swornhero.steward.config;
+package com.swornhero.steward.module.freeze.config;
 
 import java.util.ArrayList;
 import java.util.List;
