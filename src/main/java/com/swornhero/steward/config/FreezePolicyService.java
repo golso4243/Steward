@@ -47,6 +47,20 @@ public final class FreezePolicyService {
 
               "_comment_fallbackConsoleWarnings": "Write fallback restoration warnings to the server console.",
               "fallbackConsoleWarnings": true
+            
+              "_comment_allowedCommands": "Commands frozen players may use. Enter only the root command without a leading slash.",
+              "allowedCommands": [
+                "msg",
+                "tell",
+                "w",
+                "reply",
+                "r",
+                "staff",
+                "steward"
+              ],
+            
+              "_comment_blockedCommandMessage": "Message shown when a frozen player attempts to use a blocked command.",
+              "blockedCommandMessage": "You cannot use that command while frozen."
             }
             """;
 
