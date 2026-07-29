@@ -122,6 +122,15 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
+                11,
+                Items.NAME_TAG,
+                "Case ID: "
+                        + record.freezeId()
+                        .toString()
+        );
+
+        setButton(
+                container,
                 12,
                 online
                         ? BuiltInRegistries.ITEM.getValue(

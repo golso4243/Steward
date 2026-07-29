@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record FreezeHistoryEntry(
+        UUID freezeId,
         UUID targetUuid,
         String targetName,
         UUID frozenByUuid,
@@ -24,6 +25,7 @@ public record FreezeHistoryEntry(
             FreezeRecord record
     ) {
         return new FreezeHistoryEntry(
+                record.freezeId(),
                 record.targetUuid(),
                 record.targetName(),
                 record.frozenByUuid(),

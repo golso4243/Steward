@@ -11,6 +11,7 @@ public final class FreezeRecord {
 
     private final UUID frozenByUuid;
     private final String frozenByName;
+    private final UUID freezeId;
 
     private final FreezePosition position;
     private FreezePosition currentPosition;
@@ -37,6 +38,33 @@ public final class FreezeRecord {
             String reason,
             Instant frozenAt
     ) {
+        this(
+                UUID.randomUUID(),
+                targetUuid,
+                targetName,
+                frozenByUuid,
+                frozenByName,
+                position,
+                reason,
+                frozenAt
+        );
+    }
+
+    public FreezeRecord(
+            UUID freezeId,
+            UUID targetUuid,
+            String targetName,
+            UUID frozenByUuid,
+            String frozenByName,
+            FreezePosition position,
+            String reason,
+            Instant frozenAt
+    ) {
+        this.freezeId =
+                freezeId != null
+                        ? freezeId
+                        : UUID.randomUUID();
+
         this.targetUuid = targetUuid;
         this.targetName = targetName;
         this.frozenByUuid = frozenByUuid;
@@ -60,6 +88,10 @@ public final class FreezeRecord {
 
     public String frozenByName() {
         return frozenByName;
+    }
+
+    public UUID freezeId() {
+        return freezeId;
     }
 
     public FreezePosition position() {
@@ -109,6 +141,20 @@ public final class FreezeRecord {
             FreezePosition restoredPosition
     ) {
         currentPosition = restoredPosition;
+    }
+
+    public void restoreRelocations(
+            List<FreezeRelocation> restoredRelocations
+    ) {
+        relocations.clear();
+
+        if (restoredRelocations == null) {
+            return;
+        }
+
+        relocations.addAll(
+                restoredRelocations
+        );
     }
 
     public void removeLatestRelocation() {

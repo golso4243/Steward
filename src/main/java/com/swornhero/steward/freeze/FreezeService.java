@@ -238,14 +238,50 @@ public final class FreezeService {
     private static void restoreActiveFreezes() {
         FROZEN_PLAYERS.clear();
 
+        Set<UUID> loadedFreezeIds =
+                new HashSet<>();
+
         for (FreezeRecord record
                 : ActiveFreezeStorageService.load()) {
 
-            FROZEN_PLAYERS.put(
-                    record.targetUuid(),
-                    record
-            );
+            if (record == null) {
+                continue;
+            }
+
+            if (!loadedFreezeIds.add(
+                    record.freezeId()
+            )) {
+                Steward.LOGGER.error(
+                        "Skipped duplicate freeze case ID {} "
+                                + "for player {}.",
+                        record.freezeId(),
+                        record.targetName()
+                );
+
+                continue;
+            }
+
+            FreezeRecord existing =
+                    FROZEN_PLAYERS.putIfAbsent(
+                            record.targetUuid(),
+                            record
+                    );
+
+            if (existing != null) {
+                Steward.LOGGER.error(
+                        "Skipped duplicate active freeze for player {}. "
+                                + "Existing case: {}. Duplicate case: {}.",
+                        record.targetName(),
+                        existing.freezeId(),
+                        record.freezeId()
+                );
+            }
         }
+
+        Steward.LOGGER.info(
+                "Restored {} unique active freeze records.",
+                FROZEN_PLAYERS.size()
+        );
     }
 
     public static void saveActiveFreezes() {

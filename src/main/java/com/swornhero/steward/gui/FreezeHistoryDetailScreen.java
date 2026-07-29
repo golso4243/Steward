@@ -87,6 +87,15 @@ public final class FreezeHistoryDetailScreen {
 
         setButton(
                 container,
+                11,
+                Items.NAME_TAG,
+                "Case ID: "
+                        + entry.freezeId()
+                        .toString()
+        );
+
+        setButton(
+                container,
                 12,
                 Items.WRITABLE_BOOK,
                 "Reason: " + entry.reason()

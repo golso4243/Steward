@@ -1,83 +1,100 @@
 package com.swornhero.steward.freeze;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
-
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public record ActiveFreezeEntry(
+        UUID freezeId,
         UUID targetUuid,
         String targetName,
         UUID frozenByUuid,
         String frozenByName,
         String reason,
-        String dimension,
-        double x,
-        double y,
-        double z,
-        float yaw,
-        float pitch,
+        FreezePositionEntry originalPosition,
+        FreezePositionEntry currentPosition,
         Instant frozenAt,
         int disconnectCount,
-        int reconnectCount
+        int reconnectCount,
+        List<FreezeRelocationEntry> relocations
 ) {
+
     public static ActiveFreezeEntry fromRecord(
             FreezeRecord record
     ) {
+        List<FreezeRelocationEntry> relocationEntries =
+                record.relocations()
+                        .stream()
+                        .map(
+                                FreezeRelocationEntry::fromRelocation
+                        )
+                        .toList();
+
         return new ActiveFreezeEntry(
+                record.freezeId(),
                 record.targetUuid(),
                 record.targetName(),
                 record.frozenByUuid(),
                 record.frozenByName(),
                 record.reason(),
-                record.position()
-                        .dimension()
-                        .identifier()
-                        .toString(),
-                record.position().x(),
-                record.position().y(),
-                record.position().z(),
-                record.position().yaw(),
-                record.position().pitch(),
+                FreezePositionEntry.fromPosition(
+                        record.position()
+                ),
+                FreezePositionEntry.fromPosition(
+                        record.currentPosition()
+                ),
                 record.frozenAt(),
                 record.disconnectCount(),
-                record.reconnectCount()
+                record.reconnectCount(),
+                relocationEntries
         );
     }
 
     public FreezeRecord toRecord() {
-        Identifier dimensionIdentifier =
-                Identifier.parse(dimension);
+        validate();
 
-        ResourceKey<Level> dimensionKey =
-                ResourceKey.create(
-                        Registries.DIMENSION,
-                        dimensionIdentifier
-                );
-
-        FreezePosition position =
-                new FreezePosition(
-                        dimensionKey,
-                        x,
-                        y,
-                        z,
-                        yaw,
-                        pitch
-                );
+        FreezePosition restoredOriginalPosition =
+                originalPosition.toPosition();
 
         FreezeRecord record =
                 new FreezeRecord(
+                        freezeId,
                         targetUuid,
                         targetName,
                         frozenByUuid,
                         frozenByName,
-                        position,
+                        restoredOriginalPosition,
                         reason,
                         frozenAt
                 );
+
+        if (currentPosition != null) {
+            record.restoreCurrentPosition(
+                    currentPosition.toPosition()
+            );
+        }
+
+        List<FreezeRelocation> restoredRelocations =
+                new ArrayList<>();
+
+        if (relocations != null) {
+            for (FreezeRelocationEntry relocation
+                    : relocations) {
+
+                if (relocation == null) {
+                    continue;
+                }
+
+                restoredRelocations.add(
+                        relocation.toRelocation()
+                );
+            }
+        }
+
+        record.restoreRelocations(
+                restoredRelocations
+        );
 
         record.restoreConnectionCounts(
                 disconnectCount,
@@ -85,5 +102,31 @@ public record ActiveFreezeEntry(
         );
 
         return record;
+    }
+
+    private void validate() {
+        if (targetUuid == null) {
+            throw new IllegalStateException(
+                    "Active freeze target UUID is missing."
+            );
+        }
+
+        if (targetName == null || targetName.isBlank()) {
+            throw new IllegalStateException(
+                    "Active freeze target name is missing."
+            );
+        }
+
+        if (frozenAt == null) {
+            throw new IllegalStateException(
+                    "Active freeze timestamp is missing."
+            );
+        }
+
+        if (originalPosition == null) {
+            throw new IllegalStateException(
+                    "Original freeze position is missing."
+            );
+        }
     }
 }
