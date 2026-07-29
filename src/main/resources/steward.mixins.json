@@ -3,9 +3,9 @@
 	"package": "com.swornhero.steward.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"ServerGamePacketListenerMixin",
-		"ItemEntityMixin",
-		"ExperienceOrbMixin"
+		"freeze.ServerGamePacketListenerMixin",
+		"freeze.ItemEntityMixin",
+        "freeze.ExperienceOrbMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
