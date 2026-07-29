@@ -1,4 +1,4 @@
-package com.swornhero.steward.mixin;
+package com.swornhero.steward.mixin.freeze;
 
 import com.swornhero.steward.module.freeze.service.FreezeService;
 import net.minecraft.server.level.ServerPlayer;

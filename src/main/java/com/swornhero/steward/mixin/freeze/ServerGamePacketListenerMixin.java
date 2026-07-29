@@ -1,4 +1,4 @@
-package com.swornhero.steward.mixin;
+package com.swornhero.steward.mixin.freeze;
 
 import com.swornhero.steward.core.gui.PlayerBrowserMenu;
 import com.swornhero.steward.core.gui.PlayerProfileMenu;
