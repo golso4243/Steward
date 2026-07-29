@@ -1,5 +1,6 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.module.freeze.gui;
 
+import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.module.freeze.model.FreezeReason;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;

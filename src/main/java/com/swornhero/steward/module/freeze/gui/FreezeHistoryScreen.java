@@ -1,4 +1,4 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.module.freeze.gui;
 
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import com.swornhero.steward.module.freeze.service.FreezeHistoryService;

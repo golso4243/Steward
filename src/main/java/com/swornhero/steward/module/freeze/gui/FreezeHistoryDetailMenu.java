@@ -1,5 +1,6 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.module.freeze.gui;
 
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.permission.StewardPermissions;
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import net.minecraft.world.Container;

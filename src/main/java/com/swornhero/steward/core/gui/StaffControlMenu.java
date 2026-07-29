@@ -1,7 +1,6 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.core.gui;
 
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
+import com.swornhero.steward.module.freeze.gui.ActiveFreezeScreen;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,61 +10,40 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import com.swornhero.steward.permission.StewardPermissions;
 
-import java.util.Map;
-import java.util.UUID;
-
-public final class PlayerBrowserMenu
-        extends AbstractContainerMenu {
-
+public final class StaffControlMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int PREVIOUS_PAGE_SLOT = 45;
-    public static final int PAGE_INFO_SLOT = 47;
-    public static final int BACK_SLOT = 49;
-    public static final int NEXT_PAGE_SLOT = 51;
-    public static final int CLOSE_SLOT = 53;
-
     private final Container menuContainer;
-    private final Map<Integer, UUID> playerSlots;
-    private final int page;
-    private final int totalPages;
 
-    public PlayerBrowserMenu(
+    public StaffControlMenu(
             int containerId,
             Inventory playerInventory,
-            Container menuContainer,
-            Map<Integer, UUID> playerSlots,
-            int page,
-            int totalPages
+            Container menuContainer
     ) {
         super(MenuType.GENERIC_9x6, containerId);
 
         checkContainerSize(menuContainer, MENU_SIZE);
 
         this.menuContainer = menuContainer;
-        this.playerSlots = Map.copyOf(playerSlots);
-        this.page = page;
-        this.totalPages = totalPages;
-
         this.menuContainer.startOpen(playerInventory.player);
 
         addMenuSlots(menuContainer);
         addPlayerInventorySlots(playerInventory);
     }
 
-    public PlayerBrowserMenu(
+    public StaffControlMenu(
             int containerId,
             Inventory playerInventory
     ) {
         this(
                 containerId,
                 playerInventory,
-                new SimpleContainer(MENU_SIZE),
-                Map.of(),
-                0,
-                1
+                new SimpleContainer(MENU_SIZE)
         );
     }
 
@@ -96,11 +74,10 @@ public final class PlayerBrowserMenu
     private void addPlayerInventorySlots(Inventory inventory) {
         int inventoryStartY = 140;
 
+        // Main player inventory: 27 slots.
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                int inventorySlot =
-                        column + row * 9 + 9;
-
+                int inventorySlot = column + row * 9 + 9;
                 int x = 8 + column * 18;
                 int y = inventoryStartY + row * 18;
 
@@ -115,6 +92,7 @@ public final class PlayerBrowserMenu
             }
         }
 
+        // Player hotbar: 9 slots.
         int hotbarY = inventoryStartY + 58;
 
         for (int column = 0; column < 9; column++) {
@@ -142,90 +120,79 @@ public final class PlayerBrowserMenu
             return;
         }
 
+        // Only process Steward's 54 control-panel slots.
         if (slotId < 0 || slotId >= MENU_SIZE) {
             return;
         }
 
-        UUID targetUuid = playerSlots.get(slotId);
+        StaffControlAction action =
+                StaffControlAction.fromSlot(slotId);
 
-        if (targetUuid != null) {
-            handlePlayerSelection(
-                    serverPlayer,
-                    targetUuid
-            );
-
+        // Borders and empty slots have no assigned action.
+        if (action == null) {
             return;
         }
 
-        switch (slotId) {
-            case PREVIOUS_PAGE_SLOT -> {
-                if (page > 0) {
-                    PlayerBrowserScreen.open(
-                            serverPlayer,
-                            page - 1
-                    );
-                }
-            }
-
-            case NEXT_PAGE_SLOT -> {
-                if (page + 1 < totalPages) {
-                    PlayerBrowserScreen.open(
-                            serverPlayer,
-                            page + 1
-                    );
-                }
-            }
-
-            case BACK_SLOT ->
-                    StaffControlScreen.open(serverPlayer);
-
-            case CLOSE_SLOT ->
-                    serverPlayer.closeContainer();
-
-            default -> {
-                // Border, page indicator, or empty slot.
-            }
-        }
+        handleAction(serverPlayer, action);
 
         /*
-         * Never call super.clicked(...).
-         * This browser is a navigation interface, not an inventory.
+         * Do not call super.clicked(...).
+         * This keeps all item movement, swapping, dragging,
+         * dropping, and duplication behavior blocked.
          */
     }
 
-    private void handlePlayerSelection(
-            ServerPlayer viewer,
-            UUID targetUuid
+    private void handleAction(
+            ServerPlayer player,
+            StaffControlAction action
     ) {
-        ServerPlayer target =
-                viewer.level()
-                        .getServer()
-                        .getPlayerList()
-                        .getPlayer(targetUuid);
+        switch (action) {
+            case CLOSE -> player.closeContainer();
 
-        if (target == null) {
-            viewer.sendSystemMessage(
+            case PLAYERS -> PlayerBrowserScreen.open(player);
+
+            case ACTIVE_FREEZES -> {
+                if (!StewardPermissions.require(
+                        player,
+                        StewardPermissions.FREEZE_MANAGE
+                )) {
+                    return;
+                }
+
+                ActiveFreezeScreen.open(player);
+            }
+
+            default -> player.sendSystemMessage(
                     Component.literal(
-                            "That player is no longer online."
+                            actionDisplayName(action)
+                                    + " is not available yet."
                     )
             );
-
-            PlayerBrowserScreen.open(viewer, page);
-            return;
         }
+    }
 
-        PlayerProfileScreen.open(
-                viewer,
-                targetUuid,
-                page
-        );
+    private String actionDisplayName(StaffControlAction action) {
+        return switch (action) {
+            case STAFF_MODE -> "Staff Mode";
+            case MODE_STYLE -> "Mode Style";
+            case VANISH -> "Vanish";
+            case PLAYERS -> "Players";
+            case TELEPORT -> "Teleport Tools";
+            case ACTIVE_FREEZES -> "Active Freezes";
+            case REPORTS -> "Reports";
+            case NOTES -> "Staff Notes";
+            case INSPECTION -> "Inspection";
+            case HISTORY -> "History";
+            case PUNISHMENTS -> "Punishments";
+            case STAFF_CHAT -> "Staff Chat";
+            case ALERTS -> "Staff Alerts";
+            case SETTINGS -> "Settings";
+            case CLOSE -> "Close";
+        };
     }
 
     @Override
-    public ItemStack quickMoveStack(
-            Player player,
-            int index
-    ) {
+    public ItemStack quickMoveStack(Player player, int index) {
         return ItemStack.EMPTY;
     }
 

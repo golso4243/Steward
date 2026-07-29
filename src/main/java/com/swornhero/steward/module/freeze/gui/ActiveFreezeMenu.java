@@ -1,7 +1,10 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.module.freeze.gui;
 
+import com.swornhero.steward.core.gui.StaffControlScreen;
+import com.swornhero.steward.module.freeze.model.FreezeRecord;
+import com.swornhero.steward.module.freeze.service.FreezeService;
 import com.swornhero.steward.permission.StewardPermissions;
-import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -16,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Map;
 import java.util.UUID;
 
-public final class FreezeHistoryMenu
+public final class ActiveFreezeMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
@@ -29,22 +32,17 @@ public final class FreezeHistoryMenu
     public static final int CLOSE_SLOT = 53;
 
     private final Container menuContainer;
-    private final UUID targetUuid;
-    private final int browserPage;
-    private final int historyPage;
+    private final int page;
     private final int totalPages;
+    private final Map<Integer, UUID> recordSlots;
 
-    private final Map<Integer, FreezeHistoryEntry> recordSlots;
-
-    public FreezeHistoryMenu(
+    public ActiveFreezeMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
-            UUID targetUuid,
-            int browserPage,
-            int historyPage,
+            int page,
             int totalPages,
-            Map<Integer, FreezeHistoryEntry> recordSlots
+            Map<Integer, UUID> recordSlots
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -57,11 +55,10 @@ public final class FreezeHistoryMenu
         );
 
         this.menuContainer = menuContainer;
-        this.targetUuid = targetUuid;
-        this.browserPage = browserPage;
-        this.historyPage = historyPage;
+        this.page = page;
         this.totalPages = totalPages;
-        this.recordSlots = Map.copyOf(recordSlots);
+        this.recordSlots =
+                Map.copyOf(recordSlots);
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -71,7 +68,7 @@ public final class FreezeHistoryMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public FreezeHistoryMenu(
+    public ActiveFreezeMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -79,8 +76,6 @@ public final class FreezeHistoryMenu
                 containerId,
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
-                new UUID(0L, 0L),
-                0,
                 0,
                 1,
                 Map.of()
@@ -135,10 +130,7 @@ public final class FreezeHistoryMenu
     ) {
         int inventoryStartY = 140;
 
-        for (int row = 0;
-             row < 3;
-             row++) {
-
+        for (int row = 0; row < 3; row++) {
             for (int column = 0;
                  column < 9;
                  column++) {
@@ -198,7 +190,7 @@ public final class FreezeHistoryMenu
 
         if (!StewardPermissions.require(
                 viewer,
-                StewardPermissions.FREEZE_HISTORY
+                StewardPermissions.FREEZE_MANAGE
         )) {
             viewer.closeContainer();
             return;
@@ -208,16 +200,32 @@ public final class FreezeHistoryMenu
             return;
         }
 
-        FreezeHistoryEntry entry =
+        UUID targetUuid =
                 recordSlots.get(slotId);
 
-        if (entry != null) {
-            FreezeHistoryDetailScreen.open(
+        if (targetUuid != null) {
+            FreezeRecord record =
+                    FreezeService.getRecord(targetUuid);
+
+            if (record == null) {
+                viewer.sendSystemMessage(
+                        Component.literal(
+                                "That freeze is no longer active."
+                        )
+                );
+
+                ActiveFreezeScreen.open(
+                        viewer,
+                        page
+                );
+
+                return;
+            }
+
+            ActiveFreezeDetailScreen.open(
                     viewer,
                     targetUuid,
-                    browserPage,
-                    historyPage,
-                    entry
+                    page
             );
 
             return;
@@ -225,33 +233,25 @@ public final class FreezeHistoryMenu
 
         switch (slotId) {
             case PREVIOUS_PAGE_SLOT -> {
-                if (historyPage > 0) {
-                    FreezeHistoryScreen.open(
+                if (page > 0) {
+                    ActiveFreezeScreen.open(
                             viewer,
-                            targetUuid,
-                            browserPage,
-                            historyPage - 1
+                            page - 1
                     );
                 }
             }
 
             case NEXT_PAGE_SLOT -> {
-                if (historyPage + 1 < totalPages) {
-                    FreezeHistoryScreen.open(
+                if (page + 1 < totalPages) {
+                    ActiveFreezeScreen.open(
                             viewer,
-                            targetUuid,
-                            browserPage,
-                            historyPage + 1
+                            page + 1
                     );
                 }
             }
 
             case BACK_SLOT ->
-                    PlayerProfileScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage
-                    );
+                    StaffControlScreen.open(viewer);
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();

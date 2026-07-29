@@ -1,9 +1,7 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.module.freeze.gui;
 
-import com.swornhero.steward.module.freeze.model.FreezeReason;
-import com.swornhero.steward.permission.StewardPermissions;
 import com.swornhero.steward.module.freeze.service.FreezeService;
-import net.minecraft.network.chat.Component;
+import com.swornhero.steward.permission.StewardPermissions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -17,25 +15,26 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class FreezeReasonMenu
+public final class RelocateConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 48;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CONFIRM_SLOT = 48;
+    public static final int CANCEL_SLOT = 50;
+    public static final int CLOSE_SLOT = 53;
 
     private final Container menuContainer;
     private final UUID targetUuid;
-    private final int browserPage;
+    private final int activeFreezePage;
 
-    public FreezeReasonMenu(
+    public RelocateConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int browserPage
+            int activeFreezePage
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -49,7 +48,7 @@ public final class FreezeReasonMenu
 
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
-        this.browserPage = browserPage;
+        this.activeFreezePage = activeFreezePage;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -59,7 +58,7 @@ public final class FreezeReasonMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public FreezeReasonMenu(
+    public RelocateConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -182,98 +181,55 @@ public final class FreezeReasonMenu
             return;
         }
 
-        if (slotId == BACK_SLOT) {
-            PlayerProfileScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage
-            );
+        switch (slotId) {
+            case CONFIRM_SLOT ->
+                    confirmRelocation(viewer);
 
-            return;
+            case CANCEL_SLOT ->
+                    ActiveFreezeDetailScreen.open(
+                            viewer,
+                            targetUuid,
+                            activeFreezePage
+                    );
+
+            case CLOSE_SLOT ->
+                    viewer.closeContainer();
+
+            default -> {
+                // Information, border, or empty slot.
+            }
         }
-
-        if (slotId == CLOSE_SLOT) {
-            viewer.closeContainer();
-            return;
-        }
-
-        FreezeReason reason =
-                FreezeReason.fromSlot(slotId);
-
-        if (reason == null) {
-            return;
-        }
-
-        freezePlayer(
-                viewer,
-                reason
-        );
     }
 
-    private void freezePlayer(
-            ServerPlayer viewer,
-            FreezeReason reason
+    private void confirmRelocation(
+            ServerPlayer viewer
     ) {
         if (!StewardPermissions.require(
                 viewer,
-                StewardPermissions.FREEZE_USE
+                StewardPermissions.FREEZE_RELOCATE
         )) {
-            PlayerProfileScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage
-            );
-
             return;
         }
-        ServerPlayer target =
-                viewer.level()
-                        .getServer()
-                        .getPlayerList()
-                        .getPlayer(targetUuid);
 
-        if (target == null) {
-            viewer.sendSystemMessage(
-                    Component.literal(
-                            "That player is no longer online."
-                    )
-            );
+        boolean relocated =
+                FreezeService.relocateToStaff(
+                        viewer,
+                        targetUuid
+                );
 
-            PlayerBrowserScreen.open(
+        if (!FreezeService.isFrozen(targetUuid)) {
+            ActiveFreezeScreen.open(
                     viewer,
-                    browserPage
+                    activeFreezePage
             );
 
             return;
         }
 
-        if (FreezeService.isFrozen(target)) {
-            viewer.sendSystemMessage(
-                    Component.literal(
-                            target.getName().getString()
-                                    + " is already frozen."
-                    )
-            );
-
-            PlayerProfileScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage
-            );
-
-            return;
-        }
-
-        FreezeService.freeze(
-                viewer,
-                target,
-                reason.displayName()
-        );
-
-        PlayerProfileScreen.open(
+        ActiveFreezeDetailScreen.open(
                 viewer,
                 targetUuid,
-                browserPage
+                activeFreezePage
         );
     }
 
@@ -305,7 +261,6 @@ public final class FreezeReasonMenu
             Player player
     ) {
         super.removed(player);
-
         menuContainer.stopOpen(player);
     }
 }

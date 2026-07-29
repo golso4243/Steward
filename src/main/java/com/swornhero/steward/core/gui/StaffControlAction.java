@@ -1,4 +1,4 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.core.gui;
 
 public enum StaffControlAction {
     STAFF_MODE(10),

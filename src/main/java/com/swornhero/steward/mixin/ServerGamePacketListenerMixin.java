@@ -1,9 +1,12 @@
 package com.swornhero.steward.mixin;
 
+import com.swornhero.steward.core.gui.PlayerBrowserMenu;
+import com.swornhero.steward.core.gui.PlayerProfileMenu;
+import com.swornhero.steward.core.gui.StaffControlMenu;
+import com.swornhero.steward.module.freeze.gui.*;
 import com.swornhero.steward.module.freeze.service.FreezeCommandService;
 import com.swornhero.steward.module.freeze.service.FreezeProtectionService;
 import com.swornhero.steward.module.freeze.service.FreezeService;
-import com.swornhero.steward.gui.*;
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;

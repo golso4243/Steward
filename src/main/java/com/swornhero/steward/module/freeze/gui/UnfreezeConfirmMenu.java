@@ -1,7 +1,8 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.module.freeze.gui;
 
-import com.swornhero.steward.module.freeze.service.FreezeService;
 import com.swornhero.steward.permission.StewardPermissions;
+import com.swornhero.steward.module.freeze.service.FreezeService;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -15,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class RelocateConfirmMenu
+public final class UnfreezeConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
@@ -29,7 +30,7 @@ public final class RelocateConfirmMenu
     private final UUID targetUuid;
     private final int activeFreezePage;
 
-    public RelocateConfirmMenu(
+    public UnfreezeConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
@@ -48,7 +49,8 @@ public final class RelocateConfirmMenu
 
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
-        this.activeFreezePage = activeFreezePage;
+        this.activeFreezePage =
+                activeFreezePage;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -58,7 +60,7 @@ public final class RelocateConfirmMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public RelocateConfirmMenu(
+    public UnfreezeConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -182,8 +184,7 @@ public final class RelocateConfirmMenu
         }
 
         switch (slotId) {
-            case CONFIRM_SLOT ->
-                    confirmRelocation(viewer);
+            case CONFIRM_SLOT -> confirmUnfreeze(viewer);
 
             case CANCEL_SLOT ->
                     ActiveFreezeDetailScreen.open(
@@ -201,35 +202,55 @@ public final class RelocateConfirmMenu
         }
     }
 
-    private void confirmRelocation(
+    private void confirmUnfreeze(
             ServerPlayer viewer
     ) {
         if (!StewardPermissions.require(
                 viewer,
-                StewardPermissions.FREEZE_RELOCATE
+                StewardPermissions.FREEZE_UNFREEZE
         )) {
             return;
         }
 
-        boolean relocated =
-                FreezeService.relocateToStaff(
-                        viewer,
-                        targetUuid
-                );
+        ServerPlayer onlineTarget =
+                viewer.level()
+                        .getServer()
+                        .getPlayerList()
+                        .getPlayer(targetUuid);
 
-        if (!FreezeService.isFrozen(targetUuid)) {
-            ActiveFreezeScreen.open(
-                    viewer,
-                    activeFreezePage
-            );
-
+        if (onlineTarget == null
+                && !StewardPermissions.require(
+                viewer,
+                StewardPermissions
+                        .FREEZE_UNFREEZE_OFFLINE
+        )) {
             return;
         }
 
-        ActiveFreezeDetailScreen.open(
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "[Steward] Checking staff hierarchy..."
+                )
+        );
+
+        FreezeService.unfreezeAuthorized(
                 viewer,
                 targetUuid,
-                activeFreezePage
+                unfrozen -> {
+                    if (!unfrozen) {
+                        viewer.sendSystemMessage(
+                                Component.literal(
+                                        "That freeze is no longer active "
+                                                + "or the action was denied."
+                                )
+                        );
+                    }
+
+                    ActiveFreezeScreen.open(
+                            viewer,
+                            activeFreezePage
+                    );
+                }
         );
     }
 

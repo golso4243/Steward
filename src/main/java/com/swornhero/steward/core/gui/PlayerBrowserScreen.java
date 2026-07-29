@@ -1,4 +1,4 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.core.gui;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;

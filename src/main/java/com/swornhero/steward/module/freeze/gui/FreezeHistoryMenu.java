@@ -1,8 +1,8 @@
-package com.swornhero.steward.gui;
+package com.swornhero.steward.module.freeze.gui;
 
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.permission.StewardPermissions;
-import com.swornhero.steward.module.freeze.service.FreezeService;
-import net.minecraft.network.chat.Component;
+import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -14,28 +14,38 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.Map;
 import java.util.UUID;
 
-public final class UnfreezeConfirmMenu
+public final class FreezeHistoryMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int CONFIRM_SLOT = 48;
-    public static final int CANCEL_SLOT = 50;
+    public static final int PREVIOUS_PAGE_SLOT = 45;
+    public static final int PAGE_INFO_SLOT = 47;
+    public static final int BACK_SLOT = 49;
+    public static final int NEXT_PAGE_SLOT = 51;
     public static final int CLOSE_SLOT = 53;
 
     private final Container menuContainer;
     private final UUID targetUuid;
-    private final int activeFreezePage;
+    private final int browserPage;
+    private final int historyPage;
+    private final int totalPages;
 
-    public UnfreezeConfirmMenu(
+    private final Map<Integer, FreezeHistoryEntry> recordSlots;
+
+    public FreezeHistoryMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int activeFreezePage
+            int browserPage,
+            int historyPage,
+            int totalPages,
+            Map<Integer, FreezeHistoryEntry> recordSlots
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -49,8 +59,10 @@ public final class UnfreezeConfirmMenu
 
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
-        this.activeFreezePage =
-                activeFreezePage;
+        this.browserPage = browserPage;
+        this.historyPage = historyPage;
+        this.totalPages = totalPages;
+        this.recordSlots = Map.copyOf(recordSlots);
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -60,7 +72,7 @@ public final class UnfreezeConfirmMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public UnfreezeConfirmMenu(
+    public FreezeHistoryMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -69,7 +81,10 @@ public final class UnfreezeConfirmMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                0,
+                0,
+                1,
+                Map.of()
         );
     }
 
@@ -121,7 +136,10 @@ public final class UnfreezeConfirmMenu
     ) {
         int inventoryStartY = 140;
 
-        for (int row = 0; row < 3; row++) {
+        for (int row = 0;
+             row < 3;
+             row++) {
+
             for (int column = 0;
                  column < 9;
                  column++) {
@@ -179,79 +197,70 @@ public final class UnfreezeConfirmMenu
             return;
         }
 
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_HISTORY
+        )) {
+            viewer.closeContainer();
+            return;
+        }
+
         if (slotId < 0 || slotId >= MENU_SIZE) {
             return;
         }
 
-        switch (slotId) {
-            case CONFIRM_SLOT -> confirmUnfreeze(viewer);
+        FreezeHistoryEntry entry =
+                recordSlots.get(slotId);
 
-            case CANCEL_SLOT ->
-                    ActiveFreezeDetailScreen.open(
+        if (entry != null) {
+            FreezeHistoryDetailScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage,
+                    historyPage,
+                    entry
+            );
+
+            return;
+        }
+
+        switch (slotId) {
+            case PREVIOUS_PAGE_SLOT -> {
+                if (historyPage > 0) {
+                    FreezeHistoryScreen.open(
                             viewer,
                             targetUuid,
-                            activeFreezePage
+                            browserPage,
+                            historyPage - 1
+                    );
+                }
+            }
+
+            case NEXT_PAGE_SLOT -> {
+                if (historyPage + 1 < totalPages) {
+                    FreezeHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            historyPage + 1
+                    );
+                }
+            }
+
+            case BACK_SLOT ->
+                    PlayerProfileScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage
                     );
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
 
             default -> {
-                // Information, border, or empty slot.
+                // Border, page indicator, or empty slot.
             }
         }
-    }
-
-    private void confirmUnfreeze(
-            ServerPlayer viewer
-    ) {
-        if (!StewardPermissions.require(
-                viewer,
-                StewardPermissions.FREEZE_UNFREEZE
-        )) {
-            return;
-        }
-
-        ServerPlayer onlineTarget =
-                viewer.level()
-                        .getServer()
-                        .getPlayerList()
-                        .getPlayer(targetUuid);
-
-        if (onlineTarget == null
-                && !StewardPermissions.require(
-                viewer,
-                StewardPermissions
-                        .FREEZE_UNFREEZE_OFFLINE
-        )) {
-            return;
-        }
-
-        viewer.sendSystemMessage(
-                Component.literal(
-                        "[Steward] Checking staff hierarchy..."
-                )
-        );
-
-        FreezeService.unfreezeAuthorized(
-                viewer,
-                targetUuid,
-                unfrozen -> {
-                    if (!unfrozen) {
-                        viewer.sendSystemMessage(
-                                Component.literal(
-                                        "That freeze is no longer active "
-                                                + "or the action was denied."
-                                )
-                        );
-                    }
-
-                    ActiveFreezeScreen.open(
-                            viewer,
-                            activeFreezePage
-                    );
-                }
-        );
     }
 
     @Override
