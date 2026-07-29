@@ -1,6 +1,7 @@
 package com.swornhero.steward.freeze;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record FreezeHistoryEntry(
@@ -12,18 +13,26 @@ public record FreezeHistoryEntry(
         UUID unfrozenByUuid,
         String unfrozenByName,
         String reason,
-        String dimension,
-        double x,
-        double y,
-        double z,
+        FreezePositionEntry originalPosition,
+        FreezePositionEntry finalPosition,
         Instant frozenAt,
         Instant unfrozenAt,
         int disconnectCount,
-        int reconnectCount
+        int reconnectCount,
+        List<FreezeRelocationEntry> relocations
 ) {
+
     public static FreezeHistoryEntry fromRecord(
             FreezeRecord record
     ) {
+        List<FreezeRelocationEntry> relocationEntries =
+                record.relocations()
+                        .stream()
+                        .map(
+                                FreezeRelocationEntry::fromRelocation
+                        )
+                        .toList();
+
         return new FreezeHistoryEntry(
                 record.freezeId(),
                 record.targetUuid(),
@@ -33,17 +42,25 @@ public record FreezeHistoryEntry(
                 record.unfrozenByUuid(),
                 record.unfrozenByName(),
                 record.reason(),
-                record.position()
-                        .dimension()
-                        .identifier()
-                        .toString(),
-                record.position().x(),
-                record.position().y(),
-                record.position().z(),
+                FreezePositionEntry.fromPosition(
+                        record.position()
+                ),
+                FreezePositionEntry.fromPosition(
+                        record.currentPosition()
+                ),
                 record.frozenAt(),
                 record.unfrozenAt(),
                 record.disconnectCount(),
-                record.reconnectCount()
+                record.reconnectCount(),
+                relocationEntries
         );
+    }
+
+    public List<FreezeRelocationEntry> relocations() {
+        if (relocations == null) {
+            return List.of();
+        }
+
+        return List.copyOf(relocations);
     }
 }

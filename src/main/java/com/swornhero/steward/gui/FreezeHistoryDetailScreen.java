@@ -141,30 +141,60 @@ public final class FreezeHistoryDetailScreen {
 
         setButton(
                 container,
-                30,
+                29,
                 Items.ENDER_EYE,
-                "Dimension: " + entry.dimension()
+                "Original Dimension: "
+                        + entry.originalPosition()
+                        .dimension()
+        );
+
+        setButton(
+                container,
+                30,
+                Items.COMPASS,
+                "Original X: "
+                        + formatCoordinate(
+                        entry.originalPosition().x()
+                )
         );
 
         setButton(
                 container,
                 31,
                 Items.COMPASS,
-                "X: " + formatCoordinate(entry.x())
+                "Original Y: "
+                        + formatCoordinate(
+                        entry.originalPosition().y()
+                )
         );
 
         setButton(
                 container,
                 32,
                 Items.COMPASS,
-                "Y: " + formatCoordinate(entry.y())
+                "Original Z: "
+                        + formatCoordinate(
+                        entry.originalPosition().z()
+                )
         );
 
         setButton(
                 container,
                 33,
+                Items.RECOVERY_COMPASS,
+                "Final Dimension: "
+                        + entry.finalPosition()
+                        .dimension()
+        );
+
+        setButton(
+                container,
+                37,
                 Items.COMPASS,
-                "Z: " + formatCoordinate(entry.z())
+                "Final X: "
+                        + formatCoordinate(
+                        entry.finalPosition().x()
+                )
         );
 
         setButton(
@@ -174,6 +204,35 @@ public final class FreezeHistoryDetailScreen {
                 "Disconnects: "
                         + entry.disconnectCount()
         );
+
+        setButton(
+                container,
+                39,
+                Items.COMPASS,
+                "Final Y: "
+                        + formatCoordinate(
+                        entry.finalPosition().y()
+                )
+        );
+
+        setButton(
+                container,
+                41,
+                Items.COMPASS,
+                "Final Z: "
+                        + formatCoordinate(
+                        entry.finalPosition().z()
+                )
+        );
+
+        setButton(
+                container,
+                40,
+                Items.ENDER_PEARL,
+                "Relocations: "
+                        + entry.relocations().size()
+        );
+
 
         setButton(
                 container,
