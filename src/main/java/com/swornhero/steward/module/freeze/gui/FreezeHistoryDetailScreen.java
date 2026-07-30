@@ -1,22 +1,15 @@
 package com.swornhero.steward.module.freeze.gui;
 
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.TooltipDisplay;
 
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashSet;
 import java.util.UUID;
 
 public final class FreezeHistoryDetailScreen {
@@ -77,7 +70,10 @@ public final class FreezeHistoryDetailScreen {
             SimpleContainer container,
             FreezeHistoryEntry entry
     ) {
-        addBorder(container);
+        FreezeMenuStyle.addBorder(
+                container,
+                FreezeHistoryDetailMenu.ROWS
+        );
 
         long durationSeconds =
                 Math.max(
@@ -91,7 +87,7 @@ public final class FreezeHistoryDetailScreen {
         /*
          * Completed freeze summary.
          */
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 10,
                 Items.PLAYER_HEAD,
@@ -99,7 +95,7 @@ public final class FreezeHistoryDetailScreen {
                         + entry.targetName()
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 11,
                 Items.NAME_TAG,
@@ -108,14 +104,14 @@ public final class FreezeHistoryDetailScreen {
                         .toString()
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 12,
                 Items.GUNPOWDER,
                 "Status: Completed"
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 14,
                 Items.PACKED_ICE,
@@ -123,7 +119,7 @@ public final class FreezeHistoryDetailScreen {
                         + entry.frozenByName()
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 15,
                 Items.MAGMA_CREAM,
@@ -131,7 +127,7 @@ public final class FreezeHistoryDetailScreen {
                         + entry.unfrozenByName()
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 16,
                 Items.WRITABLE_BOOK,
@@ -142,7 +138,7 @@ public final class FreezeHistoryDetailScreen {
         /*
          * Freeze timing.
          */
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 23,
                 Items.CLOCK,
@@ -152,7 +148,7 @@ public final class FreezeHistoryDetailScreen {
                 )
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 24,
                 Items.RECOVERY_COMPASS,
@@ -162,7 +158,7 @@ public final class FreezeHistoryDetailScreen {
                 )
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 25,
                 Items.COMPASS,
@@ -175,7 +171,7 @@ public final class FreezeHistoryDetailScreen {
         /*
          * Original freeze location.
          */
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 29,
                 Items.ENDER_EYE,
@@ -184,7 +180,7 @@ public final class FreezeHistoryDetailScreen {
                         .dimension()
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 37,
                 Items.COMPASS,
@@ -194,7 +190,7 @@ public final class FreezeHistoryDetailScreen {
                 )
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 38,
                 Items.COMPASS,
@@ -204,7 +200,7 @@ public final class FreezeHistoryDetailScreen {
                 )
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 39,
                 Items.COMPASS,
@@ -217,7 +213,7 @@ public final class FreezeHistoryDetailScreen {
         /*
          * Freeze activity.
          */
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 41,
                 Items.REDSTONE_TORCH,
@@ -225,7 +221,7 @@ public final class FreezeHistoryDetailScreen {
                         + entry.disconnectCount()
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 42,
                 Items.LEVER,
@@ -233,7 +229,7 @@ public final class FreezeHistoryDetailScreen {
                         + entry.reconnectCount()
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 43,
                 Items.ENDER_PEARL,
@@ -244,92 +240,25 @@ public final class FreezeHistoryDetailScreen {
         /*
          * Navigation.
          */
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 FreezeHistoryDetailMenu.BACK_SLOT,
                 Items.OAK_DOOR,
                 "Back to History"
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 FreezeHistoryDetailMenu.PROFILE_SLOT,
                 Items.PLAYER_HEAD,
                 "Player Profile"
         );
 
-        setButton(
+        FreezeMenuStyle.setButton(
                 container,
                 FreezeHistoryDetailMenu.CLOSE_SLOT,
                 Items.BARRIER,
                 "Close"
-        );
-    }
-
-    private static void addBorder(
-            SimpleContainer container
-    ) {
-        Item borderItem =
-                BuiltInRegistries.ITEM.getValue(
-                        Identifier.fromNamespaceAndPath(
-                                "minecraft",
-                                "purple_stained_glass_pane"
-                        )
-                );
-
-        for (int slot = 0;
-             slot < FreezeHistoryDetailMenu.MENU_SIZE;
-             slot++) {
-
-            int row = slot / 9;
-            int column = slot % 9;
-
-            boolean border =
-                    row == 0
-                            || row
-                            == FreezeHistoryDetailMenu.ROWS - 1
-                            || column == 0
-                            || column == 8;
-
-            if (!border) {
-                continue;
-            }
-
-            ItemStack pane =
-                    new ItemStack(borderItem);
-
-            pane.set(
-                    DataComponents.TOOLTIP_DISPLAY,
-                    new TooltipDisplay(
-                            true,
-                            new LinkedHashSet<>()
-                    )
-            );
-
-            container.setItem(
-                    slot,
-                    pane
-            );
-        }
-    }
-
-    private static void setButton(
-            SimpleContainer container,
-            int slot,
-            Item item,
-            String name
-    ) {
-        ItemStack stack =
-                new ItemStack(item);
-
-        stack.set(
-                DataComponents.CUSTOM_NAME,
-                Component.literal(name)
-        );
-
-        container.setItem(
-                slot,
-                stack
         );
     }
 
