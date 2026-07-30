@@ -483,8 +483,15 @@ public final class FreezeService {
                 FROZEN_PLAYERS.remove(targetUuid);
 
         if (record == null) {
+            staff.sendSystemMessage(
+                    Component.literal(
+                            "[Steward] That player is no longer frozen."
+                    )
+            );
+
             return false;
         }
+
         FALLBACK_WARNED_PLAYERS.remove(
                 targetUuid
         );
@@ -545,10 +552,10 @@ public final class FreezeService {
                 Component.literal(
                         "[Steward] "
                                 + record.targetName()
-                                + " has been unfrozen."
+                                + " was unfrozen successfully."
                 )
         );
-    return true;
+        return true;
     }
 
     public static boolean relocateToStaff(

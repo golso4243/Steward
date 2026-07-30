@@ -279,26 +279,12 @@ public final class UnfreezeConfirmMenu
 
         actionPending = true;
 
-        viewer.sendSystemMessage(
-                Component.literal(
-                        "[Steward] Checking staff hierarchy..."
-                )
-        );
-
         FreezeService.unfreezeAuthorized(
                 viewer,
                 targetUuid,
                 unfrozen -> {
                     if (!unfrozen) {
                         actionPending = false;
-
-                        viewer.sendSystemMessage(
-                                Component.literal(
-                                        "That freeze is no longer active "
-                                                + "or the action was denied."
-                                )
-                        );
-
                         returnAfterCancel(viewer);
                         return;
                     }
