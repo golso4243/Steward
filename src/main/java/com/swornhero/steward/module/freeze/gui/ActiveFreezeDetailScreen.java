@@ -187,9 +187,12 @@ public final class ActiveFreezeDetailScreen {
                 )
         );
 
+        /*
+         * Original freeze location.
+         */
         setButton(
                 container,
-                24,
+                28,
                 Items.ENDER_EYE,
                 "Original Dimension: "
                         + record.position()
@@ -199,7 +202,7 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                29,
+                37,
                 Items.COMPASS,
                 "Original X: "
                         + formatCoordinate(
@@ -209,7 +212,7 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                31,
+                38,
                 Items.COMPASS,
                 "Original Y: "
                         + formatCoordinate(
@@ -219,7 +222,7 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                33,
+                39,
                 Items.COMPASS,
                 "Original Z: "
                         + formatCoordinate(
@@ -227,19 +230,12 @@ public final class ActiveFreezeDetailScreen {
                 )
         );
 
+        /*
+         * Connection activity.
+         */
         setButton(
                 container,
-                37,
-                Items.RECOVERY_COMPASS,
-                "Current Dimension: "
-                        + record.currentPosition()
-                        .dimension()
-                        .identifier()
-        );
-
-        setButton(
-                container,
-                38,
+                34,
                 Items.REDSTONE_TORCH,
                 "Disconnects: "
                         + record.disconnectCount()
@@ -247,40 +243,15 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                39,
-                Items.COMPASS,
-                "Current X: "
-                        + formatCoordinate(
-                        record.currentPosition().x()
-                )
-        );
-
-        setButton(
-                container,
-                41,
-                Items.COMPASS,
-                "Current Y: "
-                        + formatCoordinate(
-                        record.currentPosition().y()
-                )
-        );
-
-        setButton(
-                container,
-                42,
-                Items.LEVER,
+                43,
+                BuiltInRegistries.ITEM.getValue(
+                        Identifier.fromNamespaceAndPath(
+                                "minecraft",
+                                "lime_dye"
+                        )
+                ),
                 "Reconnects: "
                         + record.reconnectCount()
-        );
-
-        setButton(
-                container,
-                43,
-                Items.COMPASS,
-                "Current Z: "
-                        + formatCoordinate(
-                        record.currentPosition().z()
-                )
         );
 
         setButton(
