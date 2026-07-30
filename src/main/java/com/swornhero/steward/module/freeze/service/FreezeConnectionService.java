@@ -2,7 +2,6 @@ package com.swornhero.steward.module.freeze.service;
 
 import com.swornhero.steward.module.freeze.config.FreezePolicyService;
 import com.swornhero.steward.module.freeze.model.FreezeRecord;
-import com.swornhero.steward.core.permission.StewardPermissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -61,7 +60,7 @@ public final class FreezeConnectionService {
                                 + " disconnected while frozen."
                 );
 
-        notifyStaff(
+        FreezeAlertService.notifyStaff(
                 server,
                 alert
         );
@@ -149,33 +148,9 @@ public final class FreezeConnectionService {
                     );
         }
 
-        notifyStaff(
+        FreezeAlertService.notifyStaff(
                 server,
                 alert
-        );
-    }
-
-    private static void notifyStaff(
-            MinecraftServer server,
-            Component message
-    ) {
-        for (ServerPlayer onlinePlayer
-                : server.getPlayerList().getPlayers()) {
-
-            if (canReceiveStaffAlerts(onlinePlayer)) {
-                onlinePlayer.sendSystemMessage(
-                        message
-                );
-            }
-        }
-    }
-
-    private static boolean canReceiveStaffAlerts(
-            ServerPlayer player
-    ) {
-        return StewardPermissions.has(
-                player,
-                StewardPermissions.FREEZE_ALERTS
         );
     }
 }

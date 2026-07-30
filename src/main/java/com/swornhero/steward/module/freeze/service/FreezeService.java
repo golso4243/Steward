@@ -390,10 +390,14 @@ public final class FreezeService {
                 )
         );
 
-        staff.sendSystemMessage(
+        FreezeAlertService.notifyStaff(
+                staff.level().getServer(),
                 Component.literal(
-                        target.getName().getString()
-                                + " has been frozen."
+                        "[Steward] "
+                                + target.getName().getString()
+                                + " was frozen by "
+                                + staff.getName().getString()
+                                + "."
                 )
         );
 
@@ -548,11 +552,14 @@ public final class FreezeService {
             );
         }
 
-        staff.sendSystemMessage(
+        FreezeAlertService.notifyStaff(
+                staff.level().getServer(),
                 Component.literal(
                         "[Steward] "
                                 + record.targetName()
-                                + " was unfrozen successfully."
+                                + " was unfrozen by "
+                                + staff.getName().getString()
+                                + "."
                 )
         );
         return true;
@@ -697,12 +704,14 @@ public final class FreezeService {
                 )
         );
 
-        staff.sendSystemMessage(
+        FreezeAlertService.notifyStaff(
+                server,
                 Component.literal(
                         "[Steward] "
                                 + target.getName().getString()
-                                + " was relocated to your position "
-                                + "and remains frozen."
+                                + " was relocated by "
+                                + staff.getName().getString()
+                                + " and remains frozen."
                 )
         );
 
