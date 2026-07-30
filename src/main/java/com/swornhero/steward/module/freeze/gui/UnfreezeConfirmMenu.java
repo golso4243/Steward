@@ -32,6 +32,8 @@ public final class UnfreezeConfirmMenu
     private final int returnPage;
     private final UnfreezeReturnTarget returnTarget;
 
+    private boolean actionPending;
+
     public UnfreezeConfirmMenu(
             int containerId,
             Inventory playerInventory,
@@ -187,6 +189,10 @@ public final class UnfreezeConfirmMenu
             return;
         }
 
+        if (actionPending) {
+            return;
+        }
+
         switch (slotId) {
             case CONFIRM_SLOT ->
                     confirmUnfreeze(viewer);
@@ -271,6 +277,8 @@ public final class UnfreezeConfirmMenu
             return;
         }
 
+        actionPending = true;
+
         viewer.sendSystemMessage(
                 Component.literal(
                         "[Steward] Checking staff hierarchy..."
@@ -282,6 +290,8 @@ public final class UnfreezeConfirmMenu
                 targetUuid,
                 unfrozen -> {
                     if (!unfrozen) {
+                        actionPending = false;
+
                         viewer.sendSystemMessage(
                                 Component.literal(
                                         "That freeze is no longer active "

@@ -29,6 +29,8 @@ public final class RelocateConfirmMenu
     private final UUID targetUuid;
     private final int activeFreezePage;
 
+    private boolean actionPending;
+
     public RelocateConfirmMenu(
             int containerId,
             Inventory playerInventory,
@@ -181,6 +183,10 @@ public final class RelocateConfirmMenu
             return;
         }
 
+        if (actionPending) {
+            return;
+        }
+
         switch (slotId) {
             case CONFIRM_SLOT ->
                     confirmRelocation(viewer);
@@ -211,6 +217,8 @@ public final class RelocateConfirmMenu
             return;
         }
 
+        actionPending = true;
+
         boolean relocated =
                 FreezeService.relocateToStaff(
                         viewer,
@@ -224,6 +232,10 @@ public final class RelocateConfirmMenu
             );
 
             return;
+        }
+
+        if (!relocated) {
+            actionPending = false;
         }
 
         ActiveFreezeDetailScreen.open(
