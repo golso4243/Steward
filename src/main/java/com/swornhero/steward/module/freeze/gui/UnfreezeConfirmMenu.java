@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.freeze.gui;
 
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.freeze.service.FreezeService;
 import net.minecraft.network.chat.Component;
@@ -28,14 +29,16 @@ public final class UnfreezeConfirmMenu
 
     private final Container menuContainer;
     private final UUID targetUuid;
-    private final int activeFreezePage;
+    private final int returnPage;
+    private final UnfreezeReturnTarget returnTarget;
 
     public UnfreezeConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int activeFreezePage
+            int returnPage,
+            UnfreezeReturnTarget returnTarget
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -49,8 +52,8 @@ public final class UnfreezeConfirmMenu
 
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
-        this.activeFreezePage =
-                activeFreezePage;
+        this.returnPage = returnPage;
+        this.returnTarget = returnTarget;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -69,7 +72,8 @@ public final class UnfreezeConfirmMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                0,
+                UnfreezeReturnTarget.ACTIVE_FREEZES
         );
     }
 
@@ -184,14 +188,11 @@ public final class UnfreezeConfirmMenu
         }
 
         switch (slotId) {
-            case CONFIRM_SLOT -> confirmUnfreeze(viewer);
+            case CONFIRM_SLOT ->
+                    confirmUnfreeze(viewer);
 
             case CANCEL_SLOT ->
-                    ActiveFreezeDetailScreen.open(
-                            viewer,
-                            targetUuid,
-                            activeFreezePage
-                    );
+                    returnAfterCancel(viewer);
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
@@ -200,6 +201,49 @@ public final class UnfreezeConfirmMenu
                 // Information, border, or empty slot.
             }
         }
+    }
+
+    private void returnAfterCancel(
+            ServerPlayer viewer
+    ) {
+        if (returnTarget
+                == UnfreezeReturnTarget.PLAYER_PROFILE) {
+
+            PlayerProfileScreen.open(
+                    viewer,
+                    targetUuid,
+                    returnPage
+            );
+
+            return;
+        }
+
+        ActiveFreezeDetailScreen.open(
+                viewer,
+                targetUuid,
+                returnPage
+        );
+    }
+
+    private void returnAfterSuccess(
+            ServerPlayer viewer
+    ) {
+        if (returnTarget
+                == UnfreezeReturnTarget.PLAYER_PROFILE) {
+
+            PlayerProfileScreen.open(
+                    viewer,
+                    targetUuid,
+                    returnPage
+            );
+
+            return;
+        }
+
+        ActiveFreezeScreen.open(
+                viewer,
+                returnPage
+        );
     }
 
     private void confirmUnfreeze(
@@ -244,12 +288,12 @@ public final class UnfreezeConfirmMenu
                                                 + "or the action was denied."
                                 )
                         );
+
+                        returnAfterCancel(viewer);
+                        return;
                     }
 
-                    ActiveFreezeScreen.open(
-                            viewer,
-                            activeFreezePage
-                    );
+                    returnAfterSuccess(viewer);
                 }
         );
     }

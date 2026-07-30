@@ -1,8 +1,9 @@
 package com.swornhero.steward.core.gui;
 
-import com.swornhero.steward.module.freeze.gui.ActiveFreezeDetailScreen;
+import com.swornhero.steward.module.freeze.gui.UnfreezeConfirmScreen;
 import com.swornhero.steward.module.freeze.gui.FreezeHistoryScreen;
 import com.swornhero.steward.module.freeze.gui.FreezeReasonScreen;
+import com.swornhero.steward.module.freeze.gui.UnfreezeReturnTarget;
 import com.swornhero.steward.module.freeze.service.FreezeService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -226,15 +227,11 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                         return;
                     }
 
-                    /*
-                     * Open the active-freeze details instead of directly
-                     * unfreezing the player. This preserves the confirmation
-                     * workflow.
-                     */
-                    ActiveFreezeDetailScreen.open(
+                    UnfreezeConfirmScreen.open(
                             viewer,
                             targetUuid,
-                            0
+                            browserPage,
+                            UnfreezeReturnTarget.PLAYER_PROFILE
                     );
 
                     return;

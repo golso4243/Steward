@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.freeze.gui;
 
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.module.freeze.model.FreezeRecord;
 import com.swornhero.steward.module.freeze.service.FreezeService;
 import net.minecraft.core.component.DataComponents;
@@ -28,7 +29,8 @@ public final class UnfreezeConfirmScreen {
     public static void open(
             ServerPlayer viewer,
             UUID targetUuid,
-            int activeFreezePage
+            int returnPage,
+            UnfreezeReturnTarget returnTarget
     ) {
         FreezeRecord record =
                 FreezeService.getRecord(targetUuid);
@@ -40,10 +42,20 @@ public final class UnfreezeConfirmScreen {
                     )
             );
 
-            ActiveFreezeScreen.open(
-                    viewer,
-                    activeFreezePage
-            );
+            if (returnTarget
+                    == UnfreezeReturnTarget.PLAYER_PROFILE) {
+
+                PlayerProfileScreen.open(
+                        viewer,
+                        targetUuid,
+                        returnPage
+                );
+            } else {
+                ActiveFreezeScreen.open(
+                        viewer,
+                        returnPage
+                );
+            }
 
             return;
         }
@@ -71,7 +83,8 @@ public final class UnfreezeConfirmScreen {
                                         inventory,
                                         container,
                                         targetUuid,
-                                        activeFreezePage
+                                        returnPage,
+                                        returnTarget
                                 ),
                         title
                 )

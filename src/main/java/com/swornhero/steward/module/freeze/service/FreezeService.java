@@ -540,6 +540,14 @@ public final class FreezeService {
                     staff.getName().getString()
             );
         }
+
+        staff.sendSystemMessage(
+                Component.literal(
+                        "[Steward] "
+                                + record.targetName()
+                                + " has been unfrozen."
+                )
+        );
     return true;
     }
 

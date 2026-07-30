@@ -223,7 +223,8 @@ public final class ActiveFreezeDetailMenu
                 UnfreezeConfirmScreen.open(
                         viewer,
                         targetUuid,
-                        activeFreezePage
+                        activeFreezePage,
+                        UnfreezeReturnTarget.ACTIVE_FREEZES
                 );
             }
 
