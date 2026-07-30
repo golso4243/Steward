@@ -112,6 +112,9 @@ public final class ActiveFreezeDetailScreen {
                         ).getSeconds()
                 );
 
+        /*
+         * Freeze summary.
+         */
         setButton(
                 container,
                 10,
@@ -153,23 +156,7 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                14,
-                Items.WRITABLE_BOOK,
-                "Reason: "
-                        + record.reason()
-        );
-
-        setButton(
-                container,
-                16,
-                Items.PACKED_ICE,
-                "Frozen By: "
-                        + record.frozenByName()
-        );
-
-        setButton(
-                container,
-                20,
+                13,
                 Items.CLOCK,
                 "Frozen At: "
                         + DATE_FORMAT.format(
@@ -179,7 +166,23 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                22,
+                14,
+                Items.PACKED_ICE,
+                "Frozen By: "
+                        + record.frozenByName()
+        );
+
+        setButton(
+                container,
+                15,
+                Items.WRITABLE_BOOK,
+                "Reason: "
+                        + record.reason()
+        );
+
+        setButton(
+                container,
+                16,
                 Items.COMPASS,
                 "Duration: "
                         + formatDuration(
@@ -192,7 +195,7 @@ public final class ActiveFreezeDetailScreen {
          */
         setButton(
                 container,
-                28,
+                20,
                 Items.ENDER_EYE,
                 "Original Dimension: "
                         + record.position()
@@ -202,7 +205,7 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                37,
+                28,
                 Items.COMPASS,
                 "Original X: "
                         + formatCoordinate(
@@ -212,7 +215,7 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                38,
+                29,
                 Items.COMPASS,
                 "Original Y: "
                         + formatCoordinate(
@@ -222,7 +225,7 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                39,
+                30,
                 Items.COMPASS,
                 "Original Z: "
                         + formatCoordinate(
@@ -235,7 +238,7 @@ public final class ActiveFreezeDetailScreen {
          */
         setButton(
                 container,
-                34,
+                33,
                 Items.REDSTONE_TORCH,
                 "Disconnects: "
                         + record.disconnectCount()
@@ -243,17 +246,25 @@ public final class ActiveFreezeDetailScreen {
 
         setButton(
                 container,
-                43,
-                BuiltInRegistries.ITEM.getValue(
-                        Identifier.fromNamespaceAndPath(
-                                "minecraft",
-                                "lime_dye"
-                        )
-                ),
+                34,
+                Items.LEVER,
                 "Reconnects: "
                         + record.reconnectCount()
         );
 
+        /*
+         * Primary moderation action.
+         */
+        setButton(
+                container,
+                ActiveFreezeDetailMenu.UNFREEZE_SLOT,
+                Items.MAGMA_CREAM,
+                "Unfreeze Player"
+        );
+
+        /*
+         * Navigation and utility actions.
+         */
         setButton(
                 container,
                 ActiveFreezeDetailMenu.RELOCATE_SLOT,
@@ -266,13 +277,6 @@ public final class ActiveFreezeDetailScreen {
                 ActiveFreezeDetailMenu.BACK_SLOT,
                 Items.OAK_DOOR,
                 "Back to Active Freezes"
-        );
-
-        setButton(
-                container,
-                ActiveFreezeDetailMenu.UNFREEZE_SLOT,
-                Items.MAGMA_CREAM,
-                "Unfreeze Player"
         );
 
         setButton(

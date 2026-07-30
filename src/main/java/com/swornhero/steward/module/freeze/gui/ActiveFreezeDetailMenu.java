@@ -20,9 +20,10 @@ public final class ActiveFreezeDetailMenu
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int RELOCATE_SLOT = 47;
-    public static final int BACK_SLOT = 48;
-    public static final int UNFREEZE_SLOT = 49;
+    public static final int UNFREEZE_SLOT = 40;
+
+    public static final int RELOCATE_SLOT = 48;
+    public static final int BACK_SLOT = 49;
     public static final int CLOSE_SLOT = 50;
 
     private final Container menuContainer;
