@@ -20,11 +20,14 @@ import java.util.LinkedHashSet;
 import java.util.UUID;
 
 public final class FreezeHistoryDetailScreen {
+
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern(
                             "MMM d, yyyy h:mm:ss a"
                     )
-                    .withZone(ZoneId.systemDefault());
+                    .withZone(
+                            ZoneId.systemDefault()
+                    );
 
     private FreezeHistoryDetailScreen() {
         // Utility class
@@ -42,12 +45,16 @@ public final class FreezeHistoryDetailScreen {
                         FreezeHistoryDetailMenu.MENU_SIZE
                 );
 
-        populate(container, entry);
-
-        Component title = Component.literal(
-                "Freeze Details • "
-                        + entry.targetName()
+        populate(
+                container,
+                entry
         );
+
+        Component title =
+                Component.literal(
+                        "Freeze Details • "
+                                + entry.targetName()
+                );
 
         viewer.openMenu(
                 new SimpleMenuProvider(
@@ -73,16 +80,23 @@ public final class FreezeHistoryDetailScreen {
         addBorder(container);
 
         long durationSeconds =
-                Duration.between(
-                        entry.frozenAt(),
-                        entry.unfrozenAt()
-                ).getSeconds();
+                Math.max(
+                        0,
+                        Duration.between(
+                                entry.frozenAt(),
+                                entry.unfrozenAt()
+                        ).getSeconds()
+                );
 
+        /*
+         * Completed freeze summary.
+         */
         setButton(
                 container,
                 10,
                 Items.PLAYER_HEAD,
-                "Player: " + entry.targetName()
+                "Player: "
+                        + entry.targetName()
         );
 
         setButton(
@@ -97,48 +111,70 @@ public final class FreezeHistoryDetailScreen {
         setButton(
                 container,
                 12,
-                Items.WRITABLE_BOOK,
-                "Reason: " + entry.reason()
+                Items.GUNPOWDER,
+                "Status: Completed"
         );
 
         setButton(
                 container,
                 14,
                 Items.PACKED_ICE,
-                "Frozen By: " + entry.frozenByName()
+                "Frozen By: "
+                        + entry.frozenByName()
+        );
+
+        setButton(
+                container,
+                15,
+                Items.MAGMA_CREAM,
+                "Unfrozen By: "
+                        + entry.unfrozenByName()
         );
 
         setButton(
                 container,
                 16,
-                Items.MAGMA_CREAM,
-                "Unfrozen By: " + entry.unfrozenByName()
+                Items.WRITABLE_BOOK,
+                "Reason: "
+                        + entry.reason()
         );
 
+        /*
+         * Freeze timing.
+         */
         setButton(
                 container,
-                20,
+                23,
                 Items.CLOCK,
                 "Started: "
-                        + DATE_FORMAT.format(entry.frozenAt())
-        );
-
-        setButton(
-                container,
-                22,
-                Items.RECOVERY_COMPASS,
-                "Ended: "
-                        + DATE_FORMAT.format(entry.unfrozenAt())
+                        + DATE_FORMAT.format(
+                        entry.frozenAt()
+                )
         );
 
         setButton(
                 container,
                 24,
-                Items.COMPASS,
-                "Duration: "
-                        + formatDuration(durationSeconds)
+                Items.RECOVERY_COMPASS,
+                "Ended: "
+                        + DATE_FORMAT.format(
+                        entry.unfrozenAt()
+                )
         );
 
+        setButton(
+                container,
+                25,
+                Items.COMPASS,
+                "Duration: "
+                        + formatDuration(
+                        durationSeconds
+                )
+        );
+
+        /*
+         * Original freeze location.
+         */
         setButton(
                 container,
                 29,
@@ -150,7 +186,7 @@ public final class FreezeHistoryDetailScreen {
 
         setButton(
                 container,
-                30,
+                37,
                 Items.COMPASS,
                 "Original X: "
                         + formatCoordinate(
@@ -160,7 +196,7 @@ public final class FreezeHistoryDetailScreen {
 
         setButton(
                 container,
-                31,
+                38,
                 Items.COMPASS,
                 "Original Y: "
                         + formatCoordinate(
@@ -170,7 +206,7 @@ public final class FreezeHistoryDetailScreen {
 
         setButton(
                 container,
-                32,
+                39,
                 Items.COMPASS,
                 "Original Z: "
                         + formatCoordinate(
@@ -178,61 +214,16 @@ public final class FreezeHistoryDetailScreen {
                 )
         );
 
+        /*
+         * Freeze activity.
+         */
         setButton(
                 container,
-                33,
-                Items.RECOVERY_COMPASS,
-                "Final Dimension: "
-                        + entry.finalPosition()
-                        .dimension()
-        );
-
-        setButton(
-                container,
-                37,
-                Items.COMPASS,
-                "Final X: "
-                        + formatCoordinate(
-                        entry.finalPosition().x()
-                )
-        );
-
-        setButton(
-                container,
-                38,
+                41,
                 Items.REDSTONE_TORCH,
                 "Disconnects: "
                         + entry.disconnectCount()
         );
-
-        setButton(
-                container,
-                39,
-                Items.COMPASS,
-                "Final Y: "
-                        + formatCoordinate(
-                        entry.finalPosition().y()
-                )
-        );
-
-        setButton(
-                container,
-                41,
-                Items.COMPASS,
-                "Final Z: "
-                        + formatCoordinate(
-                        entry.finalPosition().z()
-                )
-        );
-
-        setButton(
-                container,
-                40,
-                Items.ENDER_PEARL,
-                "Relocations: "
-                        + entry.relocations().size()
-        );
-
 
         setButton(
                 container,
@@ -242,6 +233,17 @@ public final class FreezeHistoryDetailScreen {
                         + entry.reconnectCount()
         );
 
+        setButton(
+                container,
+                43,
+                Items.ENDER_PEARL,
+                "Relocations: "
+                        + entry.relocations().size()
+        );
+
+        /*
+         * Navigation.
+         */
         setButton(
                 container,
                 FreezeHistoryDetailMenu.BACK_SLOT,
@@ -304,7 +306,10 @@ public final class FreezeHistoryDetailScreen {
                     )
             );
 
-            container.setItem(slot, pane);
+            container.setItem(
+                    slot,
+                    pane
+            );
         }
     }
 
@@ -314,22 +319,31 @@ public final class FreezeHistoryDetailScreen {
             Item item,
             String name
     ) {
-        ItemStack stack = new ItemStack(item);
+        ItemStack stack =
+                new ItemStack(item);
 
         stack.set(
                 DataComponents.CUSTOM_NAME,
                 Component.literal(name)
         );
 
-        container.setItem(slot, stack);
+        container.setItem(
+                slot,
+                stack
+        );
     }
 
     private static String formatDuration(
             long durationSeconds
     ) {
-        long hours = durationSeconds / 3600;
-        long minutes = (durationSeconds % 3600) / 60;
-        long seconds = durationSeconds % 60;
+        long hours =
+                durationSeconds / 3600;
+
+        long minutes =
+                (durationSeconds % 3600) / 60;
+
+        long seconds =
+                durationSeconds % 60;
 
         if (hours > 0) {
             return hours
@@ -353,6 +367,9 @@ public final class FreezeHistoryDetailScreen {
     private static String formatCoordinate(
             double coordinate
     ) {
-        return String.format("%.2f", coordinate);
+        return String.format(
+                "%.2f",
+                coordinate
+        );
     }
 }
