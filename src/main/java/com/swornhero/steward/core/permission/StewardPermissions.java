@@ -41,6 +41,27 @@ public final class StewardPermissions {
     public static final Identifier FREEZE_BYPASS_HIERARCHY =
             create("freeze.bypass-hierarchy");
 
+    public static final Identifier WARNING_ISSUE =
+            create("warning.issue");
+
+    public static final Identifier WARNING_VIEW =
+            create("warning.view");
+
+    public static final Identifier WARNING_HISTORY =
+            create("warning.history");
+
+    public static final Identifier WARNING_REVOKE =
+            create("warning.revoke");
+
+    public static final Identifier WARNING_MANAGE =
+            create("warning.manage");
+
+    public static final Identifier WARNING_ALERTS =
+            create("warning.alerts");
+
+    public static final Identifier WARNING_BYPASS_HIERARCHY =
+            create("warning.bypass-hierarchy");
+
     private StewardPermissions() {
         // Utility class
     }
