@@ -4,8 +4,10 @@ import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.warning.model.WarningCategory;
+import com.swornhero.steward.module.warning.model.WarningExpiration;
 import com.swornhero.steward.module.warning.model.WarningLevel;
-import com.swornhero.steward.module.warning.model.WarningReason;
+import com.swornhero.steward.module.warning.model.WarningRecord;
+import com.swornhero.steward.module.warning.service.WarningService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -20,29 +22,36 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class WarningReasonMenu
+public final class WarningConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
+    public static final int CONFIRM_SLOT = 22;
     public static final int BACK_SLOT = 48;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CANCEL_SLOT = 50;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
     private final WarningLevel warningLevel;
     private final WarningCategory warningCategory;
+    private final String warningReason;
+    private final WarningExpiration warningExpiration;
 
-    public WarningReasonMenu(
+    private boolean submitted;
+
+    public WarningConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
             int browserPage,
             WarningLevel warningLevel,
-            WarningCategory warningCategory
+            WarningCategory warningCategory,
+            String warningReason,
+            WarningExpiration warningExpiration
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -59,6 +68,9 @@ public final class WarningReasonMenu
         this.browserPage = browserPage;
         this.warningLevel = warningLevel;
         this.warningCategory = warningCategory;
+        this.warningReason = warningReason;
+        this.warningExpiration = warningExpiration;
+        this.submitted = false;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -68,7 +80,7 @@ public final class WarningReasonMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public WarningReasonMenu(
+    public WarningConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -79,7 +91,9 @@ public final class WarningReasonMenu
                 new UUID(0L, 0L),
                 0,
                 WarningLevel.VERBAL,
-                WarningCategory.OTHER
+                WarningCategory.OTHER,
+                "Other: Other documented reason",
+                WarningExpiration.DEFAULT
         );
     }
 
@@ -194,37 +208,32 @@ public final class WarningReasonMenu
         }
 
         if (slotId == BACK_SLOT) {
-            WarningCategoryScreen.open(
+            WarningExpirationScreen.open(
                     viewer,
                     targetUuid,
                     browserPage,
-                    warningLevel
+                    warningLevel,
+                    warningCategory,
+                    warningReason
             );
 
             return;
         }
 
-        if (slotId == CLOSE_SLOT) {
+        if (slotId == CANCEL_SLOT) {
             viewer.closeContainer();
             return;
         }
 
-        WarningReason reason =
-                WarningReason.fromSlot(slotId);
-
-        if (reason == null) {
+        if (slotId != CONFIRM_SLOT || submitted) {
             return;
         }
 
-        selectReason(
-                viewer,
-                reason
-        );
+        issueWarning(viewer);
     }
 
-    private void selectReason(
-            ServerPlayer viewer,
-            WarningReason reason
+    private void issueWarning(
+            ServerPlayer viewer
     ) {
         if (!StewardPermissions.require(
                 viewer,
@@ -260,19 +269,64 @@ public final class WarningReasonMenu
             return;
         }
 
-        String persistentReason =
-                reason.createReason(
-                        warningCategory
-                );
+        submitted = true;
 
-        WarningExpirationScreen.open(
-                viewer,
-                targetUuid,
-                browserPage,
-                warningLevel,
-                warningCategory,
-                persistentReason
-        );
+        try {
+            WarningRecord record =
+                    WarningService.issueWarning(
+                            target.getUUID(),
+                            target.getName().getString(),
+                            warningLevel,
+                            warningCategory,
+                            warningReason,
+                            viewer.getUUID(),
+                            viewer.getName().getString(),
+                            null,
+                            null,
+                            true,
+                            warningExpiration
+                    );
+
+            String warningId =
+                    WarningService.formatWarningId(
+                            record.warningId()
+                    );
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            warningId
+                                    + " issued to "
+                                    + target.getName().getString()
+                                    + "."
+                    )
+            );
+
+            target.sendSystemMessage(
+                    Component.literal(
+                            "You received a "
+                                    + warningLevel.displayName()
+                                    + ". Reason: "
+                                    + warningReason
+                                    + ". Warning ID: "
+                                    + warningId
+                                    + "."
+                    )
+            );
+
+            PlayerProfileScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+        } catch (RuntimeException exception) {
+            submitted = false;
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The warning could not be issued."
+                    )
+            );
+        }
     }
 
     @Override

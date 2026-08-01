@@ -4,8 +4,8 @@ import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.warning.model.WarningCategory;
+import com.swornhero.steward.module.warning.model.WarningExpiration;
 import com.swornhero.steward.module.warning.model.WarningLevel;
-import com.swornhero.steward.module.warning.model.WarningReason;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class WarningReasonMenu
+public final class WarningExpirationMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
@@ -34,15 +34,17 @@ public final class WarningReasonMenu
     private final int browserPage;
     private final WarningLevel warningLevel;
     private final WarningCategory warningCategory;
+    private final String warningReason;
 
-    public WarningReasonMenu(
+    public WarningExpirationMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
             int browserPage,
             WarningLevel warningLevel,
-            WarningCategory warningCategory
+            WarningCategory warningCategory,
+            String warningReason
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -59,6 +61,7 @@ public final class WarningReasonMenu
         this.browserPage = browserPage;
         this.warningLevel = warningLevel;
         this.warningCategory = warningCategory;
+        this.warningReason = warningReason;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -68,7 +71,7 @@ public final class WarningReasonMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public WarningReasonMenu(
+    public WarningExpirationMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -79,7 +82,8 @@ public final class WarningReasonMenu
                 new UUID(0L, 0L),
                 0,
                 WarningLevel.VERBAL,
-                WarningCategory.OTHER
+                WarningCategory.OTHER,
+                "Other documented reason"
         );
     }
 
@@ -194,11 +198,12 @@ public final class WarningReasonMenu
         }
 
         if (slotId == BACK_SLOT) {
-            WarningCategoryScreen.open(
+            WarningReasonScreen.open(
                     viewer,
                     targetUuid,
                     browserPage,
-                    warningLevel
+                    warningLevel,
+                    warningCategory
             );
 
             return;
@@ -209,22 +214,22 @@ public final class WarningReasonMenu
             return;
         }
 
-        WarningReason reason =
-                WarningReason.fromSlot(slotId);
+        WarningExpiration expiration =
+                WarningExpiration.fromSlot(slotId);
 
-        if (reason == null) {
+        if (expiration == null) {
             return;
         }
 
-        selectReason(
+        selectExpiration(
                 viewer,
-                reason
+                expiration
         );
     }
 
-    private void selectReason(
+    private void selectExpiration(
             ServerPlayer viewer,
-            WarningReason reason
+            WarningExpiration expiration
     ) {
         if (!StewardPermissions.require(
                 viewer,
@@ -260,18 +265,14 @@ public final class WarningReasonMenu
             return;
         }
 
-        String persistentReason =
-                reason.createReason(
-                        warningCategory
-                );
-
-        WarningExpirationScreen.open(
+        WarningConfirmScreen.open(
                 viewer,
                 targetUuid,
                 browserPage,
                 warningLevel,
                 warningCategory,
-                persistentReason
+                warningReason,
+                expiration
         );
     }
 
