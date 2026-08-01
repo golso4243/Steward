@@ -5,6 +5,7 @@ import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.warning.model.WarningCategory;
 import com.swornhero.steward.module.warning.model.WarningLevel;
+import com.swornhero.steward.module.warning.model.WarningReason;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -19,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class WarningCategoryMenu
+public final class WarningReasonMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
@@ -32,14 +33,16 @@ public final class WarningCategoryMenu
     private final UUID targetUuid;
     private final int browserPage;
     private final WarningLevel warningLevel;
+    private final WarningCategory warningCategory;
 
-    public WarningCategoryMenu(
+    public WarningReasonMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
             int browserPage,
-            WarningLevel warningLevel
+            WarningLevel warningLevel,
+            WarningCategory warningCategory
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -55,6 +58,7 @@ public final class WarningCategoryMenu
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
         this.warningLevel = warningLevel;
+        this.warningCategory = warningCategory;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -64,7 +68,7 @@ public final class WarningCategoryMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public WarningCategoryMenu(
+    public WarningReasonMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -74,7 +78,8 @@ public final class WarningCategoryMenu
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
                 0,
-                WarningLevel.VERBAL
+                WarningLevel.VERBAL,
+                WarningCategory.OTHER
         );
     }
 
@@ -189,10 +194,11 @@ public final class WarningCategoryMenu
         }
 
         if (slotId == BACK_SLOT) {
-            WarningLevelScreen.open(
+            WarningCategoryScreen.open(
                     viewer,
                     targetUuid,
-                    browserPage
+                    browserPage,
+                    warningLevel
             );
 
             return;
@@ -203,22 +209,22 @@ public final class WarningCategoryMenu
             return;
         }
 
-        WarningCategory category =
-                WarningCategory.fromSlot(slotId);
+        WarningReason reason =
+                WarningReason.fromSlot(slotId);
 
-        if (category == null) {
+        if (reason == null) {
             return;
         }
 
-        selectCategory(
+        selectReason(
                 viewer,
-                category
+                reason
         );
     }
 
-    private void selectCategory(
+    private void selectReason(
             ServerPlayer viewer,
-            WarningCategory category
+            WarningReason reason
     ) {
         if (!StewardPermissions.require(
                 viewer,
@@ -254,12 +260,26 @@ public final class WarningCategoryMenu
             return;
         }
 
-        WarningReasonScreen.open(
+        String persistentReason =
+                reason.createReason(
+                        warningCategory
+                );
+
+        viewer.sendSystemMessage(
+                Component.literal(
+                        warningLevel.displayName()
+                                + " → "
+                                + persistentReason
+                                + " selected for "
+                                + target.getName().getString()
+                                + "."
+                )
+        );
+
+        PlayerProfileScreen.open(
                 viewer,
                 targetUuid,
-                browserPage,
-                warningLevel,
-                category
+                browserPage
         );
     }
 
