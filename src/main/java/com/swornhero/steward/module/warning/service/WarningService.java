@@ -6,6 +6,8 @@ import com.swornhero.steward.module.warning.model.WarningExpiration;
 import com.swornhero.steward.module.warning.model.WarningLevel;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.module.warning.storage.WarningStorageService;
+import com.swornhero.steward.module.warning.model.WarningRecommendation;
+import com.swornhero.steward.module.warning.model.WarningSummary;
 
 import java.time.Instant;
 import java.util.Comparator;
@@ -237,6 +239,37 @@ public final class WarningService {
                         WarningRecord::activePoints
                 )
                 .sum();
+    }
+
+    public static WarningSummary summaryFor(
+            UUID targetUuid
+    ) {
+        List<WarningRecord> warnings =
+                warningsFor(targetUuid);
+
+        int activeWarnings = 0;
+        int activePoints = 0;
+
+        for (WarningRecord record : warnings) {
+            if (!record.isActive()) {
+                continue;
+            }
+
+            activeWarnings++;
+            activePoints += record.activePoints();
+        }
+
+        WarningRecommendation recommendation =
+                WarningRecommendation.fromPoints(
+                        activePoints
+                );
+
+        return new WarningSummary(
+                activeWarnings,
+                activePoints,
+                warnings.size(),
+                recommendation
+        );
     }
 
     public static boolean refreshExpiredWarnings() {
