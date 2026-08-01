@@ -3,6 +3,7 @@ package com.swornhero.steward.module.warning.gui;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.warning.model.WarningCategory;
 import com.swornhero.steward.module.warning.model.WarningLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class WarningLevelMenu
+public final class WarningCategoryMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
@@ -30,13 +31,15 @@ public final class WarningLevelMenu
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
+    private final WarningLevel warningLevel;
 
-    public WarningLevelMenu(
+    public WarningCategoryMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int browserPage
+            int browserPage,
+            WarningLevel warningLevel
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -51,6 +54,7 @@ public final class WarningLevelMenu
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
+        this.warningLevel = warningLevel;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -60,7 +64,7 @@ public final class WarningLevelMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public WarningLevelMenu(
+    public WarningCategoryMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -69,7 +73,8 @@ public final class WarningLevelMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                0,
+                WarningLevel.VERBAL
         );
     }
 
@@ -184,7 +189,7 @@ public final class WarningLevelMenu
         }
 
         if (slotId == BACK_SLOT) {
-            PlayerProfileScreen.open(
+            WarningLevelScreen.open(
                     viewer,
                     targetUuid,
                     browserPage
@@ -198,22 +203,22 @@ public final class WarningLevelMenu
             return;
         }
 
-        WarningLevel level =
-                WarningLevel.fromSlot(slotId);
+        WarningCategory category =
+                WarningCategory.fromSlot(slotId);
 
-        if (level == null) {
+        if (category == null) {
             return;
         }
 
-        selectLevel(
+        selectCategory(
                 viewer,
-                level
+                category
         );
     }
 
-    private void selectLevel(
+    private void selectCategory(
             ServerPlayer viewer,
-            WarningLevel level
+            WarningCategory category
     ) {
         if (!StewardPermissions.require(
                 viewer,
@@ -249,11 +254,21 @@ public final class WarningLevelMenu
             return;
         }
 
-        WarningCategoryScreen.open(
+        viewer.sendSystemMessage(
+                Component.literal(
+                        warningLevel.displayName()
+                                + " → "
+                                + category.displayName()
+                                + " selected for "
+                                + target.getName().getString()
+                                + "."
+                )
+        );
+
+        PlayerProfileScreen.open(
                 viewer,
                 targetUuid,
-                browserPage,
-                level
+                browserPage
         );
     }
 
