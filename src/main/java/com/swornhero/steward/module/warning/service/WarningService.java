@@ -175,6 +175,196 @@ public final class WarningService {
         return record;
     }
 
+    public static WarningRecord findByDisplayId(
+            String displayId
+    ) {
+        if (displayId == null
+                || displayId.isBlank()) {
+
+            return null;
+        }
+
+        String normalized =
+                displayId.trim()
+                        .toUpperCase();
+
+        if (normalized.startsWith("WRN-")) {
+            normalized =
+                    normalized.substring(4);
+        }
+
+        if (normalized.length() != 8) {
+            return null;
+        }
+
+        WarningRecord match =
+                null;
+
+        for (WarningRecord record
+                : WARNINGS.values()) {
+
+            String compactId =
+                    record.warningId()
+                            .toString()
+                            .replace("-", "")
+                            .substring(0, 8)
+                            .toUpperCase();
+
+            if (!compactId.equals(normalized)) {
+                continue;
+            }
+
+            if (match != null) {
+                Steward.LOGGER.error(
+                        "Warning display ID WRN-{} is ambiguous.",
+                        normalized
+                );
+
+                return null;
+            }
+
+            match = record;
+        }
+
+        return match;
+    }
+
+    public static boolean acknowledgeWarning(
+            UUID warningId,
+            UUID targetUuid
+    ) {
+        if (warningId == null || targetUuid == null) {
+            return false;
+        }
+
+        WarningRecord record =
+                WARNINGS.get(warningId);
+
+        if (record == null) {
+            return false;
+        }
+
+        if (!targetUuid.equals(
+                record.targetUuid()
+        )) {
+            Steward.LOGGER.warn(
+                    "Player {} attempted to acknowledge warning {} "
+                            + "belonging to another player.",
+                    targetUuid,
+                    formatWarningId(warningId)
+            );
+
+            return false;
+        }
+
+        if (record.acknowledged()) {
+            return false;
+        }
+
+        record.acknowledge(
+                Instant.now()
+        );
+
+        save();
+
+        Steward.LOGGER.info(
+                "Warning {} was acknowledged by {}.",
+                formatWarningId(warningId),
+                record.targetName()
+        );
+
+        return true;
+    }
+
+    public static boolean revokeWarning(
+            UUID warningId,
+            UUID staffUuid,
+            String staffName,
+            String reason
+    ) {
+        if (warningId == null
+                || staffUuid == null
+                || staffName == null
+                || staffName.isBlank()
+                || reason == null
+                || reason.isBlank()) {
+
+            return false;
+        }
+
+        WarningRecord record =
+                WARNINGS.get(warningId);
+
+        if (record == null) {
+            return false;
+        }
+
+        boolean revoked =
+                record.revoke(
+                        staffUuid,
+                        staffName.trim(),
+                        Instant.now(),
+                        reason.trim()
+                );
+
+        if (!revoked) {
+            return false;
+        }
+
+        save();
+
+        Steward.LOGGER.info(
+                "Warning {} for {} was revoked by {}. Reason: {}",
+                formatWarningId(warningId),
+                record.targetName(),
+                staffName.trim(),
+                reason.trim()
+        );
+
+        return true;
+    }
+
+    public static boolean escalateWarning(
+            UUID warningId,
+            UUID staffUuid,
+            String staffName
+    ) {
+        if (warningId == null
+                || staffUuid == null
+                || staffName == null
+                || staffName.isBlank()) {
+
+            return false;
+        }
+
+        WarningRecord record =
+                WARNINGS.get(warningId);
+
+        if (record == null) {
+            return false;
+        }
+
+        boolean escalated =
+                record.escalate(
+                        Instant.now()
+                );
+
+        if (!escalated) {
+            return false;
+        }
+
+        save();
+
+        Steward.LOGGER.info(
+                "Warning {} for {} was marked escalated by {}.",
+                formatWarningId(warningId),
+                record.targetName(),
+                staffName.trim()
+        );
+
+        return true;
+    }
+
     public static List<WarningRecord> allWarnings() {
         refreshExpiredWarnings();
 
