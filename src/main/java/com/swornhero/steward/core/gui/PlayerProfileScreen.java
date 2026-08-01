@@ -106,6 +106,13 @@ public final class PlayerProfileScreen {
 
         setButton(
                 container,
+                PlayerProfileAction.WARN.slot(),
+                Items.PAPER,
+                "Issue Warning"
+        );
+
+        setButton(
+                container,
                 PlayerProfileAction.INSPECT.slot(),
                 Items.SPYGLASS,
                 "Inspect Inventory"

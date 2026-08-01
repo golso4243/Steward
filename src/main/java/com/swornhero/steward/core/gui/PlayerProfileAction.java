@@ -6,11 +6,12 @@ public enum PlayerProfileAction {
     TELEPORT_TO(19),
     BRING_HERE(20),
     FREEZE(21),
-    INSPECT(22),
-    REPORTS(23),
-    NOTES(24),
-    HISTORY(25),
+    WARN(22),
+    INSPECT(23),
+    REPORTS(24),
+    NOTES(25),
 
+    HISTORY(30),
     PUNISHMENTS(31),
 
     BACK(48),

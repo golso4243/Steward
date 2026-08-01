@@ -5,6 +5,7 @@ import com.swornhero.steward.module.freeze.gui.FreezeHistoryScreen;
 import com.swornhero.steward.module.freeze.gui.FreezeReasonScreen;
 import com.swornhero.steward.module.freeze.gui.UnfreezeReturnTarget;
 import com.swornhero.steward.module.freeze.service.FreezeService;
+import com.swornhero.steward.module.warning.gui.WarningLevelScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -245,6 +246,21 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                 }
 
                 FreezeReasonScreen.open(
+                        viewer,
+                        targetUuid,
+                        browserPage
+                );
+            }
+
+            case WARN -> {
+                if (!StewardPermissions.require(
+                        viewer,
+                        StewardPermissions.WARNING_ISSUE
+                )) {
+                    return;
+                }
+
+                WarningLevelScreen.open(
                         viewer,
                         targetUuid,
                         browserPage
