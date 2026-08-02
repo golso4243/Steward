@@ -12,7 +12,6 @@ public enum PlayerProfileAction {
     NOTES(25),
 
     HISTORY(30),
-    WARNING_HISTORY(31),
     PUNISHMENTS(32),
 
     BACK(48),

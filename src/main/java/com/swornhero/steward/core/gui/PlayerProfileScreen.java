@@ -139,12 +139,6 @@ public final class PlayerProfileScreen {
                 "Moderation History"
         );
 
-        setButton(
-                container,
-                PlayerProfileAction.WARNING_HISTORY.slot(),
-                Items.BOOK,
-                "Warning History"
-        );
 
         setButton(
                 container,
