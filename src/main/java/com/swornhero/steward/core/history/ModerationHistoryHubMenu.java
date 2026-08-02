@@ -1,10 +1,11 @@
-package com.swornhero.steward.module.freeze.gui;
+package com.swornhero.steward.core.history;
 
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
-import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
-import com.swornhero.steward.core.history.HistoryReturnTarget;
-import com.swornhero.steward.core.history.ModerationHistoryScreen;
+import com.swornhero.steward.module.freeze.gui.FreezeHistoryScreen;
+import com.swornhero.steward.module.warning.gui.WarningHistoryScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -14,59 +15,56 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
 
-public final class FreezeHistoryDetailMenu
+public final class ModerationHistoryHubMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
+    public static final int ALL_ACTIVITY_SLOT = 20;
+    public static final int WARNING_HISTORY_SLOT = 22;
+    public static final int FREEZE_HISTORY_SLOT = 24;
+
     public static final int BACK_SLOT = 48;
-    public static final int PROFILE_SLOT = 49;
     public static final int CLOSE_SLOT = 50;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
-    private final int historyPage;
-    private final FreezeHistoryEntry entry;
-    private final HistoryReturnTarget returnTarget;
 
-    public FreezeHistoryDetailMenu(
+    public ModerationHistoryHubMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int browserPage,
-            int historyPage,
-            FreezeHistoryEntry entry,
-            HistoryReturnTarget returnTarget
+            int browserPage
     ) {
-        super(MenuType.GENERIC_9x6, containerId);
+        super(
+                MenuType.GENERIC_9x6,
+                containerId
+        );
 
-        checkContainerSize(menuContainer, MENU_SIZE);
+        checkContainerSize(
+                menuContainer,
+                MENU_SIZE
+        );
 
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
-        this.historyPage = historyPage;
-        this.entry = entry;
 
-        this.returnTarget =
-                returnTarget != null
-                        ? returnTarget
-                        : HistoryReturnTarget.FREEZE_HISTORY;
-
-        this.menuContainer.startOpen(playerInventory.player);
+        this.menuContainer.startOpen(
+                playerInventory.player
+        );
 
         addMenuSlots(menuContainer);
         addPlayerInventorySlots(playerInventory);
     }
 
-    public FreezeHistoryDetailMenu(
+    public ModerationHistoryHubMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -75,10 +73,7 @@ public final class FreezeHistoryDetailMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0,
-                0,
-                null,
-                HistoryReturnTarget.FREEZE_HISTORY
+                0
         );
     }
 
@@ -201,52 +196,40 @@ public final class FreezeHistoryDetailMenu
         }
 
         switch (slotId) {
-            case BACK_SLOT ->
-                    returnToSource(viewer);
-
-            case PROFILE_SLOT -> {
-                PlayerProfileScreen.open(
-                        viewer,
-                        targetUuid,
-                        browserPage
-                );
-            }
-
-            case CLOSE_SLOT -> viewer.closeContainer();
-
-            default -> {
-                // Detail items are informational only.
-            }
-        }
-    }
-
-    private void returnToSource(
-            ServerPlayer viewer
-    ) {
-        switch (returnTarget) {
-            case ALL_ACTIVITY ->
+            case ALL_ACTIVITY_SLOT ->
                     ModerationHistoryScreen.open(
                             viewer,
                             targetUuid,
-                            browserPage,
-                            historyPage
+                            browserPage
                     );
 
-            case FREEZE_HISTORY ->
+            case WARNING_HISTORY_SLOT ->
+                    WarningHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage
+                    );
+
+            case FREEZE_HISTORY_SLOT ->
                     FreezeHistoryScreen.open(
                             viewer,
                             targetUuid,
-                            browserPage,
-                            historyPage
+                            browserPage
                     );
 
-            case WARNING_HISTORY ->
-                    FreezeHistoryScreen.open(
+            case BACK_SLOT ->
+                    PlayerProfileScreen.open(
                             viewer,
                             targetUuid,
-                            browserPage,
-                            historyPage
+                            browserPage
                     );
+
+            case CLOSE_SLOT ->
+                    viewer.closeContainer();
+
+            default -> {
+                // Border or empty slot.
+            }
         }
     }
 
@@ -278,6 +261,7 @@ public final class FreezeHistoryDetailMenu
             Player player
     ) {
         super.removed(player);
+
         menuContainer.stopOpen(player);
     }
 }

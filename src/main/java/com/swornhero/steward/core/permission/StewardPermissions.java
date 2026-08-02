@@ -14,6 +14,9 @@ public final class StewardPermissions {
     public static final Identifier STATUS_VIEW =
             create("status.view");
 
+    public static final Identifier HISTORY_VIEW =
+            create("history.view");
+
     public static final Identifier FREEZE_USE =
             create("freeze.use");
 

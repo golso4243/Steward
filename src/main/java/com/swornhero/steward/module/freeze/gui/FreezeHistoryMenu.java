@@ -1,6 +1,6 @@
 package com.swornhero.steward.module.freeze.gui;
 
-import com.swornhero.steward.core.gui.PlayerProfileScreen;
+import com.swornhero.steward.core.history.ModerationHistoryHubScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import net.minecraft.server.level.ServerPlayer;
@@ -199,7 +199,7 @@ public final class FreezeHistoryMenu
 
         if (!StewardPermissions.require(
                 viewer,
-                StewardPermissions.FREEZE_HISTORY
+                StewardPermissions.HISTORY_VIEW
         )) {
             viewer.closeContainer();
             return;
@@ -248,7 +248,7 @@ public final class FreezeHistoryMenu
             }
 
             case BACK_SLOT ->
-                    PlayerProfileScreen.open(
+                    ModerationHistoryHubScreen.open(
                             viewer,
                             targetUuid,
                             browserPage

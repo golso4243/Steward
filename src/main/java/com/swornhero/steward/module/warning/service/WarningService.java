@@ -366,7 +366,9 @@ public final class WarningService {
     }
 
     public static List<WarningRecord> allWarnings() {
-        refreshExpiredWarnings();
+        if (refreshExpiredWarnings()) {
+            save();
+        }
 
         return WARNINGS.values()
                 .stream()
@@ -385,7 +387,9 @@ public final class WarningService {
             return List.of();
         }
 
-        refreshExpiredWarnings();
+        if (refreshExpiredWarnings()) {
+            save();
+        }
 
         return WARNINGS.values()
                 .stream()

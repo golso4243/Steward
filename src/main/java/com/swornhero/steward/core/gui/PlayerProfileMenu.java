@@ -1,7 +1,7 @@
 package com.swornhero.steward.core.gui;
 
 import com.swornhero.steward.module.freeze.gui.UnfreezeConfirmScreen;
-import com.swornhero.steward.module.freeze.gui.FreezeHistoryScreen;
+import com.swornhero.steward.core.history.ModerationHistoryHubScreen;
 import com.swornhero.steward.module.freeze.gui.FreezeReasonScreen;
 import com.swornhero.steward.module.freeze.gui.UnfreezeReturnTarget;
 import com.swornhero.steward.module.freeze.service.FreezeService;
@@ -291,12 +291,12 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
             case HISTORY -> {
                 if (!StewardPermissions.require(
                         viewer,
-                        StewardPermissions.FREEZE_HISTORY
+                        StewardPermissions.HISTORY_VIEW
                 )) {
                     return;
                 }
 
-                FreezeHistoryScreen.open(
+                ModerationHistoryHubScreen.open(
                         viewer,
                         targetUuid,
                         browserPage

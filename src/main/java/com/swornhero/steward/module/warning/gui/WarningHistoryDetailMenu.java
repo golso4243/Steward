@@ -1,10 +1,11 @@
-package com.swornhero.steward.module.freeze.gui;
+package com.swornhero.steward.module.warning.gui;
 
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
-import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
+import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.history.ModerationHistoryScreen;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -14,11 +15,10 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
 
-public final class FreezeHistoryDetailMenu
+public final class WarningHistoryDetailMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
@@ -32,41 +32,49 @@ public final class FreezeHistoryDetailMenu
     private final UUID targetUuid;
     private final int browserPage;
     private final int historyPage;
-    private final FreezeHistoryEntry entry;
+    private final WarningRecord record;
     private final HistoryReturnTarget returnTarget;
 
-    public FreezeHistoryDetailMenu(
+    public WarningHistoryDetailMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
             int browserPage,
             int historyPage,
-            FreezeHistoryEntry entry,
+            WarningRecord record,
             HistoryReturnTarget returnTarget
     ) {
-        super(MenuType.GENERIC_9x6, containerId);
+        super(
+                MenuType.GENERIC_9x6,
+                containerId
+        );
 
-        checkContainerSize(menuContainer, MENU_SIZE);
+        checkContainerSize(
+                menuContainer,
+                MENU_SIZE
+        );
 
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
         this.historyPage = historyPage;
-        this.entry = entry;
+        this.record = record;
 
         this.returnTarget =
                 returnTarget != null
                         ? returnTarget
-                        : HistoryReturnTarget.FREEZE_HISTORY;
+                        : HistoryReturnTarget.WARNING_HISTORY;
 
-        this.menuContainer.startOpen(playerInventory.player);
+        this.menuContainer.startOpen(
+                playerInventory.player
+        );
 
         addMenuSlots(menuContainer);
         addPlayerInventorySlots(playerInventory);
     }
 
-    public FreezeHistoryDetailMenu(
+    public WarningHistoryDetailMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -78,8 +86,38 @@ public final class FreezeHistoryDetailMenu
                 0,
                 0,
                 null,
-                HistoryReturnTarget.FREEZE_HISTORY
+                HistoryReturnTarget.WARNING_HISTORY
         );
+    }
+
+    private void returnToSource(
+            ServerPlayer viewer
+    ) {
+        switch (returnTarget) {
+            case ALL_ACTIVITY ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            historyPage
+                    );
+
+            case WARNING_HISTORY ->
+                    WarningHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            historyPage
+                    );
+
+            case FREEZE_HISTORY ->
+                    WarningHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            historyPage
+                    );
+        }
     }
 
     private void addMenuSlots(
@@ -204,15 +242,15 @@ public final class FreezeHistoryDetailMenu
             case BACK_SLOT ->
                     returnToSource(viewer);
 
-            case PROFILE_SLOT -> {
-                PlayerProfileScreen.open(
-                        viewer,
-                        targetUuid,
-                        browserPage
-                );
-            }
+            case PROFILE_SLOT ->
+                    PlayerProfileScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage
+                    );
 
-            case CLOSE_SLOT -> viewer.closeContainer();
+            case CLOSE_SLOT ->
+                    viewer.closeContainer();
 
             default -> {
                 // Detail items are informational only.
@@ -220,35 +258,7 @@ public final class FreezeHistoryDetailMenu
         }
     }
 
-    private void returnToSource(
-            ServerPlayer viewer
-    ) {
-        switch (returnTarget) {
-            case ALL_ACTIVITY ->
-                    ModerationHistoryScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage,
-                            historyPage
-                    );
 
-            case FREEZE_HISTORY ->
-                    FreezeHistoryScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage,
-                            historyPage
-                    );
-
-            case WARNING_HISTORY ->
-                    FreezeHistoryScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage,
-                            historyPage
-                    );
-        }
-    }
 
     @Override
     public ItemStack quickMoveStack(
@@ -278,6 +288,7 @@ public final class FreezeHistoryDetailMenu
             Player player
     ) {
         super.removed(player);
+
         menuContainer.stopOpen(player);
     }
 }

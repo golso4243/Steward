@@ -1,10 +1,16 @@
-package com.swornhero.steward.module.freeze.gui;
+package com.swornhero.steward.core.history;
 
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.freeze.gui.FreezeHistoryDetailScreen;
+import com.swornhero.steward.core.history.ModerationHistoryHubScreen;
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
-import com.swornhero.steward.core.history.HistoryReturnTarget;
-import com.swornhero.steward.core.history.ModerationHistoryScreen;
+import com.swornhero.steward.module.freeze.service.FreezeHistoryService;
+import com.swornhero.steward.module.warning.model.WarningRecord;
+import com.swornhero.steward.module.warning.service.WarningService;
+import com.swornhero.steward.module.warning.gui.WarningHistoryDetailScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -14,59 +20,67 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.server.level.ServerPlayer;
 
+import java.util.Map;
 import java.util.UUID;
 
-public final class FreezeHistoryDetailMenu
+public final class ModerationHistoryMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 48;
-    public static final int PROFILE_SLOT = 49;
-    public static final int CLOSE_SLOT = 50;
+    public static final int PREVIOUS_PAGE_SLOT = 45;
+    public static final int PAGE_INFO_SLOT = 47;
+    public static final int BACK_SLOT = 49;
+    public static final int NEXT_PAGE_SLOT = 51;
+    public static final int CLOSE_SLOT = 53;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
     private final int historyPage;
-    private final FreezeHistoryEntry entry;
-    private final HistoryReturnTarget returnTarget;
+    private final int totalPages;
 
-    public FreezeHistoryDetailMenu(
+    private final Map<Integer, ModerationHistoryItem> recordSlots;
+
+    public ModerationHistoryMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
             int browserPage,
             int historyPage,
-            FreezeHistoryEntry entry,
-            HistoryReturnTarget returnTarget
+            int totalPages,
+            Map<Integer, ModerationHistoryItem> recordSlots
     ) {
-        super(MenuType.GENERIC_9x6, containerId);
+        super(
+                MenuType.GENERIC_9x6,
+                containerId
+        );
 
-        checkContainerSize(menuContainer, MENU_SIZE);
+        checkContainerSize(
+                menuContainer,
+                MENU_SIZE
+        );
 
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
         this.historyPage = historyPage;
-        this.entry = entry;
+        this.totalPages = totalPages;
+        this.recordSlots =
+                Map.copyOf(recordSlots);
 
-        this.returnTarget =
-                returnTarget != null
-                        ? returnTarget
-                        : HistoryReturnTarget.FREEZE_HISTORY;
-
-        this.menuContainer.startOpen(playerInventory.player);
+        this.menuContainer.startOpen(
+                playerInventory.player
+        );
 
         addMenuSlots(menuContainer);
         addPlayerInventorySlots(playerInventory);
     }
 
-    public FreezeHistoryDetailMenu(
+    public ModerationHistoryMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -77,8 +91,8 @@ public final class FreezeHistoryDetailMenu
                 new UUID(0L, 0L),
                 0,
                 0,
-                null,
-                HistoryReturnTarget.FREEZE_HISTORY
+                1,
+                Map.of()
         );
     }
 
@@ -200,54 +214,163 @@ public final class FreezeHistoryDetailMenu
             return;
         }
 
-        switch (slotId) {
-            case BACK_SLOT ->
-                    returnToSource(viewer);
+        ModerationHistoryItem item =
+                recordSlots.get(slotId);
 
-            case PROFILE_SLOT -> {
-                PlayerProfileScreen.open(
-                        viewer,
-                        targetUuid,
-                        browserPage
-                );
-            }
+        if (item != null) {
+            openRecord(
+                    viewer,
+                    item
+            );
 
-            case CLOSE_SLOT -> viewer.closeContainer();
-
-            default -> {
-                // Detail items are informational only.
-            }
+            return;
         }
-    }
 
-    private void returnToSource(
-            ServerPlayer viewer
-    ) {
-        switch (returnTarget) {
-            case ALL_ACTIVITY ->
+        switch (slotId) {
+            case PREVIOUS_PAGE_SLOT -> {
+                if (historyPage > 0) {
                     ModerationHistoryScreen.open(
                             viewer,
                             targetUuid,
                             browserPage,
-                            historyPage
+                            historyPage - 1
                     );
+                }
+            }
 
-            case FREEZE_HISTORY ->
-                    FreezeHistoryScreen.open(
+            case NEXT_PAGE_SLOT -> {
+                if (historyPage + 1 < totalPages) {
+                    ModerationHistoryScreen.open(
                             viewer,
                             targetUuid,
                             browserPage,
-                            historyPage
+                            historyPage + 1
                     );
+                }
+            }
 
-            case WARNING_HISTORY ->
-                    FreezeHistoryScreen.open(
+            case BACK_SLOT ->
+                    ModerationHistoryHubScreen.open(
                             viewer,
                             targetUuid,
-                            browserPage,
-                            historyPage
+                            browserPage
+                    );
+
+            case CLOSE_SLOT ->
+                    viewer.closeContainer();
+
+            default -> {
+                // Border, page indicator, or empty slot.
+            }
+        }
+    }
+
+    private void openRecord(
+            ServerPlayer viewer,
+            ModerationHistoryItem item
+    ) {
+        switch (item.type()) {
+            case WARNING ->
+                    openWarningRecord(
+                            viewer,
+                            item.recordId()
+                    );
+
+            case FREEZE ->
+                    openFreezeRecord(
+                            viewer,
+                            item.recordId()
                     );
         }
+    }
+
+    private void openWarningRecord(
+            ServerPlayer viewer,
+            UUID warningId
+    ) {
+        WarningRecord record =
+                WarningService.findById(
+                        warningId
+                );
+
+        if (record == null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That warning record could not be found."
+                    )
+            );
+
+            reopenCurrentPage(viewer);
+            return;
+        }
+
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "Selected "
+                                + WarningService.formatWarningId(
+                                record.warningId()
+                        )
+                )
+        );
+
+        WarningHistoryDetailScreen.open(
+                viewer,
+                targetUuid,
+                browserPage,
+                historyPage,
+                record,
+                HistoryReturnTarget.ALL_ACTIVITY
+        );
+    }
+
+    private void openFreezeRecord(
+            ServerPlayer viewer,
+            UUID freezeId
+    ) {
+        FreezeHistoryEntry matchingEntry =
+                FreezeHistoryService.getForPlayer(
+                                targetUuid
+                        )
+                        .stream()
+                        .filter(
+                                entry ->
+                                        freezeId.equals(
+                                                entry.freezeId()
+                                        )
+                        )
+                        .findFirst()
+                        .orElse(null);
+
+        if (matchingEntry == null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That freeze record could not be found."
+                    )
+            );
+
+            reopenCurrentPage(viewer);
+            return;
+        }
+
+        FreezeHistoryDetailScreen.open(
+                viewer,
+                targetUuid,
+                browserPage,
+                historyPage,
+                matchingEntry,
+                HistoryReturnTarget.ALL_ACTIVITY
+        );
+    }
+
+    private void reopenCurrentPage(
+            ServerPlayer viewer
+    ) {
+        ModerationHistoryScreen.open(
+                viewer,
+                targetUuid,
+                browserPage,
+                historyPage
+        );
     }
 
     @Override
@@ -278,6 +401,7 @@ public final class FreezeHistoryDetailMenu
             Player player
     ) {
         super.removed(player);
+
         menuContainer.stopOpen(player);
     }
 }

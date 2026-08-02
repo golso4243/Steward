@@ -12,7 +12,8 @@ public enum PlayerProfileAction {
     NOTES(25),
 
     HISTORY(30),
-    PUNISHMENTS(31),
+    WARNING_HISTORY(31),
+    PUNISHMENTS(32),
 
     BACK(48),
     CLOSE(50);
@@ -27,7 +28,9 @@ public enum PlayerProfileAction {
         return slot;
     }
 
-    public static PlayerProfileAction fromSlot(int slot) {
+    public static PlayerProfileAction fromSlot(
+            int slot
+    ) {
         for (PlayerProfileAction action : values()) {
             if (action.slot == slot) {
                 return action;

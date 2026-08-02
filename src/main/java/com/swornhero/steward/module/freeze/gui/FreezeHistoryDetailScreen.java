@@ -1,6 +1,7 @@
 package com.swornhero.steward.module.freeze.gui;
 
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
+import com.swornhero.steward.core.history.HistoryReturnTarget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
@@ -33,6 +34,36 @@ public final class FreezeHistoryDetailScreen {
             int historyPage,
             FreezeHistoryEntry entry
     ) {
+        open(
+                viewer,
+                targetUuid,
+                browserPage,
+                historyPage,
+                entry,
+                HistoryReturnTarget.FREEZE_HISTORY
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            UUID targetUuid,
+            int browserPage,
+            int historyPage,
+            FreezeHistoryEntry entry,
+            HistoryReturnTarget returnTarget
+    ) {
+        if (entry == null) {
+            returnToSource(
+                    viewer,
+                    targetUuid,
+                    browserPage,
+                    historyPage,
+                    returnTarget
+            );
+
+            return;
+        }
+
         SimpleContainer container =
                 new SimpleContainer(
                         FreezeHistoryDetailMenu.MENU_SIZE
@@ -59,7 +90,8 @@ public final class FreezeHistoryDetailScreen {
                                         targetUuid,
                                         browserPage,
                                         historyPage,
-                                        entry
+                                        entry,
+                                        returnTarget
                                 ),
                         title
                 )
@@ -291,6 +323,32 @@ public final class FreezeHistoryDetailScreen {
         }
 
         return seconds + "s";
+    }
+
+    private static void returnToSource(
+            ServerPlayer viewer,
+            UUID targetUuid,
+            int browserPage,
+            int historyPage,
+            HistoryReturnTarget returnTarget
+    ) {
+        if (returnTarget == HistoryReturnTarget.ALL_ACTIVITY) {
+            com.swornhero.steward.core.history.ModerationHistoryScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage,
+                    historyPage
+            );
+
+            return;
+        }
+
+        FreezeHistoryScreen.open(
+                viewer,
+                targetUuid,
+                browserPage,
+                historyPage
+        );
     }
 
     private static String formatCoordinate(

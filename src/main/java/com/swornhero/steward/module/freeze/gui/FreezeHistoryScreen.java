@@ -99,7 +99,7 @@ public final class FreezeHistoryScreen {
         );
 
         Component title = Component.literal(
-                "History • "
+                "Freeze History • "
                         + targetName
                         + " "
                         + (historyPage + 1)
@@ -217,7 +217,7 @@ public final class FreezeHistoryScreen {
                 container,
                 FreezeHistoryMenu.BACK_SLOT,
                 Items.OAK_DOOR,
-                "Back to Profile"
+                "Back to History"
         );
 
         FreezeMenuStyle.setButton(
