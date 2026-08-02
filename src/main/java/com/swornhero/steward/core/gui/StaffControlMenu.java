@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.history.GlobalModerationHistoryHubScreen;
 
 public final class StaffControlMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
@@ -160,6 +161,19 @@ public final class StaffControlMenu extends AbstractContainerMenu {
                 }
 
                 ActiveFreezeScreen.open(player);
+            }
+
+            case HISTORY -> {
+                if (!StewardPermissions.require(
+                        player,
+                        StewardPermissions.HISTORY_VIEW
+                )) {
+                    return;
+                }
+
+                GlobalModerationHistoryHubScreen.open(
+                        player
+                );
             }
 
             default -> player.sendSystemMessage(
