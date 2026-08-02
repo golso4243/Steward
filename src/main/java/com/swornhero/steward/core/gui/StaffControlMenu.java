@@ -1,6 +1,7 @@
 package com.swornhero.steward.core.gui;
 
 import com.swornhero.steward.module.freeze.gui.ActiveFreezeScreen;
+import com.swornhero.steward.module.punishment.gui.PunishmentHubScreen;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -174,6 +175,17 @@ public final class StaffControlMenu extends AbstractContainerMenu {
                 GlobalModerationHistoryHubScreen.open(
                         player
                 );
+            }
+
+            case PUNISHMENTS -> {
+                if (!StewardPermissions.require(
+                        player,
+                        StewardPermissions.PUNISHMENT_MANAGE
+                )) {
+                    return;
+                }
+
+                PunishmentHubScreen.open(player);
             }
 
             default -> player.sendSystemMessage(
