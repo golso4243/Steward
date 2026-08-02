@@ -65,6 +65,30 @@ public final class StewardPermissions {
     public static final Identifier WARNING_BYPASS_HIERARCHY =
             create("warning.bypass-hierarchy");
 
+    public static final Identifier PUNISHMENT_VIEW =
+            create("punishment.view");
+
+    public static final Identifier PUNISHMENT_MANAGE =
+            create("punishment.manage");
+
+    public static final Identifier PUNISHMENT_MUTE =
+            create("punishment.mute");
+
+    public static final Identifier PUNISHMENT_KICK =
+            create("punishment.kick");
+
+    public static final Identifier PUNISHMENT_TEMPORARY_BAN =
+            create("punishment.temporary-ban");
+
+    public static final Identifier PUNISHMENT_PERMANENT_BAN =
+            create("punishment.permanent-ban");
+
+    public static final Identifier PUNISHMENT_REVOKE =
+            create("punishment.revoke");
+
+    public static final Identifier PUNISHMENT_BYPASS_HIERARCHY =
+            create("punishment.bypass-hierarchy");
+
     private StewardPermissions() {
         // Utility class
     }
