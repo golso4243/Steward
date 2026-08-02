@@ -1,7 +1,7 @@
 package com.swornhero.steward.core.history;
 
-import com.swornhero.steward.core.gui.StaffControlScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -13,25 +13,33 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public final class GlobalModerationHistoryHubMenu
+import java.util.Map;
+
+public final class GlobalModerationHistoryMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int ALL_ACTIVITY_SLOT = 20;
-    public static final int WARNING_HISTORY_SLOT = 22;
-    public static final int FREEZE_HISTORY_SLOT = 24;
-
-    public static final int BACK_SLOT = 48;
-    public static final int CLOSE_SLOT = 50;
+    public static final int PREVIOUS_PAGE_SLOT = 45;
+    public static final int PAGE_INFO_SLOT = 47;
+    public static final int BACK_SLOT = 49;
+    public static final int NEXT_PAGE_SLOT = 51;
+    public static final int CLOSE_SLOT = 53;
 
     private final Container menuContainer;
+    private final int historyPage;
+    private final int totalPages;
 
-    public GlobalModerationHistoryHubMenu(
+    private final Map<Integer, ModerationHistoryItem> recordSlots;
+
+    public GlobalModerationHistoryMenu(
             int containerId,
             Inventory playerInventory,
-            Container menuContainer
+            Container menuContainer,
+            int historyPage,
+            int totalPages,
+            Map<Integer, ModerationHistoryItem> recordSlots
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -44,6 +52,9 @@ public final class GlobalModerationHistoryHubMenu
         );
 
         this.menuContainer = menuContainer;
+        this.historyPage = historyPage;
+        this.totalPages = totalPages;
+        this.recordSlots = Map.copyOf(recordSlots);
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -53,14 +64,17 @@ public final class GlobalModerationHistoryHubMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public GlobalModerationHistoryHubMenu(
+    public GlobalModerationHistoryMenu(
             int containerId,
             Inventory playerInventory
     ) {
         this(
                 containerId,
                 playerInventory,
-                new SimpleContainer(MENU_SIZE)
+                new SimpleContainer(MENU_SIZE),
+                0,
+                1,
+                Map.of()
         );
     }
 
@@ -182,34 +196,52 @@ public final class GlobalModerationHistoryHubMenu
             return;
         }
 
+        ModerationHistoryItem item =
+                recordSlots.get(slotId);
+
+        if (item != null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "Selected "
+                                    + item.type().displayName()
+                                    + " record for "
+                                    + item.targetName()
+                                    + ". Record details will be connected next."
+                    )
+            );
+
+            return;
+        }
+
         switch (slotId) {
-            case ALL_ACTIVITY_SLOT ->
+            case PREVIOUS_PAGE_SLOT -> {
+                if (historyPage > 0) {
                     GlobalModerationHistoryScreen.open(
-                            viewer
+                            viewer,
+                            historyPage - 1
                     );
+                }
+            }
 
-            case WARNING_HISTORY_SLOT ->
-                    viewer.sendSystemMessage(
-                            net.minecraft.network.chat.Component.literal(
-                                    "Global warning history will be added next."
-                            )
+            case NEXT_PAGE_SLOT -> {
+                if (historyPage + 1 < totalPages) {
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            historyPage + 1
                     );
-
-            case FREEZE_HISTORY_SLOT ->
-                    viewer.sendSystemMessage(
-                            net.minecraft.network.chat.Component.literal(
-                                    "Global freeze history will be added next."
-                            )
-                    );
+                }
+            }
 
             case BACK_SLOT ->
-                    StaffControlScreen.open(viewer);
+                    GlobalModerationHistoryHubScreen.open(
+                            viewer
+                    );
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
 
             default -> {
-                // Border or empty slot.
+                // Border, page indicator, or empty slot.
             }
         }
     }
