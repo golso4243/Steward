@@ -1,6 +1,7 @@
 package com.swornhero.steward.module.warning.gui;
 
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
+import com.swornhero.steward.core.history.GlobalHistoryView;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
@@ -106,6 +107,13 @@ public final class WarningHistoryDetailMenu
             case GLOBAL_ALL_ACTIVITY ->
                     GlobalModerationHistoryScreen.open(
                             viewer,
+                            historyPage
+                    );
+
+            case GLOBAL_WARNING_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.WARNING_HISTORY,
                             historyPage
                     );
 

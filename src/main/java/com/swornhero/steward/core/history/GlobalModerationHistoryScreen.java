@@ -47,12 +47,36 @@ public final class GlobalModerationHistoryScreen {
     ) {
         open(
                 viewer,
+                GlobalHistoryView.ALL_ACTIVITY,
                 0
         );
     }
 
     public static void open(
             ServerPlayer viewer,
+            int requestedHistoryPage
+    ) {
+        open(
+                viewer,
+                GlobalHistoryView.ALL_ACTIVITY,
+                requestedHistoryPage
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            GlobalHistoryView view
+    ) {
+        open(
+                viewer,
+                view,
+                0
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            GlobalHistoryView requestedView,
             int requestedHistoryPage
     ) {
         if (!StewardPermissions.require(
@@ -62,8 +86,17 @@ public final class GlobalModerationHistoryScreen {
             return;
         }
 
+        GlobalHistoryView view =
+                requestedView != null
+                        ? requestedView
+                        : GlobalHistoryView.ALL_ACTIVITY;
+
         List<ModerationHistoryItem> records =
-                ModerationHistoryService.getAll();
+                view.showsAllTypes()
+                        ? ModerationHistoryService.getAll()
+                        : ModerationHistoryService.getAllByType(
+                        view.actionType()
+                );
 
         int totalPages =
                 Math.max(
@@ -101,7 +134,8 @@ public final class GlobalModerationHistoryScreen {
 
         Component title =
                 Component.literal(
-                        "Global History • "
+                        view.title()
+                                + " • "
                                 + (historyPage + 1)
                                 + "/"
                                 + totalPages
@@ -114,6 +148,7 @@ public final class GlobalModerationHistoryScreen {
                                         containerId,
                                         inventory,
                                         container,
+                                        view,
                                         historyPage,
                                         totalPages,
                                         recordSlots

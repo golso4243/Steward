@@ -36,6 +36,7 @@ public final class GlobalModerationHistoryMenu
     private final Container menuContainer;
     private final int historyPage;
     private final int totalPages;
+    private final GlobalHistoryView view;
 
     private final Map<Integer, ModerationHistoryItem> recordSlots;
 
@@ -43,6 +44,7 @@ public final class GlobalModerationHistoryMenu
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
+            GlobalHistoryView view,
             int historyPage,
             int totalPages,
             Map<Integer, ModerationHistoryItem> recordSlots
@@ -58,6 +60,12 @@ public final class GlobalModerationHistoryMenu
         );
 
         this.menuContainer = menuContainer;
+
+        this.view =
+                view != null
+                        ? view
+                        : GlobalHistoryView.ALL_ACTIVITY;
+
         this.historyPage = historyPage;
         this.totalPages = totalPages;
         this.recordSlots = Map.copyOf(recordSlots);
@@ -78,6 +86,7 @@ public final class GlobalModerationHistoryMenu
                 containerId,
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
+                GlobalHistoryView.ALL_ACTIVITY,
                 0,
                 1,
                 Map.of()
@@ -219,6 +228,7 @@ public final class GlobalModerationHistoryMenu
                 if (historyPage > 0) {
                     GlobalModerationHistoryScreen.open(
                             viewer,
+                            view,
                             historyPage - 1
                     );
                 }
@@ -228,6 +238,7 @@ public final class GlobalModerationHistoryMenu
                 if (historyPage + 1 < totalPages) {
                     GlobalModerationHistoryScreen.open(
                             viewer,
+                            view,
                             historyPage + 1
                     );
                 }
@@ -292,7 +303,7 @@ public final class GlobalModerationHistoryMenu
                 0,
                 historyPage,
                 record,
-                HistoryReturnTarget.GLOBAL_ALL_ACTIVITY
+                view.returnTarget()
         );
     }
 
@@ -328,7 +339,7 @@ public final class GlobalModerationHistoryMenu
                 0,
                 historyPage,
                 record,
-                HistoryReturnTarget.GLOBAL_ALL_ACTIVITY
+                view.returnTarget()
         );
     }
 
@@ -337,6 +348,7 @@ public final class GlobalModerationHistoryMenu
     ) {
         GlobalModerationHistoryScreen.open(
                 viewer,
+                view,
                 historyPage
         );
     }

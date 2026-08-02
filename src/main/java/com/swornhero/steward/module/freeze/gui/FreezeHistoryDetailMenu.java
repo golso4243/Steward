@@ -1,6 +1,7 @@
 package com.swornhero.steward.module.freeze.gui;
 
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
+import com.swornhero.steward.core.history.GlobalHistoryView;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
@@ -236,6 +237,13 @@ public final class FreezeHistoryDetailMenu
             case GLOBAL_ALL_ACTIVITY ->
                     GlobalModerationHistoryScreen.open(
                             viewer,
+                            historyPage
+                    );
+
+            case GLOBAL_WARNING_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.WARNING_HISTORY,
                             historyPage
                     );
 

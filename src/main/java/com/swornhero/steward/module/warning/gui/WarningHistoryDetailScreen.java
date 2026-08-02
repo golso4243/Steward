@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.warning.gui;
 
+import com.swornhero.steward.core.history.GlobalHistoryView;
 import com.swornhero.steward.core.history.ModerationHistoryScreen;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.module.warning.service.WarningService;
@@ -462,6 +463,13 @@ public final class WarningHistoryDetailScreen {
             case GLOBAL_ALL_ACTIVITY ->
                     GlobalModerationHistoryScreen.open(
                             viewer,
+                            historyPage
+                    );
+
+            case GLOBAL_WARNING_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.WARNING_HISTORY,
                             historyPage
                     );
 

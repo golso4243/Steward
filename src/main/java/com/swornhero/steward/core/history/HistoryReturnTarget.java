@@ -6,6 +6,8 @@ public enum HistoryReturnTarget {
 
     GLOBAL_ALL_ACTIVITY,
 
+    GLOBAL_WARNING_HISTORY,
+
     WARNING_HISTORY,
 
     FREEZE_HISTORY

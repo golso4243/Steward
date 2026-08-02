@@ -189,10 +189,9 @@ public final class GlobalModerationHistoryHubMenu
                     );
 
             case WARNING_HISTORY_SLOT ->
-                    viewer.sendSystemMessage(
-                            net.minecraft.network.chat.Component.literal(
-                                    "Global warning history will be added next."
-                            )
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.WARNING_HISTORY
                     );
 
             case FREEZE_HISTORY_SLOT ->
