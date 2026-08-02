@@ -139,14 +139,6 @@ public final class PlayerProfileScreen {
                 "Moderation History"
         );
 
-
-        setButton(
-                container,
-                PlayerProfileAction.PUNISHMENTS.slot(),
-                Items.ANVIL,
-                "Punishments"
-        );
-
         setButton(
                 container,
                 PlayerProfileAction.BACK.slot(),

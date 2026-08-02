@@ -303,13 +303,6 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                 );
             }
 
-            case PUNISHMENTS -> viewer.sendSystemMessage(
-                    Component.literal(
-                            "Punishments selected for "
-                                    + target.getName().getString()
-                    )
-            );
-
             default -> {
                 // BACK and CLOSE are handled before this switch.
             }
