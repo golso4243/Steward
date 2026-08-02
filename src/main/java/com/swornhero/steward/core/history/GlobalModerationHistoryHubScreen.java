@@ -58,32 +58,52 @@ public final class GlobalModerationHistoryHubScreen {
     ) {
         addBorder(container);
 
+        int totalCount =
+                ModerationHistoryService.countAll();
+
+        int warningCount =
+                ModerationHistoryService.countAllByType(
+                        ModerationActionType.WARNING
+                );
+
+        int freezeCount =
+                ModerationHistoryService.countAllByType(
+                        ModerationActionType.FREEZE
+                );
+
         setButton(
                 container,
                 13,
                 Items.CLOCK,
-                "Server-Wide Moderation Records"
+                "Server-Wide Records • "
+                        + totalCount
         );
 
         setButton(
                 container,
                 GlobalModerationHistoryHubMenu.ALL_ACTIVITY_SLOT,
                 Items.COMPASS,
-                "All Activity"
+                "All Activity • "
+                        + totalCount
+                        + " Records"
         );
 
         setButton(
                 container,
                 GlobalModerationHistoryHubMenu.WARNING_HISTORY_SLOT,
                 Items.PAPER,
-                "Warning History"
+                "Warning History • "
+                        + warningCount
+                        + " Records"
         );
 
         setButton(
                 container,
                 GlobalModerationHistoryHubMenu.FREEZE_HISTORY_SLOT,
                 Items.PACKED_ICE,
-                "Freeze History"
+                "Freeze History • "
+                        + freezeCount
+                        + " Records"
         );
 
         setButton(

@@ -12,10 +12,41 @@ import java.util.UUID;
 
 public final class ModerationHistoryService {
 
+    private static final Comparator<ModerationHistoryItem>
+            NEWEST_FIRST =
+            Comparator.comparing(
+                    ModerationHistoryItem::occurredAt
+            ).reversed();
+
     private ModerationHistoryService() {
         // Utility class
     }
 
+    /**
+     * Returns every supported moderation-history record
+     * across the entire server.
+     */
+    public static List<ModerationHistoryItem> getAll() {
+        List<ModerationHistoryItem> history =
+                new ArrayList<>();
+
+        addWarningHistory(
+                history,
+                WarningService.allWarnings()
+        );
+
+        addFreezeHistory(
+                history,
+                FreezeHistoryService.getAll()
+        );
+
+        return sortedCopy(history);
+    }
+
+    /**
+     * Returns all supported moderation-history records
+     * belonging to one player.
+     */
     public static List<ModerationHistoryItem> getForPlayer(
             UUID targetUuid
     ) {
@@ -28,31 +59,88 @@ public final class ModerationHistoryService {
 
         addWarningHistory(
                 history,
-                targetUuid
+                WarningService.warningsFor(
+                        targetUuid
+                )
         );
 
         addFreezeHistory(
                 history,
-                targetUuid
+                FreezeHistoryService.getForPlayer(
+                        targetUuid
+                )
         );
 
-        history.sort(
-                Comparator.comparing(
-                        ModerationHistoryItem::occurredAt
-                ).reversed()
-        );
+        return sortedCopy(history);
+    }
 
-        return List.copyOf(history);
+    /**
+     * Returns every global history record of one action type.
+     */
+    public static List<ModerationHistoryItem> getAllByType(
+            ModerationActionType type
+    ) {
+        if (type == null) {
+            return List.of();
+        }
+
+        return getAll()
+                .stream()
+                .filter(item -> item.type() == type)
+                .toList();
+    }
+
+    /**
+     * Returns one player's history records of one action type.
+     */
+    public static List<ModerationHistoryItem> getForPlayerByType(
+            UUID targetUuid,
+            ModerationActionType type
+    ) {
+        if (targetUuid == null || type == null) {
+            return List.of();
+        }
+
+        return getForPlayer(targetUuid)
+                .stream()
+                .filter(item -> item.type() == type)
+                .toList();
+    }
+
+    public static int countAll() {
+        return getAll().size();
+    }
+
+    public static int countAllByType(
+            ModerationActionType type
+    ) {
+        return getAllByType(type).size();
+    }
+
+    public static int countForPlayer(
+            UUID targetUuid
+    ) {
+        return getForPlayer(targetUuid).size();
+    }
+
+    public static int countForPlayerByType(
+            UUID targetUuid,
+            ModerationActionType type
+    ) {
+        return getForPlayerByType(
+                targetUuid,
+                type
+        ).size();
     }
 
     private static void addWarningHistory(
             List<ModerationHistoryItem> history,
-            UUID targetUuid
+            List<WarningRecord> warnings
     ) {
-        for (WarningRecord warning
-                : WarningService.warningsFor(
-                targetUuid
-        )) {
+        for (WarningRecord warning : warnings) {
+            if (warning == null) {
+                continue;
+            }
 
             String summary =
                     warning.level().displayName()
@@ -76,12 +164,12 @@ public final class ModerationHistoryService {
 
     private static void addFreezeHistory(
             List<ModerationHistoryItem> history,
-            UUID targetUuid
+            List<FreezeHistoryEntry> freezes
     ) {
-        for (FreezeHistoryEntry freeze
-                : FreezeHistoryService.getForPlayer(
-                targetUuid
-        )) {
+        for (FreezeHistoryEntry freeze : freezes) {
+            if (freeze == null) {
+                continue;
+            }
 
             String summary =
                     "Freeze • "
@@ -98,5 +186,13 @@ public final class ModerationHistoryService {
                     )
             );
         }
+    }
+
+    private static List<ModerationHistoryItem> sortedCopy(
+            List<ModerationHistoryItem> history
+    ) {
+        history.sort(NEWEST_FIRST);
+
+        return List.copyOf(history);
     }
 }
