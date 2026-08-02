@@ -247,7 +247,14 @@ public final class FreezeHistoryDetailMenu
                             historyPage
                     );
 
-            case FREEZE_HISTORY ->
+            case GLOBAL_FREEZE_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.FREEZE_HISTORY,
+                            historyPage
+                    );
+
+            case FREEZE_HISTORY, WARNING_HISTORY ->
                     FreezeHistoryScreen.open(
                             viewer,
                             targetUuid,
@@ -255,13 +262,6 @@ public final class FreezeHistoryDetailMenu
                             historyPage
                     );
 
-            case WARNING_HISTORY ->
-                    FreezeHistoryScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage,
-                            historyPage
-                    );
         }
     }
 

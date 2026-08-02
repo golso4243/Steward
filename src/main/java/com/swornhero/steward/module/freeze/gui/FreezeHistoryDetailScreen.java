@@ -357,6 +357,13 @@ public final class FreezeHistoryDetailScreen {
                             historyPage
                     );
 
+            case GLOBAL_FREEZE_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.FREEZE_HISTORY,
+                            historyPage
+                    );
+
             case FREEZE_HISTORY, WARNING_HISTORY ->
                     FreezeHistoryScreen.open(
                             viewer,

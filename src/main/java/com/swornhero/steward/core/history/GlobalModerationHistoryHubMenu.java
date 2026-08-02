@@ -195,10 +195,9 @@ public final class GlobalModerationHistoryHubMenu
                     );
 
             case FREEZE_HISTORY_SLOT ->
-                    viewer.sendSystemMessage(
-                            net.minecraft.network.chat.Component.literal(
-                                    "Global freeze history will be added next."
-                            )
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.FREEZE_HISTORY
                     );
 
             case BACK_SLOT ->

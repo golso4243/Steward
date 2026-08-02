@@ -12,6 +12,12 @@ public enum GlobalHistoryView {
             "Global Warning History",
             ModerationActionType.WARNING,
             HistoryReturnTarget.GLOBAL_WARNING_HISTORY
+    ),
+
+    FREEZE_HISTORY(
+            "Global Freeze History",
+            ModerationActionType.FREEZE,
+            HistoryReturnTarget.GLOBAL_FREEZE_HISTORY
     );
 
     private final String title;
