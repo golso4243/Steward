@@ -12,6 +12,12 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import com.swornhero.steward.module.freeze.gui.FreezeHistoryDetailScreen;
+import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
+import com.swornhero.steward.module.freeze.service.FreezeHistoryService;
+import com.swornhero.steward.module.warning.gui.WarningHistoryDetailScreen;
+import com.swornhero.steward.module.warning.model.WarningRecord;
+import com.swornhero.steward.module.warning.service.WarningService;
 
 import java.util.Map;
 
@@ -200,14 +206,9 @@ public final class GlobalModerationHistoryMenu
                 recordSlots.get(slotId);
 
         if (item != null) {
-            viewer.sendSystemMessage(
-                    Component.literal(
-                            "Selected "
-                                    + item.type().displayName()
-                                    + " record for "
-                                    + item.targetName()
-                                    + ". Record details will be connected next."
-                    )
+            openRecord(
+                    viewer,
+                    item
             );
 
             return;
@@ -244,6 +245,100 @@ public final class GlobalModerationHistoryMenu
                 // Border, page indicator, or empty slot.
             }
         }
+    }
+
+    private void openRecord(
+            ServerPlayer viewer,
+            ModerationHistoryItem item
+    ) {
+        switch (item.type()) {
+            case WARNING ->
+                    openWarningRecord(
+                            viewer,
+                            item
+                    );
+
+            case FREEZE ->
+                    openFreezeRecord(
+                            viewer,
+                            item
+                    );
+        }
+    }
+
+    private void openWarningRecord(
+            ServerPlayer viewer,
+            ModerationHistoryItem item
+    ) {
+        WarningRecord record =
+                WarningService.findById(
+                        item.recordId()
+                );
+
+        if (record == null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That warning record could not be found."
+                    )
+            );
+
+            reopenCurrentPage(viewer);
+            return;
+        }
+
+        WarningHistoryDetailScreen.open(
+                viewer,
+                item.targetUuid(),
+                0,
+                historyPage,
+                record,
+                HistoryReturnTarget.GLOBAL_ALL_ACTIVITY
+        );
+    }
+
+    private void openFreezeRecord(
+            ServerPlayer viewer,
+            ModerationHistoryItem item
+    ) {
+        FreezeHistoryEntry record =
+                FreezeHistoryService.getAll()
+                        .stream()
+                        .filter(entry ->
+                                item.recordId().equals(
+                                        entry.freezeId()
+                                )
+                        )
+                        .findFirst()
+                        .orElse(null);
+
+        if (record == null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That freeze record could not be found."
+                    )
+            );
+
+            reopenCurrentPage(viewer);
+            return;
+        }
+
+        FreezeHistoryDetailScreen.open(
+                viewer,
+                item.targetUuid(),
+                0,
+                historyPage,
+                record,
+                HistoryReturnTarget.GLOBAL_ALL_ACTIVITY
+        );
+    }
+
+    private void reopenCurrentPage(
+            ServerPlayer viewer
+    ) {
+        GlobalModerationHistoryScreen.open(
+                viewer,
+                historyPage
+        );
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.swornhero.steward.module.freeze.gui;
 
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
+import com.swornhero.steward.core.history.GlobalModerationHistoryScreen;
+import com.swornhero.steward.core.history.ModerationHistoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
@@ -332,23 +334,29 @@ public final class FreezeHistoryDetailScreen {
             int historyPage,
             HistoryReturnTarget returnTarget
     ) {
-        if (returnTarget == HistoryReturnTarget.ALL_ACTIVITY) {
-            com.swornhero.steward.core.history.ModerationHistoryScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage,
-                    historyPage
-            );
+        switch (returnTarget) {
+            case ALL_ACTIVITY ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            historyPage
+                    );
 
-            return;
+            case GLOBAL_ALL_ACTIVITY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            historyPage
+                    );
+
+            case FREEZE_HISTORY, WARNING_HISTORY ->
+                    FreezeHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            historyPage
+                    );
         }
-
-        FreezeHistoryScreen.open(
-                viewer,
-                targetUuid,
-                browserPage,
-                historyPage
-        );
     }
 
     private static String formatCoordinate(

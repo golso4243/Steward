@@ -5,6 +5,7 @@ import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.history.ModerationHistoryScreen;
+import com.swornhero.steward.core.history.GlobalModerationHistoryScreen;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -99,6 +100,12 @@ public final class WarningHistoryDetailMenu
                             viewer,
                             targetUuid,
                             browserPage,
+                            historyPage
+                    );
+
+            case GLOBAL_ALL_ACTIVITY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
                             historyPage
                     );
 

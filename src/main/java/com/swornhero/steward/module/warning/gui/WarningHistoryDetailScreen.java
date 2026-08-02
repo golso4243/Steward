@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.warning.gui;
 
+import com.swornhero.steward.core.history.ModerationHistoryScreen;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.module.warning.service.WarningService;
 import net.minecraft.core.component.DataComponents;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.TooltipDisplay;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
+import com.swornhero.steward.core.history.GlobalModerationHistoryScreen;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -239,7 +241,7 @@ public final class WarningHistoryDetailScreen {
                 container,
                 WarningHistoryDetailMenu.BACK_SLOT,
                 Items.OAK_DOOR,
-                "Back to Warning History"
+                "Back to History"
         );
 
         setButton(
@@ -448,23 +450,29 @@ public final class WarningHistoryDetailScreen {
             int historyPage,
             HistoryReturnTarget returnTarget
     ) {
-        if (returnTarget == HistoryReturnTarget.ALL_ACTIVITY) {
-            com.swornhero.steward.core.history.ModerationHistoryScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage,
-                    historyPage
-            );
+        switch (returnTarget) {
+            case ALL_ACTIVITY ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            historyPage
+                    );
 
-            return;
+            case GLOBAL_ALL_ACTIVITY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            historyPage
+                    );
+
+            case WARNING_HISTORY, FREEZE_HISTORY ->
+                    WarningHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            historyPage
+                    );
         }
-
-        WarningHistoryScreen.open(
-                viewer,
-                targetUuid,
-                browserPage,
-                historyPage
-        );
     }
 
     private static void setButton(
