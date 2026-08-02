@@ -2,6 +2,7 @@ package com.swornhero.steward;
 
 import com.swornhero.steward.core.command.StewardCommands;
 import com.swornhero.steward.module.freeze.FreezeModule;
+import com.swornhero.steward.module.punishment.PunishmentModule;
 import com.swornhero.steward.module.warning.WarningModule;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public final class Steward implements ModInitializer {
 
 		FreezeModule.register();
 		WarningModule.register();
+		PunishmentModule.register();
 
 		LOGGER.info(
 				"{} commands registered.",
