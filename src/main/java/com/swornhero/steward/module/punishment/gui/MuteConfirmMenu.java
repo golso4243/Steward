@@ -4,6 +4,10 @@ import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.MuteReason;
 import com.swornhero.steward.module.punishment.model.PunishmentDuration;
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
+import com.swornhero.steward.module.punishment.model.PunishmentRecord;
+import com.swornhero.steward.module.punishment.model.PunishmentType;
+import com.swornhero.steward.module.punishment.service.PunishmentService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -234,6 +238,31 @@ public final class MuteConfirmMenu
             return;
         }
 
+        if (targetUuid.equals(viewer.getUUID())) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "You cannot mute yourself."
+                    )
+            );
+
+            submitted = false;
+            return;
+        }
+
+        if (duration == null
+                || duration.isPermanent()
+                || muteReason == null) {
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The selected mute is invalid."
+                    )
+            );
+
+            submitted = false;
+            return;
+        }
+
         ServerPlayer target =
                 viewer.level()
                         .getServer()
@@ -255,20 +284,85 @@ public final class MuteConfirmMenu
             return;
         }
 
+        if (!PunishmentService.activePunishmentsFor(
+                targetUuid,
+                PunishmentType.MUTE
+        ).isEmpty()) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            target.getName().getString()
+                                    + " already has an active mute."
+                    )
+            );
+
+            PlayerProfileScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
+            return;
+        }
+
         submitted = true;
 
-        viewer.sendSystemMessage(
-                Component.literal(
-                        "Mute execution will be connected next. "
-                                + "Duration: "
-                                + duration.displayName()
-                                + ". Reason: "
-                                + muteReason.displayName()
-                                + "."
-                )
-        );
+        try {
+            PunishmentRecord record =
+                    PunishmentService.createPunishment(
+                            PunishmentType.MUTE,
+                            target.getUUID(),
+                            target.getName().getString(),
+                            viewer.getUUID(),
+                            viewer.getName().getString(),
+                            muteReason.displayName(),
+                            null,
+                            null,
+                            true,
+                            duration
+                    );
 
-        submitted = false;
+            String punishmentId =
+                    PunishmentService.formatPunishmentId(
+                            record.punishmentId()
+                    );
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            punishmentId
+                                    + " issued to "
+                                    + target.getName().getString()
+                                    + ". Mute duration: "
+                                    + duration.displayName()
+                                    + "."
+                    )
+            );
+
+            target.sendSystemMessage(
+                    Component.literal(
+                            "You have been muted for "
+                                    + duration.displayName()
+                                    + ". Reason: "
+                                    + muteReason.displayName()
+                                    + ". Punishment ID: "
+                                    + punishmentId
+                                    + "."
+                    )
+            );
+
+            PlayerProfileScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+        } catch (RuntimeException exception) {
+            submitted = false;
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The mute could not be issued."
+                    )
+            );
+        }
     }
 
     @Override
