@@ -18,27 +18,32 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class MuteReasonMenu
+public final class MuteConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 49;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CONFIRM_SLOT = 22;
+    public static final int BACK_SLOT = 48;
+    public static final int CANCEL_SLOT = 50;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
     private final PunishmentDuration duration;
+    private final MuteReason muteReason;
 
-    public MuteReasonMenu(
+    private boolean submitted;
+
+    public MuteConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
             int browserPage,
-            PunishmentDuration duration
+            PunishmentDuration duration,
+            MuteReason muteReason
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -54,6 +59,8 @@ public final class MuteReasonMenu
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
         this.duration = duration;
+        this.muteReason = muteReason;
+        this.submitted = false;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -63,7 +70,7 @@ public final class MuteReasonMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public MuteReasonMenu(
+    public MuteConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -73,7 +80,8 @@ public final class MuteReasonMenu
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
                 0,
-                PunishmentDuration.ONE_HOUR
+                PunishmentDuration.ONE_HOUR,
+                MuteReason.OTHER
         );
     }
 
@@ -183,15 +191,46 @@ public final class MuteReasonMenu
             return;
         }
 
-        if (!StewardPermissions.require(
-                viewer,
-                StewardPermissions.PUNISHMENT_MUTE
-        )) {
+        if (slotId < 0 || slotId >= MENU_SIZE) {
+            return;
+        }
+
+        if (slotId == BACK_SLOT) {
+            MuteReasonScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage,
+                    duration
+            );
+
+            return;
+        }
+
+        if (slotId == CANCEL_SLOT) {
             viewer.closeContainer();
             return;
         }
 
-        if (slotId < 0 || slotId >= MENU_SIZE) {
+        if (slotId != CONFIRM_SLOT || submitted) {
+            return;
+        }
+
+        confirmMute(viewer);
+    }
+
+    private void confirmMute(
+            ServerPlayer viewer
+    ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.PUNISHMENT_MUTE
+        )) {
+            PunishmentTypeScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
             return;
         }
 
@@ -216,36 +255,20 @@ public final class MuteReasonMenu
             return;
         }
 
-        MuteReason reason =
-                MuteReason.fromSlot(slotId);
+        submitted = true;
 
-        if (reason != null) {
-            MuteConfirmScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage,
-                    duration,
-                    reason
-            );
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "Mute execution will be connected next. "
+                                + "Duration: "
+                                + duration.displayName()
+                                + ". Reason: "
+                                + muteReason.displayName()
+                                + "."
+                )
+        );
 
-            return;
-        }
-
-        switch (slotId) {
-            case BACK_SLOT ->
-                    MuteDurationScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage
-                    );
-
-            case CLOSE_SLOT ->
-                    viewer.closeContainer();
-
-            default -> {
-                // Border or empty slot.
-            }
-        }
+        submitted = false;
     }
 
     @Override
