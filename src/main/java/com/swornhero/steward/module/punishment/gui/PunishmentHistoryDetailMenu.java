@@ -15,35 +15,28 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Map;
 import java.util.UUID;
 
-public final class PunishmentHistoryMenu
+public final class PunishmentHistoryDetailMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int PREVIOUS_PAGE_SLOT = 45;
-    public static final int PAGE_INFO_SLOT = 47;
     public static final int BACK_SLOT = 49;
-    public static final int NEXT_PAGE_SLOT = 51;
-    public static final int CLOSE_SLOT = 53;
+    public static final int CLOSE_SLOT = 50;
 
     private final Container menuContainer;
 
+    private final UUID punishmentId;
     private final int historyPage;
-    private final int totalPages;
 
-    private final Map<Integer, UUID> recordSlots;
-
-    public PunishmentHistoryMenu(
+    public PunishmentHistoryDetailMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
-            int historyPage,
-            int totalPages,
-            Map<Integer, UUID> recordSlots
+            UUID punishmentId,
+            int historyPage
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -56,10 +49,8 @@ public final class PunishmentHistoryMenu
         );
 
         this.menuContainer = menuContainer;
+        this.punishmentId = punishmentId;
         this.historyPage = historyPage;
-        this.totalPages = totalPages;
-        this.recordSlots =
-                Map.copyOf(recordSlots);
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -69,7 +60,7 @@ public final class PunishmentHistoryMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public PunishmentHistoryMenu(
+    public PunishmentHistoryDetailMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -77,9 +68,8 @@ public final class PunishmentHistoryMenu
                 containerId,
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
-                0,
-                1,
-                Map.of()
+                new UUID(0L, 0L),
+                0
         );
     }
 
@@ -201,33 +191,20 @@ public final class PunishmentHistoryMenu
             return;
         }
 
-        UUID punishmentId =
-                recordSlots.get(slotId);
-
-        if (punishmentId != null) {
-            PunishmentRecord record =
-                    PunishmentService.findById(
-                            punishmentId
-                    );
-
-            if (record == null) {
-                viewer.sendSystemMessage(
-                        Component.literal(
-                                "That punishment record is no longer available."
-                        )
+        PunishmentRecord record =
+                PunishmentService.findById(
+                        punishmentId
                 );
 
-                PunishmentHistoryScreen.open(
-                        viewer,
-                        historyPage
-                );
+        if (record == null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That punishment record is no longer available."
+                    )
+            );
 
-                return;
-            }
-
-            PunishmentHistoryDetailScreen.open(
+            PunishmentHistoryScreen.open(
                     viewer,
-                    punishmentId,
                     historyPage
             );
 
@@ -235,32 +212,17 @@ public final class PunishmentHistoryMenu
         }
 
         switch (slotId) {
-            case PREVIOUS_PAGE_SLOT -> {
-                if (historyPage > 0) {
-                    PunishmentHistoryScreen.open(
-                            viewer,
-                            historyPage - 1
-                    );
-                }
-            }
-
-            case NEXT_PAGE_SLOT -> {
-                if (historyPage + 1 < totalPages) {
-                    PunishmentHistoryScreen.open(
-                            viewer,
-                            historyPage + 1
-                    );
-                }
-            }
-
             case BACK_SLOT ->
-                    PunishmentHubScreen.open(viewer);
+                    PunishmentHistoryScreen.open(
+                            viewer,
+                            historyPage
+                    );
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
 
             default -> {
-                // Border, page indicator, or empty slot.
+                // Detail items are informational only.
             }
         }
     }
