@@ -15,35 +15,30 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Map;
 import java.util.UUID;
 
-public final class ActivePunishmentMenu
+public final class ActivePunishmentDetailMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int PREVIOUS_PAGE_SLOT = 45;
-    public static final int PAGE_INFO_SLOT = 47;
+    public static final int REVOKE_SLOT = 40;
+
     public static final int BACK_SLOT = 49;
-    public static final int NEXT_PAGE_SLOT = 51;
-    public static final int CLOSE_SLOT = 53;
+    public static final int CLOSE_SLOT = 50;
 
     private final Container menuContainer;
 
-    private final int page;
-    private final int totalPages;
+    private final UUID punishmentId;
+    private final int activePunishmentPage;
 
-    private final Map<Integer, UUID> recordSlots;
-
-    public ActivePunishmentMenu(
+    public ActivePunishmentDetailMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
-            int page,
-            int totalPages,
-            Map<Integer, UUID> recordSlots
+            UUID punishmentId,
+            int activePunishmentPage
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -56,10 +51,9 @@ public final class ActivePunishmentMenu
         );
 
         this.menuContainer = menuContainer;
-        this.page = page;
-        this.totalPages = totalPages;
-        this.recordSlots =
-                Map.copyOf(recordSlots);
+        this.punishmentId = punishmentId;
+        this.activePunishmentPage =
+                activePunishmentPage;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -69,7 +63,7 @@ public final class ActivePunishmentMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public ActivePunishmentMenu(
+    public ActivePunishmentDetailMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -77,9 +71,8 @@ public final class ActivePunishmentMenu
                 containerId,
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
-                0,
-                1,
-                Map.of()
+                new UUID(0L, 0L),
+                0
         );
     }
 
@@ -201,66 +194,53 @@ public final class ActivePunishmentMenu
             return;
         }
 
-        UUID punishmentId =
-                recordSlots.get(slotId);
-
-        if (punishmentId != null) {
-            PunishmentRecord record =
-                    PunishmentService.findById(
-                            punishmentId
-                    );
-
-            if (record == null || !record.isActive()) {
-                viewer.sendSystemMessage(
-                        Component.literal(
-                                "That punishment is no longer active."
-                        )
+        PunishmentRecord record =
+                PunishmentService.findById(
+                        punishmentId
                 );
 
-                ActivePunishmentScreen.open(
-                        viewer,
-                        page
-                );
+        if (record == null || !record.isActive()) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That punishment is no longer active."
+                    )
+            );
 
-                return;
-            }
-
-            ActivePunishmentDetailScreen.open(
+            ActivePunishmentScreen.open(
                     viewer,
-                    punishmentId,
-                    page
+                    activePunishmentPage
             );
 
             return;
         }
 
         switch (slotId) {
-            case PREVIOUS_PAGE_SLOT -> {
-                if (page > 0) {
-                    ActivePunishmentScreen.open(
-                            viewer,
-                            page - 1
-                    );
+            case REVOKE_SLOT -> {
+                if (!StewardPermissions.require(
+                        viewer,
+                        StewardPermissions.PUNISHMENT_REVOKE
+                )) {
+                    return;
                 }
-            }
 
-            case NEXT_PAGE_SLOT -> {
-                if (page + 1 < totalPages) {
-                    ActivePunishmentScreen.open(
-                            viewer,
-                            page + 1
-                    );
-                }
+                viewer.sendSystemMessage(
+                        Component.literal(
+                                "Punishment revocation will be added next."
+                        )
+                );
             }
 
             case BACK_SLOT ->
-                    PunishmentHubScreen.open(viewer);
+                    ActivePunishmentScreen.open(
+                            viewer,
+                            activePunishmentPage
+                    );
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
 
             default -> {
-                // Border, page indicator, or empty slot.
+                // Detail items are informational only.
             }
         }
     }
