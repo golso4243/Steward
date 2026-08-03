@@ -141,6 +141,13 @@ public final class PlayerProfileScreen {
 
         setButton(
                 container,
+                PlayerProfileAction.PUNISH.slot(),
+                Items.IRON_BARS,
+                "Punish Player"
+        );
+
+        setButton(
+                container,
                 PlayerProfileAction.BACK.slot(),
                 Items.OAK_DOOR,
                 "Back to Players"

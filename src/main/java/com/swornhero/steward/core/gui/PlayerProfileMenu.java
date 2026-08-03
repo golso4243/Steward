@@ -18,6 +18,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.punishment.gui.PunishmentTypeScreen;
 
 import java.util.UUID;
 
@@ -297,6 +298,21 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                 }
 
                 ModerationHistoryHubScreen.open(
+                        viewer,
+                        targetUuid,
+                        browserPage
+                );
+            }
+
+            case PUNISH -> {
+                if (!StewardPermissions.require(
+                        viewer,
+                        StewardPermissions.PUNISHMENT_MANAGE
+                )) {
+                    return;
+                }
+
+                PunishmentTypeScreen.open(
                         viewer,
                         targetUuid,
                         browserPage
