@@ -2,6 +2,7 @@ package com.swornhero.steward.module.punishment.gui;
 
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
+import com.swornhero.steward.module.punishment.model.PunishmentRevocationReason;
 import com.swornhero.steward.module.punishment.service.PunishmentService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,23 +18,20 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class ActivePunishmentDetailMenu
+public final class PunishmentRevocationReasonMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int REVOKE_SLOT = 40;
-
     public static final int BACK_SLOT = 49;
     public static final int CLOSE_SLOT = 50;
 
     private final Container menuContainer;
-
     private final UUID punishmentId;
     private final int activePunishmentPage;
 
-    public ActivePunishmentDetailMenu(
+    public PunishmentRevocationReasonMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
@@ -63,7 +61,7 @@ public final class ActivePunishmentDetailMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public ActivePunishmentDetailMenu(
+    public PunishmentRevocationReasonMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -184,7 +182,7 @@ public final class ActivePunishmentDetailMenu
 
         if (!StewardPermissions.require(
                 viewer,
-                StewardPermissions.PUNISHMENT_VIEW
+                StewardPermissions.PUNISHMENT_REVOKE
         )) {
             viewer.closeContainer();
             return;
@@ -214,25 +212,28 @@ public final class ActivePunishmentDetailMenu
             return;
         }
 
-        switch (slotId) {
-            case REVOKE_SLOT -> {
-                if (!StewardPermissions.require(
-                        viewer,
-                        StewardPermissions.PUNISHMENT_REVOKE
-                )) {
-                    return;
-                }
-
-                PunishmentRevocationReasonScreen.open(
-                        viewer,
-                        punishmentId,
-                        activePunishmentPage
+        PunishmentRevocationReason reason =
+                PunishmentRevocationReason.fromSlot(
+                        slotId
                 );
-            }
 
+        if (reason != null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "Revocation confirmation for "
+                                    + reason.displayName()
+                                    + " will be added next."
+                    )
+            );
+
+            return;
+        }
+
+        switch (slotId) {
             case BACK_SLOT ->
-                    ActivePunishmentScreen.open(
+                    ActivePunishmentDetailScreen.open(
                             viewer,
+                            punishmentId,
                             activePunishmentPage
                     );
 
@@ -240,7 +241,7 @@ public final class ActivePunishmentDetailMenu
                     viewer.closeContainer();
 
             default -> {
-                // Detail items are informational only.
+                // Border or informational slot.
             }
         }
     }
