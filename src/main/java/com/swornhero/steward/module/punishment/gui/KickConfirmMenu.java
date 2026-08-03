@@ -17,25 +17,30 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class KickReasonMenu
+public final class KickConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 49;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CONFIRM_SLOT = 22;
+    public static final int BACK_SLOT = 48;
+    public static final int CANCEL_SLOT = 50;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
+    private final KickReason kickReason;
 
-    public KickReasonMenu(
+    private boolean submitted;
+
+    public KickConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int browserPage
+            int browserPage,
+            KickReason kickReason
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -50,6 +55,8 @@ public final class KickReasonMenu
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
+        this.kickReason = kickReason;
+        this.submitted = false;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -59,7 +66,7 @@ public final class KickReasonMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public KickReasonMenu(
+    public KickConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -68,7 +75,8 @@ public final class KickReasonMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                0,
+                KickReason.OTHER
         );
     }
 
@@ -178,15 +186,45 @@ public final class KickReasonMenu
             return;
         }
 
-        if (!StewardPermissions.require(
-                viewer,
-                StewardPermissions.PUNISHMENT_KICK
-        )) {
+        if (slotId < 0 || slotId >= MENU_SIZE) {
+            return;
+        }
+
+        if (slotId == BACK_SLOT) {
+            KickReasonScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
+            return;
+        }
+
+        if (slotId == CANCEL_SLOT) {
             viewer.closeContainer();
             return;
         }
 
-        if (slotId < 0 || slotId >= MENU_SIZE) {
+        if (slotId != CONFIRM_SLOT || submitted) {
+            return;
+        }
+
+        confirmKick(viewer);
+    }
+
+    private void confirmKick(
+            ServerPlayer viewer
+    ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.PUNISHMENT_KICK
+        )) {
+            PunishmentTypeScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
             return;
         }
 
@@ -211,35 +249,18 @@ public final class KickReasonMenu
             return;
         }
 
-        KickReason reason =
-                KickReason.fromSlot(slotId);
+        submitted = true;
 
-        if (reason != null) {
-            KickConfirmScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage,
-                    reason
-            );
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "Kick execution will be connected next. "
+                                + "Selected reason: "
+                                + kickReason.displayName()
+                                + "."
+                )
+        );
 
-            return;
-        }
-
-        switch (slotId) {
-            case BACK_SLOT ->
-                    PunishmentTypeScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage
-                    );
-
-            case CLOSE_SLOT ->
-                    viewer.closeContainer();
-
-            default -> {
-                // Border or empty slot.
-            }
-        }
+        submitted = false;
     }
 
     @Override
