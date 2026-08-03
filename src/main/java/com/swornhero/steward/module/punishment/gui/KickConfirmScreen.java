@@ -4,6 +4,7 @@ import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.KickReason;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -235,6 +236,22 @@ public final class KickConfirmScreen {
         stack.set(
                 DataComponents.CUSTOM_NAME,
                 Component.literal(name)
+        );
+
+        LinkedHashSet<DataComponentType<?>>
+                hiddenComponents =
+                new LinkedHashSet<>();
+
+        hiddenComponents.add(
+                DataComponents.ATTRIBUTE_MODIFIERS
+        );
+
+        stack.set(
+                DataComponents.TOOLTIP_DISPLAY,
+                new TooltipDisplay(
+                        false,
+                        hiddenComponents
+                )
         );
 
         container.setItem(

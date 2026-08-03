@@ -3,6 +3,9 @@ package com.swornhero.steward.module.punishment.gui;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.KickReason;
+import com.swornhero.steward.module.punishment.model.PunishmentRecord;
+import com.swornhero.steward.module.punishment.model.PunishmentType;
+import com.swornhero.steward.module.punishment.service.PunishmentService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -228,6 +231,17 @@ public final class KickConfirmMenu
             return;
         }
 
+        if (targetUuid.equals(viewer.getUUID())) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "You cannot kick yourself."
+                    )
+            );
+
+            submitted = false;
+            return;
+        }
+
         ServerPlayer target =
                 viewer.level()
                         .getServer()
@@ -251,16 +265,59 @@ public final class KickConfirmMenu
 
         submitted = true;
 
-        viewer.sendSystemMessage(
-                Component.literal(
-                        "Kick execution will be connected next. "
-                                + "Selected reason: "
-                                + kickReason.displayName()
-                                + "."
-                )
-        );
+        try {
+            String targetName =
+                    target.getName().getString();
 
-        submitted = false;
+            PunishmentRecord record =
+                    PunishmentService.createPunishment(
+                            PunishmentType.KICK,
+                            target.getUUID(),
+                            targetName,
+                            viewer.getUUID(),
+                            viewer.getName().getString(),
+                            kickReason.displayName(),
+                            null,
+                            null,
+                            true,
+                            null
+                    );
+
+            String punishmentId =
+                    PunishmentService.formatPunishmentId(
+                            record.punishmentId()
+                    );
+
+            viewer.closeContainer();
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            punishmentId
+                                    + " issued to "
+                                    + targetName
+                                    + ". The player was kicked."
+                    )
+            );
+
+            target.connection.disconnect(
+                    Component.literal(
+                            "You were kicked from the server.\n\n"
+                                    + "Reason: "
+                                    + kickReason.displayName()
+                                    + "\n"
+                                    + "Punishment ID: "
+                                    + punishmentId
+                    )
+            );
+        } catch (RuntimeException exception) {
+            submitted = false;
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The kick could not be completed."
+                    )
+            );
+        }
     }
 
     @Override
