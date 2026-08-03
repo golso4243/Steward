@@ -1,7 +1,9 @@
 package com.swornhero.steward.module.punishment.gui;
 
-import com.swornhero.steward.core.gui.StaffControlScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.punishment.model.PunishmentRecord;
+import com.swornhero.steward.module.punishment.service.PunishmentService;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -13,24 +15,35 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public final class PunishmentHubMenu
+import java.util.Map;
+import java.util.UUID;
+
+public final class PunishmentHistoryMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int ACTIVE_PUNISHMENTS_SLOT = 20;
-    public static final int PUNISHMENT_HISTORY_SLOT = 22;
-
-    public static final int BACK_SLOT = 48;
-    public static final int CLOSE_SLOT = 50;
+    public static final int PREVIOUS_PAGE_SLOT = 45;
+    public static final int PAGE_INFO_SLOT = 47;
+    public static final int BACK_SLOT = 49;
+    public static final int NEXT_PAGE_SLOT = 51;
+    public static final int CLOSE_SLOT = 53;
 
     private final Container menuContainer;
 
-    public PunishmentHubMenu(
+    private final int historyPage;
+    private final int totalPages;
+
+    private final Map<Integer, UUID> recordSlots;
+
+    public PunishmentHistoryMenu(
             int containerId,
             Inventory playerInventory,
-            Container menuContainer
+            Container menuContainer,
+            int historyPage,
+            int totalPages,
+            Map<Integer, UUID> recordSlots
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -43,6 +56,10 @@ public final class PunishmentHubMenu
         );
 
         this.menuContainer = menuContainer;
+        this.historyPage = historyPage;
+        this.totalPages = totalPages;
+        this.recordSlots =
+                Map.copyOf(recordSlots);
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -52,14 +69,17 @@ public final class PunishmentHubMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public PunishmentHubMenu(
+    public PunishmentHistoryMenu(
             int containerId,
             Inventory playerInventory
     ) {
         this(
                 containerId,
                 playerInventory,
-                new SimpleContainer(MENU_SIZE)
+                new SimpleContainer(MENU_SIZE),
+                0,
+                1,
+                Map.of()
         );
     }
 
@@ -181,21 +201,69 @@ public final class PunishmentHubMenu
             return;
         }
 
-        switch (slotId) {
-            case ACTIVE_PUNISHMENTS_SLOT ->
-                    ActivePunishmentScreen.open(viewer);
+        UUID punishmentId =
+                recordSlots.get(slotId);
 
-            case PUNISHMENT_HISTORY_SLOT ->
-                    PunishmentHistoryScreen.open(viewer);
+        if (punishmentId != null) {
+            PunishmentRecord record =
+                    PunishmentService.findById(
+                            punishmentId
+                    );
+
+            if (record == null) {
+                viewer.sendSystemMessage(
+                        Component.literal(
+                                "That punishment record is no longer available."
+                        )
+                );
+
+                PunishmentHistoryScreen.open(
+                        viewer,
+                        historyPage
+                );
+
+                return;
+            }
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            PunishmentService.formatPunishmentId(
+                                    punishmentId
+                            )
+                                    + " history details will be added next."
+                    )
+            );
+
+            return;
+        }
+
+        switch (slotId) {
+            case PREVIOUS_PAGE_SLOT -> {
+                if (historyPage > 0) {
+                    PunishmentHistoryScreen.open(
+                            viewer,
+                            historyPage - 1
+                    );
+                }
+            }
+
+            case NEXT_PAGE_SLOT -> {
+                if (historyPage + 1 < totalPages) {
+                    PunishmentHistoryScreen.open(
+                            viewer,
+                            historyPage + 1
+                    );
+                }
+            }
 
             case BACK_SLOT ->
-                    StaffControlScreen.open(viewer);
+                    PunishmentHubScreen.open(viewer);
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
 
             default -> {
-                // Border or empty slot.
+                // Border, page indicator, or empty slot.
             }
         }
     }
