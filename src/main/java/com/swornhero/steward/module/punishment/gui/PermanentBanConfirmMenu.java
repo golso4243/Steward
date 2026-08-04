@@ -1,6 +1,9 @@
 package com.swornhero.steward.module.punishment.gui;
 
-import com.swornhero.steward.core.gui.PlayerProfileScreen;
+import com.swornhero.steward.core.gui.PlayerBrowserScreen;
+import com.swornhero.steward.module.punishment.model.PunishmentRecord;
+import com.swornhero.steward.module.punishment.model.PunishmentType;
+import com.swornhero.steward.module.punishment.service.PunishmentService;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.BanReason;
 import net.minecraft.network.chat.Component;
@@ -244,6 +247,17 @@ public final class PermanentBanConfirmMenu
             return;
         }
 
+        if (targetUuid.equals(viewer.getUUID())) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "You cannot permanently ban yourself."
+                    )
+            );
+
+            submitted = false;
+            return;
+        }
+
         ServerPlayer target =
                 viewer.level()
                         .getServer()
@@ -257,9 +271,33 @@ public final class PermanentBanConfirmMenu
                     )
             );
 
-            PlayerProfileScreen.open(
+            PlayerBrowserScreen.open(
                     viewer,
-                    targetUuid,
+                    browserPage
+            );
+
+            return;
+        }
+
+        boolean alreadyBanned =
+                !PunishmentService.activePunishmentsFor(
+                        targetUuid,
+                        PunishmentType.TEMPORARY_BAN
+                ).isEmpty()
+                        || !PunishmentService.activePunishmentsFor(
+                        targetUuid,
+                        PunishmentType.PERMANENT_BAN
+                ).isEmpty();
+
+        if (alreadyBanned) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That player already has an active ban."
+                    )
+            );
+
+            PlayerBrowserScreen.open(
+                    viewer,
                     browserPage
             );
 
@@ -268,16 +306,59 @@ public final class PermanentBanConfirmMenu
 
         submitted = true;
 
-        viewer.sendSystemMessage(
-                Component.literal(
-                        "Permanent Ban execution will be connected next. "
-                                + "Reason: "
-                                + banReason.displayName()
-                                + "."
-                )
-        );
+        try {
+            String targetName =
+                    target.getName().getString();
 
-        submitted = false;
+            PunishmentRecord record =
+                    PunishmentService.createPunishment(
+                            PunishmentType.PERMANENT_BAN,
+                            target.getUUID(),
+                            targetName,
+                            viewer.getUUID(),
+                            viewer.getName().getString(),
+                            banReason.displayName(),
+                            null,
+                            null,
+                            true,
+                            null
+                    );
+
+            String punishmentId =
+                    PunishmentService.formatPunishmentId(
+                            record.punishmentId()
+                    );
+
+            viewer.closeContainer();
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            punishmentId
+                                    + " issued to "
+                                    + targetName
+                                    + ". The player was permanently banned."
+                    )
+            );
+
+            target.connection.disconnect(
+                    Component.literal(
+                            "You have been permanently banned from the server.\n\n"
+                                    + "Reason: "
+                                    + banReason.displayName()
+                                    + "\n"
+                                    + "Punishment ID: "
+                                    + punishmentId
+                    )
+            );
+        } catch (RuntimeException exception) {
+            submitted = false;
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The Permanent Ban could not be completed."
+                    )
+            );
+        }
     }
 
     @Override
