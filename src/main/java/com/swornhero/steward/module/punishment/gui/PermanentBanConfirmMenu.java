@@ -17,25 +17,30 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class PermanentBanReasonMenu
+public final class PermanentBanConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 49;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CONFIRM_SLOT = 22;
+    public static final int BACK_SLOT = 48;
+    public static final int CANCEL_SLOT = 50;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
+    private final BanReason banReason;
 
-    public PermanentBanReasonMenu(
+    private boolean submitted;
+
+    public PermanentBanConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int browserPage
+            int browserPage,
+            BanReason banReason
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -50,6 +55,8 @@ public final class PermanentBanReasonMenu
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
+        this.banReason = banReason;
+        this.submitted = false;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -59,7 +66,7 @@ public final class PermanentBanReasonMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public PermanentBanReasonMenu(
+    public PermanentBanConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -68,7 +75,8 @@ public final class PermanentBanReasonMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                0,
+                BanReason.OTHER
         );
     }
 
@@ -178,15 +186,61 @@ public final class PermanentBanReasonMenu
             return;
         }
 
-        if (!StewardPermissions.require(
-                viewer,
-                StewardPermissions.PUNISHMENT_PERMANENT_BAN
-        )) {
+        if (slotId < 0 || slotId >= MENU_SIZE) {
+            return;
+        }
+
+        if (slotId == BACK_SLOT) {
+            PermanentBanReasonScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
+            return;
+        }
+
+        if (slotId == CANCEL_SLOT) {
             viewer.closeContainer();
             return;
         }
 
-        if (slotId < 0 || slotId >= MENU_SIZE) {
+        if (slotId != CONFIRM_SLOT || submitted) {
+            return;
+        }
+
+        confirmPermanentBan(viewer);
+    }
+
+    private void confirmPermanentBan(
+            ServerPlayer viewer
+    ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.PUNISHMENT_PERMANENT_BAN
+        )) {
+            PunishmentTypeScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
+            return;
+        }
+
+        if (banReason == null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The selected Permanent Ban is invalid."
+                    )
+            );
+
+            PermanentBanReasonScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
             return;
         }
 
@@ -212,35 +266,18 @@ public final class PermanentBanReasonMenu
             return;
         }
 
-        BanReason reason =
-                BanReason.fromSlot(slotId);
+        submitted = true;
 
-        if (reason != null) {
-            PermanentBanConfirmScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage,
-                    reason
-            );
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "Permanent Ban execution will be connected next. "
+                                + "Reason: "
+                                + banReason.displayName()
+                                + "."
+                )
+        );
 
-            return;
-        }
-
-        switch (slotId) {
-            case BACK_SLOT ->
-                    PunishmentTypeScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage
-                    );
-
-            case CLOSE_SLOT ->
-                    viewer.closeContainer();
-
-            default -> {
-                // Border or informational slot.
-            }
-        }
+        submitted = false;
     }
 
     @Override
