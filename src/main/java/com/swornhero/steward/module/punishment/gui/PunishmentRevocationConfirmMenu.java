@@ -268,20 +268,83 @@ public final class PunishmentRevocationConfirmMenu
 
         submitted = true;
 
-        viewer.sendSystemMessage(
-                Component.literal(
-                        "Punishment revocation will be connected next. "
-                                + "Punishment: "
-                                + PunishmentService.formatPunishmentId(
-                                record.punishmentId()
-                        )
-                                + ". Reason: "
-                                + revocationReason.displayName()
-                                + "."
-                )
-        );
+        try {
+            boolean revoked =
+                    PunishmentService.revokePunishment(
+                            punishmentId,
+                            viewer.getUUID(),
+                            viewer.getName().getString(),
+                            revocationReason.displayName()
+                    );
 
-        submitted = false;
+            if (!revoked) {
+                submitted = false;
+
+                viewer.sendSystemMessage(
+                        Component.literal(
+                                "That punishment could not be revoked."
+                        )
+                );
+
+                ActivePunishmentScreen.open(
+                        viewer,
+                        activePunishmentPage
+                );
+
+                return;
+            }
+
+            String punishmentDisplayId =
+                    PunishmentService.formatPunishmentId(
+                            punishmentId
+                    );
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            punishmentDisplayId
+                                    + " was revoked for "
+                                    + record.targetName()
+                                    + ". Reason: "
+                                    + revocationReason.displayName()
+                                    + "."
+                    )
+            );
+
+            ServerPlayer target =
+                    viewer.level()
+                            .getServer()
+                            .getPlayerList()
+                            .getPlayer(
+                                    record.targetUuid()
+                            );
+
+            if (target != null) {
+                target.sendSystemMessage(
+                        Component.literal(
+                                "Your "
+                                        + record.type().displayName()
+                                        + " has been revoked. Reason: "
+                                        + revocationReason.displayName()
+                                        + ". Punishment ID: "
+                                        + punishmentDisplayId
+                                        + "."
+                        )
+                );
+            }
+
+            ActivePunishmentScreen.open(
+                    viewer,
+                    activePunishmentPage
+            );
+        } catch (RuntimeException exception) {
+            submitted = false;
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The punishment could not be revoked."
+                    )
+            );
+        }
     }
 
     @Override
