@@ -1,6 +1,5 @@
 package com.swornhero.steward.module.punishment.gui;
 
-import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.BanReason;
 import com.swornhero.steward.module.punishment.model.PunishmentDuration;
@@ -15,6 +14,10 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import com.swornhero.steward.core.gui.PlayerBrowserScreen;
+import com.swornhero.steward.module.punishment.model.PunishmentRecord;
+import com.swornhero.steward.module.punishment.model.PunishmentType;
+import com.swornhero.steward.module.punishment.service.PunishmentService;
 
 import java.util.UUID;
 
@@ -253,6 +256,17 @@ public final class TemporaryBanConfirmMenu
             return;
         }
 
+        if (targetUuid.equals(viewer.getUUID())) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "You cannot temporarily ban yourself."
+                    )
+            );
+
+            submitted = false;
+            return;
+        }
+
         ServerPlayer target =
                 viewer.level()
                         .getServer()
@@ -266,9 +280,33 @@ public final class TemporaryBanConfirmMenu
                     )
             );
 
-            PlayerProfileScreen.open(
+            PlayerBrowserScreen.open(
                     viewer,
-                    targetUuid,
+                    browserPage
+            );
+
+            return;
+        }
+
+        boolean alreadyBanned =
+                !PunishmentService.activePunishmentsFor(
+                        targetUuid,
+                        PunishmentType.TEMPORARY_BAN
+                ).isEmpty()
+                        || !PunishmentService.activePunishmentsFor(
+                        targetUuid,
+                        PunishmentType.PERMANENT_BAN
+                ).isEmpty();
+
+        if (alreadyBanned) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "That player already has an active ban."
+                    )
+            );
+
+            PlayerBrowserScreen.open(
+                    viewer,
                     browserPage
             );
 
@@ -277,18 +315,64 @@ public final class TemporaryBanConfirmMenu
 
         submitted = true;
 
-        viewer.sendSystemMessage(
-                Component.literal(
-                        "Temporary Ban execution will be connected next. "
-                                + "Duration: "
-                                + duration.displayName()
-                                + ". Reason: "
-                                + banReason.displayName()
-                                + "."
-                )
-        );
+        try {
+            String targetName =
+                    target.getName().getString();
 
-        submitted = false;
+            PunishmentRecord record =
+                    PunishmentService.createPunishment(
+                            PunishmentType.TEMPORARY_BAN,
+                            target.getUUID(),
+                            targetName,
+                            viewer.getUUID(),
+                            viewer.getName().getString(),
+                            banReason.displayName(),
+                            null,
+                            null,
+                            true,
+                            duration
+                    );
+
+            String punishmentId =
+                    PunishmentService.formatPunishmentId(
+                            record.punishmentId()
+                    );
+
+            viewer.closeContainer();
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            punishmentId
+                                    + " issued to "
+                                    + targetName
+                                    + ". Temporary Ban duration: "
+                                    + duration.displayName()
+                                    + "."
+                    )
+            );
+
+            target.connection.disconnect(
+                    Component.literal(
+                            "You have been temporarily banned from the server.\n\n"
+                                    + "Reason: "
+                                    + banReason.displayName()
+                                    + "\n"
+                                    + "Duration: "
+                                    + duration.displayName()
+                                    + "\n"
+                                    + "Punishment ID: "
+                                    + punishmentId
+                    )
+            );
+        } catch (RuntimeException exception) {
+            submitted = false;
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The Temporary Ban could not be completed."
+                    )
+            );
+        }
     }
 
     @Override
