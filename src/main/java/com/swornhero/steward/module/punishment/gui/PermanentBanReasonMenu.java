@@ -2,6 +2,7 @@ package com.swornhero.steward.module.punishment.gui;
 
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.punishment.model.BanReason;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -16,16 +17,11 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class PunishmentTypeMenu
+public final class PermanentBanReasonMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
-
-    public static final int MUTE_SLOT = 19;
-    public static final int KICK_SLOT = 21;
-    public static final int TEMPORARY_BAN_SLOT = 23;
-    public static final int PERMANENT_BAN_SLOT = 25;
 
     public static final int BACK_SLOT = 49;
     public static final int CLOSE_SLOT = 50;
@@ -34,7 +30,7 @@ public final class PunishmentTypeMenu
     private final UUID targetUuid;
     private final int browserPage;
 
-    public PunishmentTypeMenu(
+    public PermanentBanReasonMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
@@ -63,7 +59,7 @@ public final class PunishmentTypeMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public PunishmentTypeMenu(
+    public PermanentBanReasonMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -184,7 +180,7 @@ public final class PunishmentTypeMenu
 
         if (!StewardPermissions.require(
                 viewer,
-                StewardPermissions.PUNISHMENT_MANAGE
+                StewardPermissions.PUNISHMENT_PERMANENT_BAN
         )) {
             viewer.closeContainer();
             return;
@@ -216,69 +212,24 @@ public final class PunishmentTypeMenu
             return;
         }
 
+        BanReason reason =
+                BanReason.fromSlot(slotId);
+
+        if (reason != null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "Permanent Ban confirmation for reason "
+                                    + reason.displayName()
+                                    + " will be added next."
+                    )
+            );
+
+            return;
+        }
+
         switch (slotId) {
-            case MUTE_SLOT -> {
-                if (!StewardPermissions.require(
-                        viewer,
-                        StewardPermissions.PUNISHMENT_MUTE
-                )) {
-                    return;
-                }
-
-                MuteDurationScreen.open(
-                        viewer,
-                        targetUuid,
-                        browserPage
-                );
-            }
-
-            case KICK_SLOT -> {
-                if (!StewardPermissions.require(
-                        viewer,
-                        StewardPermissions.PUNISHMENT_KICK
-                )) {
-                    return;
-                }
-
-                KickReasonScreen.open(
-                        viewer,
-                        targetUuid,
-                        browserPage
-                );
-            }
-
-            case TEMPORARY_BAN_SLOT -> {
-                if (!StewardPermissions.require(
-                        viewer,
-                        StewardPermissions.PUNISHMENT_TEMPORARY_BAN
-                )) {
-                    return;
-                }
-
-                TemporaryBanDurationScreen.open(
-                        viewer,
-                        targetUuid,
-                        browserPage
-                );
-            }
-
-            case PERMANENT_BAN_SLOT -> {
-                if (!StewardPermissions.require(
-                        viewer,
-                        StewardPermissions.PUNISHMENT_PERMANENT_BAN
-                )) {
-                    return;
-                }
-
-                PermanentBanReasonScreen.open(
-                        viewer,
-                        targetUuid,
-                        browserPage
-                );
-            }
-
             case BACK_SLOT ->
-                    PlayerProfileScreen.open(
+                    PunishmentTypeScreen.open(
                             viewer,
                             targetUuid,
                             browserPage
