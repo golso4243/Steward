@@ -259,6 +259,18 @@ public final class ModerationHistoryScreen {
 
             case FREEZE ->
                     Items.PACKED_ICE;
+
+            case MUTE ->
+                    Items.NAME_TAG;
+
+            case KICK ->
+                    Items.LEATHER_BOOTS;
+
+            case TEMPORARY_BAN ->
+                    Items.CLOCK;
+
+            case PERMANENT_BAN ->
+                    Items.BARRIER;
         };
     }
 
