@@ -18,25 +18,30 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class PunishmentRevocationReasonMenu
+public final class PunishmentRevocationConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 49;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CONFIRM_SLOT = 22;
+    public static final int BACK_SLOT = 48;
+    public static final int CANCEL_SLOT = 50;
 
     private final Container menuContainer;
     private final UUID punishmentId;
     private final int activePunishmentPage;
+    private final PunishmentRevocationReason revocationReason;
 
-    public PunishmentRevocationReasonMenu(
+    private boolean submitted;
+
+    public PunishmentRevocationConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID punishmentId,
-            int activePunishmentPage
+            int activePunishmentPage,
+            PunishmentRevocationReason revocationReason
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -52,6 +57,9 @@ public final class PunishmentRevocationReasonMenu
         this.punishmentId = punishmentId;
         this.activePunishmentPage =
                 activePunishmentPage;
+        this.revocationReason =
+                revocationReason;
+        this.submitted = false;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -61,7 +69,7 @@ public final class PunishmentRevocationReasonMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public PunishmentRevocationReasonMenu(
+    public PunishmentRevocationConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -70,7 +78,8 @@ public final class PunishmentRevocationReasonMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                0,
+                PunishmentRevocationReason.OTHER
         );
     }
 
@@ -180,15 +189,44 @@ public final class PunishmentRevocationReasonMenu
             return;
         }
 
-        if (!StewardPermissions.require(
-                viewer,
-                StewardPermissions.PUNISHMENT_REVOKE
-        )) {
+        if (slotId < 0 || slotId >= MENU_SIZE) {
+            return;
+        }
+
+        if (slotId == BACK_SLOT) {
+            PunishmentRevocationReasonScreen.open(
+                    viewer,
+                    punishmentId,
+                    activePunishmentPage
+            );
+
+            return;
+        }
+
+        if (slotId == CANCEL_SLOT) {
             viewer.closeContainer();
             return;
         }
 
-        if (slotId < 0 || slotId >= MENU_SIZE) {
+        if (slotId != CONFIRM_SLOT || submitted) {
+            return;
+        }
+
+        confirmRevocation(viewer);
+    }
+
+    private void confirmRevocation(
+            ServerPlayer viewer
+    ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.PUNISHMENT_REVOKE
+        )) {
+            ActivePunishmentScreen.open(
+                    viewer,
+                    activePunishmentPage
+            );
+
             return;
         }
 
@@ -212,37 +250,38 @@ public final class PunishmentRevocationReasonMenu
             return;
         }
 
-        PunishmentRevocationReason reason =
-                PunishmentRevocationReason.fromSlot(
-                        slotId
-                );
+        if (revocationReason == null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The selected revocation reason is invalid."
+                    )
+            );
 
-        if (reason != null) {
-            PunishmentRevocationConfirmScreen.open(
+            PunishmentRevocationReasonScreen.open(
                     viewer,
                     punishmentId,
-                    activePunishmentPage,
-                    reason
+                    activePunishmentPage
             );
 
             return;
         }
 
-        switch (slotId) {
-            case BACK_SLOT ->
-                    ActivePunishmentDetailScreen.open(
-                            viewer,
-                            punishmentId,
-                            activePunishmentPage
-                    );
+        submitted = true;
 
-            case CLOSE_SLOT ->
-                    viewer.closeContainer();
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "Punishment revocation will be connected next. "
+                                + "Punishment: "
+                                + PunishmentService.formatPunishmentId(
+                                record.punishmentId()
+                        )
+                                + ". Reason: "
+                                + revocationReason.displayName()
+                                + "."
+                )
+        );
 
-            default -> {
-                // Border or informational slot.
-            }
-        }
+        submitted = false;
     }
 
     @Override
