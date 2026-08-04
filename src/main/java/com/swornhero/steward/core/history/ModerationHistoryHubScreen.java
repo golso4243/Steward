@@ -106,7 +106,9 @@ public final class ModerationHistoryHubScreen {
                 );
 
         int totalCount =
-                warningCount + freezeCount;
+                ModerationHistoryService.countForPlayer(
+                        targetUuid
+                );
 
         setButton(
                 container,

@@ -335,6 +335,22 @@ public final class ModerationHistoryScreen {
                 Component.literal(name)
         );
 
+        LinkedHashSet<net.minecraft.core.component.DataComponentType<?>>
+                hiddenComponents =
+                new LinkedHashSet<>();
+
+        hiddenComponents.add(
+                DataComponents.ATTRIBUTE_MODIFIERS
+        );
+
+        stack.set(
+                DataComponents.TOOLTIP_DISPLAY,
+                new TooltipDisplay(
+                        false,
+                        hiddenComponents
+                )
+        );
+
         container.setItem(
                 slot,
                 stack

@@ -4,6 +4,9 @@ import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import com.swornhero.steward.module.freeze.service.FreezeHistoryService;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.module.warning.service.WarningService;
+import com.swornhero.steward.module.punishment.model.PunishmentRecord;
+import com.swornhero.steward.module.punishment.model.PunishmentType;
+import com.swornhero.steward.module.punishment.service.PunishmentService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,6 +43,11 @@ public final class ModerationHistoryService {
                 FreezeHistoryService.getAll()
         );
 
+        addPunishmentHistory(
+                history,
+                PunishmentService.allPunishments()
+        );
+
         return sortedCopy(history);
     }
 
@@ -67,6 +75,13 @@ public final class ModerationHistoryService {
         addFreezeHistory(
                 history,
                 FreezeHistoryService.getForPlayer(
+                        targetUuid
+                )
+        );
+
+        addPunishmentHistory(
+                history,
+                PunishmentService.punishmentsFor(
                         targetUuid
                 )
         );
@@ -186,6 +201,55 @@ public final class ModerationHistoryService {
                     )
             );
         }
+    }
+
+    private static void addPunishmentHistory(
+            List<ModerationHistoryItem> history,
+            List<PunishmentRecord> punishments
+    ) {
+        for (PunishmentRecord punishment : punishments) {
+            if (punishment == null) {
+                continue;
+            }
+
+            String summary =
+                    punishment.type().displayName()
+                            + " • "
+                            + punishment.reason()
+                            + " • "
+                            + punishment.status().displayName();
+
+            history.add(
+                    new ModerationHistoryItem(
+                            moderationTypeFor(
+                                    punishment.type()
+                            ),
+                            punishment.punishmentId(),
+                            punishment.targetUuid(),
+                            punishment.targetName(),
+                            summary,
+                            punishment.issuedAt()
+                    )
+            );
+        }
+    }
+
+    private static ModerationActionType moderationTypeFor(
+            PunishmentType punishmentType
+    ) {
+        return switch (punishmentType) {
+            case MUTE ->
+                    ModerationActionType.MUTE;
+
+            case KICK ->
+                    ModerationActionType.KICK;
+
+            case TEMPORARY_BAN ->
+                    ModerationActionType.TEMPORARY_BAN;
+
+            case PERMANENT_BAN ->
+                    ModerationActionType.PERMANENT_BAN;
+        };
     }
 
     private static List<ModerationHistoryItem> sortedCopy(
