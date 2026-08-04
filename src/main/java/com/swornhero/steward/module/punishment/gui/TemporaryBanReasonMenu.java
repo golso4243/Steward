@@ -2,6 +2,7 @@ package com.swornhero.steward.module.punishment.gui;
 
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.punishment.model.BanReason;
 import com.swornhero.steward.module.punishment.model.PunishmentDuration;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,19 +18,11 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class TemporaryBanDurationMenu
+public final class TemporaryBanReasonMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
-
-    public static final int ONE_HOUR_SLOT = 19;
-    public static final int SIX_HOURS_SLOT = 20;
-    public static final int ONE_DAY_SLOT = 21;
-    public static final int THREE_DAYS_SLOT = 22;
-    public static final int SEVEN_DAYS_SLOT = 23;
-    public static final int FOURTEEN_DAYS_SLOT = 24;
-    public static final int THIRTY_DAYS_SLOT = 25;
 
     public static final int BACK_SLOT = 49;
     public static final int CLOSE_SLOT = 50;
@@ -37,13 +30,15 @@ public final class TemporaryBanDurationMenu
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
+    private final PunishmentDuration duration;
 
-    public TemporaryBanDurationMenu(
+    public TemporaryBanReasonMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int browserPage
+            int browserPage,
+            PunishmentDuration duration
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -58,6 +53,7 @@ public final class TemporaryBanDurationMenu
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
+        this.duration = duration;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -67,7 +63,7 @@ public final class TemporaryBanDurationMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public TemporaryBanDurationMenu(
+    public TemporaryBanReasonMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -76,7 +72,8 @@ public final class TemporaryBanDurationMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                0,
+                PunishmentDuration.ONE_HOUR
         );
     }
 
@@ -220,15 +217,18 @@ public final class TemporaryBanDurationMenu
             return;
         }
 
-        PunishmentDuration duration =
-                durationFromSlot(slotId);
+        BanReason reason =
+                BanReason.fromSlot(slotId);
 
-        if (duration != null) {
-            TemporaryBanReasonScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage,
-                    duration
+        if (reason != null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "Temporary Ban confirmation for "
+                                    + duration.displayName()
+                                    + " and reason "
+                                    + reason.displayName()
+                                    + " will be added next."
+                    )
             );
 
             return;
@@ -236,7 +236,7 @@ public final class TemporaryBanDurationMenu
 
         switch (slotId) {
             case BACK_SLOT ->
-                    PunishmentTypeScreen.open(
+                    TemporaryBanDurationScreen.open(
                             viewer,
                             targetUuid,
                             browserPage
@@ -249,35 +249,6 @@ public final class TemporaryBanDurationMenu
                 // Border or informational slot.
             }
         }
-    }
-
-    private static PunishmentDuration durationFromSlot(
-            int slot
-    ) {
-        return switch (slot) {
-            case ONE_HOUR_SLOT ->
-                    PunishmentDuration.ONE_HOUR;
-
-            case SIX_HOURS_SLOT ->
-                    PunishmentDuration.SIX_HOURS;
-
-            case ONE_DAY_SLOT ->
-                    PunishmentDuration.ONE_DAY;
-
-            case THREE_DAYS_SLOT ->
-                    PunishmentDuration.THREE_DAYS;
-
-            case SEVEN_DAYS_SLOT ->
-                    PunishmentDuration.SEVEN_DAYS;
-
-            case FOURTEEN_DAYS_SLOT ->
-                    PunishmentDuration.FOURTEEN_DAYS;
-
-            case THIRTY_DAYS_SLOT ->
-                    PunishmentDuration.THIRTY_DAYS;
-
-            default -> null;
-        };
     }
 
     @Override
