@@ -18,27 +18,32 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class TemporaryBanReasonMenu
+public final class TemporaryBanConfirmMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 49;
-    public static final int CLOSE_SLOT = 50;
+    public static final int CONFIRM_SLOT = 22;
+    public static final int BACK_SLOT = 48;
+    public static final int CANCEL_SLOT = 50;
 
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
     private final PunishmentDuration duration;
+    private final BanReason banReason;
 
-    public TemporaryBanReasonMenu(
+    private boolean submitted;
+
+    public TemporaryBanConfirmMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
             int browserPage,
-            PunishmentDuration duration
+            PunishmentDuration duration,
+            BanReason banReason
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -54,6 +59,8 @@ public final class TemporaryBanReasonMenu
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
         this.duration = duration;
+        this.banReason = banReason;
+        this.submitted = false;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -63,7 +70,7 @@ public final class TemporaryBanReasonMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public TemporaryBanReasonMenu(
+    public TemporaryBanConfirmMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -73,7 +80,8 @@ public final class TemporaryBanReasonMenu
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
                 0,
-                PunishmentDuration.ONE_HOUR
+                PunishmentDuration.ONE_HOUR,
+                BanReason.OTHER
         );
     }
 
@@ -183,15 +191,65 @@ public final class TemporaryBanReasonMenu
             return;
         }
 
-        if (!StewardPermissions.require(
-                viewer,
-                StewardPermissions.PUNISHMENT_TEMPORARY_BAN
-        )) {
+        if (slotId < 0 || slotId >= MENU_SIZE) {
+            return;
+        }
+
+        if (slotId == BACK_SLOT) {
+            TemporaryBanReasonScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage,
+                    duration
+            );
+
+            return;
+        }
+
+        if (slotId == CANCEL_SLOT) {
             viewer.closeContainer();
             return;
         }
 
-        if (slotId < 0 || slotId >= MENU_SIZE) {
+        if (slotId != CONFIRM_SLOT || submitted) {
+            return;
+        }
+
+        confirmTemporaryBan(viewer);
+    }
+
+    private void confirmTemporaryBan(
+            ServerPlayer viewer
+    ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.PUNISHMENT_TEMPORARY_BAN
+        )) {
+            PunishmentTypeScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
+            return;
+        }
+
+        if (duration == null
+                || duration.isPermanent()
+                || banReason == null) {
+
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "The selected Temporary Ban is invalid."
+                    )
+            );
+
+            TemporaryBanDurationScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage
+            );
+
             return;
         }
 
@@ -217,36 +275,20 @@ public final class TemporaryBanReasonMenu
             return;
         }
 
-        BanReason reason =
-                BanReason.fromSlot(slotId);
+        submitted = true;
 
-        if (reason != null) {
-            TemporaryBanConfirmScreen.open(
-                    viewer,
-                    targetUuid,
-                    browserPage,
-                    duration,
-                    reason
-            );
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "Temporary Ban execution will be connected next. "
+                                + "Duration: "
+                                + duration.displayName()
+                                + ". Reason: "
+                                + banReason.displayName()
+                                + "."
+                )
+        );
 
-            return;
-        }
-
-        switch (slotId) {
-            case BACK_SLOT ->
-                    TemporaryBanDurationScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage
-                    );
-
-            case CLOSE_SLOT ->
-                    viewer.closeContainer();
-
-            default -> {
-                // Border or informational slot.
-            }
-        }
+        submitted = false;
     }
 
     @Override
