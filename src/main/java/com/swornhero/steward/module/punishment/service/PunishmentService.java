@@ -18,6 +18,9 @@ import java.util.UUID;
 
 public final class PunishmentService {
 
+    private static final Object LOCK =
+            new Object();
+
     private static final Map<UUID, PunishmentRecord> PUNISHMENTS =
             new HashMap<>();
 
@@ -30,48 +33,58 @@ public final class PunishmentService {
     }
 
     private static void restorePunishments() {
-        PUNISHMENTS.clear();
+        synchronized (LOCK) {
+            PUNISHMENTS.clear();
 
-        Set<UUID> loadedPunishmentIds =
-                new HashSet<>();
+            Set<UUID> loadedPunishmentIds =
+                    new HashSet<>();
 
-        for (PunishmentRecord record
-                : PunishmentStorageService.load()) {
+            for (PunishmentRecord record
+                    : PunishmentStorageService.load()) {
 
-            if (record == null) {
-                continue;
-            }
+                if (record == null) {
+                    continue;
+                }
 
-            if (!loadedPunishmentIds.add(
-                    record.punishmentId()
-            )) {
-                Steward.LOGGER.error(
-                        "Skipped duplicate punishment ID {} "
-                                + "for player {}.",
+                if (record.punishmentId() == null) {
+                    Steward.LOGGER.error(
+                            "Skipped punishment record with a null ID."
+                    );
+
+                    continue;
+                }
+
+                if (!loadedPunishmentIds.add(
+                        record.punishmentId()
+                )) {
+                    Steward.LOGGER.error(
+                            "Skipped duplicate punishment ID {} "
+                                    + "for player {}.",
+                            record.punishmentId(),
+                            record.targetName()
+                    );
+
+                    continue;
+                }
+
+                PUNISHMENTS.put(
                         record.punishmentId(),
-                        record.targetName()
+                        record
                 );
-
-                continue;
             }
 
-            PUNISHMENTS.put(
-                    record.punishmentId(),
-                    record
+            boolean changed =
+                    refreshExpiredPunishmentsLocked();
+
+            if (changed) {
+                saveLocked();
+            }
+
+            Steward.LOGGER.info(
+                    "Punishment service restored {} records.",
+                    PUNISHMENTS.size()
             );
         }
-
-        boolean changed =
-                refreshExpiredPunishments();
-
-        if (changed) {
-            save();
-        }
-
-        Steward.LOGGER.info(
-                "Punishment service restored {} records.",
-                PUNISHMENTS.size()
-        );
     }
 
     public static PunishmentRecord createPunishment(
@@ -96,53 +109,64 @@ public final class PunishmentService {
                 duration
         );
 
-        Instant issuedAt =
-                Instant.now();
+        synchronized (LOCK) {
+            Instant issuedAt =
+                    Instant.now();
 
-        Instant expiresAt =
-                calculateExpiration(
-                        type,
-                        duration,
-                        issuedAt
+            Instant expiresAt =
+                    calculateExpiration(
+                            type,
+                            duration,
+                            issuedAt
+                    );
+
+            PunishmentRecord record =
+                    new PunishmentRecord(
+                            type,
+                            targetUuid,
+                            targetName.trim(),
+                            issuedByUuid,
+                            issuedByName.trim(),
+                            reason.trim(),
+                            normalizeOptionalText(
+                                    staffNotes
+                            ),
+                            normalizeOptionalText(
+                                    evidenceReference
+                            ),
+                            issuedAt,
+                            expiresAt,
+                            targetWasOnline
+                    );
+
+            if (PUNISHMENTS.containsKey(
+                    record.punishmentId()
+            )) {
+                throw new IllegalStateException(
+                        "Generated duplicate punishment ID: "
+                                + record.punishmentId()
                 );
+            }
 
-        PunishmentRecord record =
-                new PunishmentRecord(
-                        type,
-                        targetUuid,
-                        targetName.trim(),
-                        issuedByUuid,
-                        issuedByName.trim(),
-                        reason.trim(),
-                        normalizeOptionalText(
-                                staffNotes
-                        ),
-                        normalizeOptionalText(
-                                evidenceReference
-                        ),
-                        issuedAt,
-                        expiresAt,
-                        targetWasOnline
-                );
+            PUNISHMENTS.put(
+                    record.punishmentId(),
+                    record
+            );
 
-        PUNISHMENTS.put(
-                record.punishmentId(),
-                record
-        );
+            saveLocked();
 
-        save();
+            Steward.LOGGER.info(
+                    "Punishment {} issued to {} by {}. Type: {}.",
+                    formatPunishmentId(
+                            record.punishmentId()
+                    ),
+                    record.targetName(),
+                    record.issuedByName(),
+                    record.type()
+            );
 
-        Steward.LOGGER.info(
-                "Punishment {} issued to {} by {}. Type: {}.",
-                formatPunishmentId(
-                        record.punishmentId()
-                ),
-                record.targetName(),
-                record.issuedByName(),
-                record.type()
-        );
-
-        return record;
+            return record;
+        }
     }
 
     public static PunishmentRecord findById(
@@ -152,19 +176,21 @@ public final class PunishmentService {
             return null;
         }
 
-        PunishmentRecord record =
-                PUNISHMENTS.get(
-                        punishmentId
-                );
+        synchronized (LOCK) {
+            PunishmentRecord record =
+                    PUNISHMENTS.get(
+                            punishmentId
+                    );
 
-        if (record != null
-                && record.refreshExpirationStatus(
-                Instant.now()
-        )) {
-            save();
+            if (record != null
+                    && record.refreshExpirationStatus(
+                    Instant.now()
+            )) {
+                saveLocked();
+            }
+
+            return record;
         }
-
-        return record;
     }
 
     public static PunishmentRecord findByDisplayId(
@@ -189,36 +215,38 @@ public final class PunishmentService {
             return null;
         }
 
-        PunishmentRecord match =
-                null;
+        synchronized (LOCK) {
+            PunishmentRecord match =
+                    null;
 
-        for (PunishmentRecord record
-                : PUNISHMENTS.values()) {
+            for (PunishmentRecord record
+                    : PUNISHMENTS.values()) {
 
-            String compactId =
-                    record.punishmentId()
-                            .toString()
-                            .replace("-", "")
-                            .substring(0, 8)
-                            .toUpperCase();
+                String compactId =
+                        record.punishmentId()
+                                .toString()
+                                .replace("-", "")
+                                .substring(0, 8)
+                                .toUpperCase();
 
-            if (!compactId.equals(normalized)) {
-                continue;
+                if (!compactId.equals(normalized)) {
+                    continue;
+                }
+
+                if (match != null) {
+                    Steward.LOGGER.error(
+                            "Punishment display ID PUN-{} is ambiguous.",
+                            normalized
+                    );
+
+                    return null;
+                }
+
+                match = record;
             }
 
-            if (match != null) {
-                Steward.LOGGER.error(
-                        "Punishment display ID PUN-{} is ambiguous.",
-                        normalized
-                );
-
-                return null;
-            }
-
-            match = record;
+            return match;
         }
-
-        return match;
     }
 
     public static boolean revokePunishment(
@@ -237,55 +265,63 @@ public final class PunishmentService {
             return false;
         }
 
-        PunishmentRecord record =
-                PUNISHMENTS.get(
-                        punishmentId
-                );
+        synchronized (LOCK) {
+            PunishmentRecord record =
+                    PUNISHMENTS.get(
+                            punishmentId
+                    );
 
-        if (record == null) {
-            return false;
+            if (record == null) {
+                return false;
+            }
+
+            record.refreshExpirationStatus(
+                    Instant.now()
+            );
+
+            boolean revoked =
+                    record.revoke(
+                            staffUuid,
+                            staffName.trim(),
+                            Instant.now(),
+                            reason.trim()
+                    );
+
+            if (!revoked) {
+                return false;
+            }
+
+            saveLocked();
+
+            Steward.LOGGER.info(
+                    "Punishment {} for {} was revoked by {}. Reason: {}",
+                    formatPunishmentId(
+                            punishmentId
+                    ),
+                    record.targetName(),
+                    staffName.trim(),
+                    reason.trim()
+            );
+
+            return true;
         }
-
-        boolean revoked =
-                record.revoke(
-                        staffUuid,
-                        staffName.trim(),
-                        Instant.now(),
-                        reason.trim()
-                );
-
-        if (!revoked) {
-            return false;
-        }
-
-        save();
-
-        Steward.LOGGER.info(
-                "Punishment {} for {} was revoked by {}. Reason: {}",
-                formatPunishmentId(
-                        punishmentId
-                ),
-                record.targetName(),
-                staffName.trim(),
-                reason.trim()
-        );
-
-        return true;
     }
 
     public static List<PunishmentRecord> allPunishments() {
-        if (refreshExpiredPunishments()) {
-            save();
-        }
+        synchronized (LOCK) {
+            if (refreshExpiredPunishmentsLocked()) {
+                saveLocked();
+            }
 
-        return PUNISHMENTS.values()
-                .stream()
-                .sorted(
-                        Comparator.comparing(
-                                PunishmentRecord::issuedAt
-                        ).reversed()
-                )
-                .toList();
+            return PUNISHMENTS.values()
+                    .stream()
+                    .sorted(
+                            Comparator.comparing(
+                                    PunishmentRecord::issuedAt
+                            ).reversed()
+                    )
+                    .toList();
+        }
     }
 
     public static List<PunishmentRecord> punishmentsFor(
@@ -295,39 +331,43 @@ public final class PunishmentService {
             return List.of();
         }
 
-        if (refreshExpiredPunishments()) {
-            save();
-        }
+        synchronized (LOCK) {
+            if (refreshExpiredPunishmentsLocked()) {
+                saveLocked();
+            }
 
-        return PUNISHMENTS.values()
-                .stream()
-                .filter(record ->
-                        targetUuid.equals(
-                                record.targetUuid()
-                        )
-                )
-                .sorted(
-                        Comparator.comparing(
-                                PunishmentRecord::issuedAt
-                        ).reversed()
-                )
-                .toList();
+            return PUNISHMENTS.values()
+                    .stream()
+                    .filter(record ->
+                            targetUuid.equals(
+                                    record.targetUuid()
+                            )
+                    )
+                    .sorted(
+                            Comparator.comparing(
+                                    PunishmentRecord::issuedAt
+                            ).reversed()
+                    )
+                    .toList();
+        }
     }
 
     public static List<PunishmentRecord> activePunishments() {
-        if (refreshExpiredPunishments()) {
-            save();
-        }
+        synchronized (LOCK) {
+            if (refreshExpiredPunishmentsLocked()) {
+                saveLocked();
+            }
 
-        return PUNISHMENTS.values()
-                .stream()
-                .filter(PunishmentRecord::isActive)
-                .sorted(
-                        Comparator.comparing(
-                                PunishmentRecord::issuedAt
-                        ).reversed()
-                )
-                .toList();
+            return PUNISHMENTS.values()
+                    .stream()
+                    .filter(PunishmentRecord::isActive)
+                    .sorted(
+                            Comparator.comparing(
+                                    PunishmentRecord::issuedAt
+                            ).reversed()
+                    )
+                    .toList();
+        }
     }
 
     public static List<PunishmentRecord> activePunishmentsFor(
@@ -473,7 +513,7 @@ public final class PunishmentService {
         }
     }
 
-    private static boolean refreshExpiredPunishments() {
+    private static boolean refreshExpiredPunishmentsLocked() {
         boolean changed =
                 false;
 
@@ -501,9 +541,11 @@ public final class PunishmentService {
         return value.trim();
     }
 
-    private static void save() {
+    private static void saveLocked() {
         PunishmentStorageService.save(
-                PUNISHMENTS.values()
+                List.copyOf(
+                        PUNISHMENTS.values()
+                )
         );
     }
 }
