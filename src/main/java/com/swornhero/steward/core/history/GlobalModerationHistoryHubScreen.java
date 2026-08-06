@@ -71,6 +71,9 @@ public final class GlobalModerationHistoryHubScreen {
                         ModerationActionType.FREEZE
                 );
 
+        int punishmentCount =
+                ModerationHistoryService.countAllPunishments();
+
         setButton(
                 container,
                 13,
@@ -103,6 +106,15 @@ public final class GlobalModerationHistoryHubScreen {
                 Items.PACKED_ICE,
                 "Freeze History • "
                         + freezeCount
+                        + " Records"
+        );
+
+        setButton(
+                container,
+                GlobalModerationHistoryHubMenu.PUNISHMENT_HISTORY_SLOT,
+                Items.IRON_SWORD,
+                "Punishment History • "
+                        + punishmentCount
                         + " Records"
         );
 

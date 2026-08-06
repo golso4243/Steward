@@ -105,6 +105,16 @@ public final class ModerationHistoryService {
                 .toList();
     }
 
+    public static List<ModerationHistoryItem>
+    getAllPunishments() {
+        return getAll()
+                .stream()
+                .filter(item ->
+                        item.type().isPunishment()
+                )
+                .toList();
+    }
+
     /**
      * Returns one player's history records of one action type.
      */
@@ -119,6 +129,22 @@ public final class ModerationHistoryService {
         return getForPlayer(targetUuid)
                 .stream()
                 .filter(item -> item.type() == type)
+                .toList();
+    }
+
+    public static List<ModerationHistoryItem>
+    getPunishmentsForPlayer(
+            UUID targetUuid
+    ) {
+        if (targetUuid == null) {
+            return List.of();
+        }
+
+        return getForPlayer(targetUuid)
+                .stream()
+                .filter(item ->
+                        item.type().isPunishment()
+                )
                 .toList();
     }
 
@@ -145,6 +171,18 @@ public final class ModerationHistoryService {
         return getForPlayerByType(
                 targetUuid,
                 type
+        ).size();
+    }
+
+    public static int countAllPunishments() {
+        return getAllPunishments().size();
+    }
+
+    public static int countPunishmentsForPlayer(
+            UUID targetUuid
+    ) {
+        return getPunishmentsForPlayer(
+                targetUuid
         ).size();
     }
 

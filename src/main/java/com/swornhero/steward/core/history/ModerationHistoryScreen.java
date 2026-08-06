@@ -52,6 +52,7 @@ public final class ModerationHistoryScreen {
                 viewer,
                 targetUuid,
                 browserPage,
+                PlayerHistoryView.ALL_ACTIVITY,
                 0
         );
     }
@@ -62,12 +63,48 @@ public final class ModerationHistoryScreen {
             int browserPage,
             int requestedHistoryPage
     ) {
+        open(
+                viewer,
+                targetUuid,
+                browserPage,
+                PlayerHistoryView.ALL_ACTIVITY,
+                requestedHistoryPage
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            UUID targetUuid,
+            int browserPage,
+            PlayerHistoryView view
+    ) {
+        open(
+                viewer,
+                targetUuid,
+                browserPage,
+                view,
+                0
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            UUID targetUuid,
+            int browserPage,
+            PlayerHistoryView requestedView,
+            int requestedHistoryPage
+    ) {
         if (!StewardPermissions.require(
                 viewer,
                 StewardPermissions.HISTORY_VIEW
         )) {
             return;
         }
+
+        PlayerHistoryView view =
+                requestedView != null
+                        ? requestedView
+                        : PlayerHistoryView.ALL_ACTIVITY;
 
         ServerPlayer target =
                 viewer.level()
@@ -81,9 +118,15 @@ public final class ModerationHistoryScreen {
                         : targetUuid.toString();
 
         List<ModerationHistoryItem> records =
-                ModerationHistoryService.getForPlayer(
-                        targetUuid
-                );
+                view.isPunishmentHistory()
+                        ? ModerationHistoryService
+                        .getPunishmentsForPlayer(
+                                targetUuid
+                        )
+                        : ModerationHistoryService
+                        .getForPlayer(
+                                targetUuid
+                        );
 
         int totalPages =
                 Math.max(
@@ -121,7 +164,8 @@ public final class ModerationHistoryScreen {
 
         Component title =
                 Component.literal(
-                        "Moderation History • "
+                        view.title()
+                                + " • "
                                 + targetName
                                 + " "
                                 + (historyPage + 1)
@@ -138,6 +182,7 @@ public final class ModerationHistoryScreen {
                                         container,
                                         targetUuid,
                                         browserPage,
+                                        view,
                                         historyPage,
                                         totalPages,
                                         recordSlots

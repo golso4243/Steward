@@ -3,12 +3,11 @@ package com.swornhero.steward.core.history;
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.freeze.gui.FreezeHistoryDetailScreen;
-import com.swornhero.steward.core.history.ModerationHistoryHubScreen;
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import com.swornhero.steward.module.freeze.service.FreezeHistoryService;
+import com.swornhero.steward.module.warning.gui.WarningHistoryDetailScreen;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.module.warning.service.WarningService;
-import com.swornhero.steward.module.warning.gui.WarningHistoryDetailScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -39,10 +38,12 @@ public final class ModerationHistoryMenu
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
+    private final PlayerHistoryView view;
     private final int historyPage;
     private final int totalPages;
 
-    private final Map<Integer, ModerationHistoryItem> recordSlots;
+    private final Map<Integer, ModerationHistoryItem>
+            recordSlots;
 
     public ModerationHistoryMenu(
             int containerId,
@@ -50,6 +51,7 @@ public final class ModerationHistoryMenu
             Container menuContainer,
             UUID targetUuid,
             int browserPage,
+            PlayerHistoryView view,
             int historyPage,
             int totalPages,
             Map<Integer, ModerationHistoryItem> recordSlots
@@ -67,8 +69,15 @@ public final class ModerationHistoryMenu
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
+
+        this.view =
+                view != null
+                        ? view
+                        : PlayerHistoryView.ALL_ACTIVITY;
+
         this.historyPage = historyPage;
         this.totalPages = totalPages;
+
         this.recordSlots =
                 Map.copyOf(recordSlots);
 
@@ -90,6 +99,7 @@ public final class ModerationHistoryMenu
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
                 0,
+                PlayerHistoryView.ALL_ACTIVITY,
                 0,
                 1,
                 Map.of()
@@ -99,7 +109,10 @@ public final class ModerationHistoryMenu
     private void addMenuSlots(
             Container container
     ) {
-        for (int row = 0; row < ROWS; row++) {
+        for (int row = 0;
+             row < ROWS;
+             row++) {
+
             for (int column = 0;
                  column < 9;
                  column++) {
@@ -144,7 +157,10 @@ public final class ModerationHistoryMenu
     ) {
         int inventoryStartY = 140;
 
-        for (int row = 0; row < 3; row++) {
+        for (int row = 0;
+             row < 3;
+             row++) {
+
             for (int column = 0;
                  column < 9;
                  column++) {
@@ -233,6 +249,7 @@ public final class ModerationHistoryMenu
                             viewer,
                             targetUuid,
                             browserPage,
+                            view,
                             historyPage - 1
                     );
                 }
@@ -244,6 +261,7 @@ public final class ModerationHistoryMenu
                             viewer,
                             targetUuid,
                             browserPage,
+                            view,
                             historyPage + 1
                     );
                 }
@@ -280,6 +298,14 @@ public final class ModerationHistoryMenu
                     openFreezeRecord(
                             viewer,
                             item.recordId()
+                    );
+
+            case MUTE,
+                 KICK,
+                 TEMPORARY_BAN,
+                 PERMANENT_BAN ->
+                    openPunishmentRecord(
+                            viewer
                     );
         }
     }
@@ -319,7 +345,7 @@ public final class ModerationHistoryMenu
                 browserPage,
                 historyPage,
                 record,
-                HistoryReturnTarget.ALL_ACTIVITY
+                view.returnTarget()
         );
     }
 
@@ -328,7 +354,8 @@ public final class ModerationHistoryMenu
             UUID freezeId
     ) {
         FreezeHistoryEntry matchingEntry =
-                FreezeHistoryService.getForPlayer(
+                FreezeHistoryService
+                        .getForPlayer(
                                 targetUuid
                         )
                         .stream()
@@ -358,8 +385,20 @@ public final class ModerationHistoryMenu
                 browserPage,
                 historyPage,
                 matchingEntry,
-                HistoryReturnTarget.ALL_ACTIVITY
+                view.returnTarget()
         );
+    }
+
+    private void openPunishmentRecord(
+            ServerPlayer viewer
+    ) {
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "Punishment detail viewing is not available yet."
+                )
+        );
+
+        reopenCurrentPage(viewer);
     }
 
     private void reopenCurrentPage(
@@ -369,6 +408,7 @@ public final class ModerationHistoryMenu
                 viewer,
                 targetUuid,
                 browserPage,
+                view,
                 historyPage
         );
     }

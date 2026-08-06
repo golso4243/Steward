@@ -91,12 +91,20 @@ public final class GlobalModerationHistoryScreen {
                         ? requestedView
                         : GlobalHistoryView.ALL_ACTIVITY;
 
-        List<ModerationHistoryItem> records =
-                view.showsAllTypes()
-                        ? ModerationHistoryService.getAll()
-                        : ModerationHistoryService.getAllByType(
-                        view.actionType()
-                );
+        List<ModerationHistoryItem> records;
+
+        if (view.showsAllTypes()) {
+            records =
+                    ModerationHistoryService.getAll();
+        } else if (view.isPunishmentHistory()) {
+            records =
+                    ModerationHistoryService.getAllPunishments();
+        } else {
+            records =
+                    ModerationHistoryService.getAllByType(
+                            view.actionType()
+                    );
+        }
 
         int totalPages =
                 Math.max(

@@ -22,6 +22,7 @@ public final class GlobalModerationHistoryHubMenu
     public static final int ALL_ACTIVITY_SLOT = 20;
     public static final int WARNING_HISTORY_SLOT = 22;
     public static final int FREEZE_HISTORY_SLOT = 24;
+    public static final int PUNISHMENT_HISTORY_SLOT = 31;
 
     public static final int BACK_SLOT = 48;
     public static final int CLOSE_SLOT = 50;
@@ -198,6 +199,12 @@ public final class GlobalModerationHistoryHubMenu
                     GlobalModerationHistoryScreen.open(
                             viewer,
                             GlobalHistoryView.FREEZE_HISTORY
+                    );
+
+            case PUNISHMENT_HISTORY_SLOT ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.PUNISHMENT_HISTORY
                     );
 
             case BACK_SLOT ->

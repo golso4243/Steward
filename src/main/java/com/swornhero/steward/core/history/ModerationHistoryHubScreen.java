@@ -105,6 +105,11 @@ public final class ModerationHistoryHubScreen {
                         targetUuid
                 );
 
+        int punishmentCount =
+                ModerationHistoryService.countPunishmentsForPlayer(
+                        targetUuid
+                );
+
         int totalCount =
                 ModerationHistoryService.countForPlayer(
                         targetUuid
@@ -142,6 +147,15 @@ public final class ModerationHistoryHubScreen {
                 Items.PACKED_ICE,
                 "Freeze History • "
                         + freezeCount
+                        + " Records"
+        );
+
+        setButton(
+                container,
+                ModerationHistoryHubMenu.PUNISHMENT_HISTORY_SLOT,
+                Items.IRON_SWORD,
+                "Punishment History • "
+                        + punishmentCount
                         + " Records"
         );
 
