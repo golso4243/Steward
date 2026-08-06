@@ -62,9 +62,9 @@ public final class PunishmentHistoryDetailScreen {
             int historyPage,
             HistoryReturnTarget returnTarget
     ) {
-        if (!StewardPermissions.require(
+        if (!hasRequiredPermission(
                 viewer,
-                StewardPermissions.PUNISHMENT_VIEW
+                returnTarget
         )) {
             return;
         }
@@ -123,6 +123,32 @@ public final class PunishmentHistoryDetailScreen {
                                 ),
                         title
                 )
+        );
+    }
+
+    private static boolean hasRequiredPermission(
+            ServerPlayer viewer,
+            HistoryReturnTarget returnTarget
+    ) {
+        HistoryReturnTarget safeReturnTarget =
+                returnTarget != null
+                        ? returnTarget
+                        : HistoryReturnTarget
+                        .PUNISHMENT_MODULE_HISTORY;
+
+        if (safeReturnTarget
+                == HistoryReturnTarget
+                .PUNISHMENT_MODULE_HISTORY) {
+
+            return StewardPermissions.require(
+                    viewer,
+                    StewardPermissions.PUNISHMENT_VIEW
+            );
+        }
+
+        return StewardPermissions.require(
+                viewer,
+                StewardPermissions.HISTORY_VIEW
         );
     }
 

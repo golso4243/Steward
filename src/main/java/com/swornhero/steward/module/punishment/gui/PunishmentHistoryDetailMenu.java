@@ -208,10 +208,7 @@ public final class PunishmentHistoryDetailMenu
             return;
         }
 
-        if (!StewardPermissions.require(
-                viewer,
-                StewardPermissions.PUNISHMENT_VIEW
-        )) {
+        if (!hasRequiredPermission(viewer)) {
             viewer.closeContainer();
             return;
         }
@@ -247,6 +244,25 @@ public final class PunishmentHistoryDetailMenu
                 // Detail items are informational only.
             }
         }
+    }
+
+    private boolean hasRequiredPermission(
+            ServerPlayer viewer
+    ) {
+        if (returnTarget
+                == HistoryReturnTarget
+                .PUNISHMENT_MODULE_HISTORY) {
+
+            return StewardPermissions.require(
+                    viewer,
+                    StewardPermissions.PUNISHMENT_VIEW
+            );
+        }
+
+        return StewardPermissions.require(
+                viewer,
+                StewardPermissions.HISTORY_VIEW
+        );
     }
 
     private void returnToSource(
