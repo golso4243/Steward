@@ -99,7 +99,8 @@ public final class PunishmentHistoryDetailScreen {
 
         populate(
                 container,
-                record
+                record,
+                returnTarget
         );
 
         Component title =
@@ -154,7 +155,8 @@ public final class PunishmentHistoryDetailScreen {
 
     private static void populate(
             SimpleContainer container,
-            PunishmentRecord record
+            PunishmentRecord record,
+            HistoryReturnTarget returnTarget
     ) {
         addBorder(container);
 
@@ -312,7 +314,14 @@ public final class PunishmentHistoryDetailScreen {
                 container,
                 PunishmentHistoryDetailMenu.BACK_SLOT,
                 Items.OAK_DOOR,
-                "Back to History"
+                backButtonText(returnTarget)
+        );
+
+        setButton(
+                container,
+                PunishmentHistoryDetailMenu.PROFILE_SLOT,
+                Items.PLAYER_HEAD,
+                "Player Profile"
         );
 
         setButton(
@@ -321,6 +330,44 @@ public final class PunishmentHistoryDetailScreen {
                 Items.BARRIER,
                 "Close"
         );
+    }
+
+    private static String backButtonText(
+            HistoryReturnTarget returnTarget
+    ) {
+        HistoryReturnTarget safeReturnTarget =
+                returnTarget != null
+                        ? returnTarget
+                        : HistoryReturnTarget.PUNISHMENT_MODULE_HISTORY;
+
+        return switch (safeReturnTarget) {
+            case ALL_ACTIVITY ->
+                    "Back to All Activity";
+
+            case PUNISHMENT_HISTORY ->
+                    "Back to Punishment History";
+
+            case GLOBAL_ALL_ACTIVITY ->
+                    "Back to Global Activity";
+
+            case GLOBAL_WARNING_HISTORY ->
+                    "Back to Global Warning History";
+
+            case GLOBAL_FREEZE_HISTORY ->
+                    "Back to Global Freeze History";
+
+            case GLOBAL_PUNISHMENT_HISTORY ->
+                    "Back to Global Punishment History";
+
+            case WARNING_HISTORY ->
+                    "Back to Warning History";
+
+            case FREEZE_HISTORY ->
+                    "Back to Freeze History";
+
+            case PUNISHMENT_MODULE_HISTORY ->
+                    "Back to Punishment History";
+        };
     }
 
     private static Item itemFor(

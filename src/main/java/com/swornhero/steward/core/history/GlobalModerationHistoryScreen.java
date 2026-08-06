@@ -137,7 +137,8 @@ public final class GlobalModerationHistoryScreen {
                 records,
                 recordSlots,
                 historyPage,
-                totalPages
+                totalPages,
+                view
         );
 
         Component title =
@@ -171,7 +172,8 @@ public final class GlobalModerationHistoryScreen {
             List<ModerationHistoryItem> records,
             Map<Integer, ModerationHistoryItem> recordSlots,
             int historyPage,
-            int totalPages
+            int totalPages,
+            GlobalHistoryView view
     ) {
         addBorder(container);
 
@@ -229,7 +231,7 @@ public final class GlobalModerationHistoryScreen {
                     container,
                     22,
                     Items.PAPER,
-                    "No Moderation History"
+                    emptyStateText(view)
             );
         }
 
@@ -265,7 +267,7 @@ public final class GlobalModerationHistoryScreen {
                 container,
                 GlobalModerationHistoryMenu.BACK_SLOT,
                 Items.OAK_DOOR,
-                "Back to History"
+                "Back to Global History Menu"
         );
 
         setButton(
@@ -274,6 +276,24 @@ public final class GlobalModerationHistoryScreen {
                 Items.BARRIER,
                 "Close"
         );
+    }
+
+    private static String emptyStateText(
+            GlobalHistoryView view
+    ) {
+        if (view == GlobalHistoryView.WARNING_HISTORY) {
+            return "No Warning History";
+        }
+
+        if (view == GlobalHistoryView.FREEZE_HISTORY) {
+            return "No Freeze History";
+        }
+
+        if (view == GlobalHistoryView.PUNISHMENT_HISTORY) {
+            return "No Punishment History";
+        }
+
+        return "No Moderation History";
     }
 
     private static Item itemIcon(

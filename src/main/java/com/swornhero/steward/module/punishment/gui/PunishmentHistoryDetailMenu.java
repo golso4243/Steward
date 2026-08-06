@@ -5,6 +5,7 @@ import com.swornhero.steward.core.history.GlobalModerationHistoryScreen;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.history.ModerationHistoryScreen;
 import com.swornhero.steward.core.history.PlayerHistoryView;
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
 import com.swornhero.steward.module.punishment.service.PunishmentService;
@@ -28,7 +29,8 @@ public final class PunishmentHistoryDetailMenu
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int BACK_SLOT = 49;
+    public static final int BACK_SLOT = 48;
+    public static final int PROFILE_SLOT = 49;
     public static final int CLOSE_SLOT = 50;
 
     private final Container menuContainer;
@@ -236,6 +238,13 @@ public final class PunishmentHistoryDetailMenu
         switch (slotId) {
             case BACK_SLOT ->
                     returnToSource(viewer);
+
+            case PROFILE_SLOT ->
+                    PlayerProfileScreen.open(
+                            viewer,
+                            record.targetUuid(),
+                            browserPage
+                    );
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();

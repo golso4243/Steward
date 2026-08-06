@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.warning.gui;
 
+import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.warning.model.WarningLevel;
 import com.swornhero.steward.module.warning.model.WarningRecord;
@@ -256,7 +257,7 @@ public final class WarningHistoryScreen {
                 container,
                 WarningHistoryMenu.BACK_SLOT,
                 Items.OAK_DOOR,
-                "Back to History"
+                "Back to History Menu"
         );
 
         setButton(

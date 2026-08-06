@@ -159,7 +159,8 @@ public final class ModerationHistoryScreen {
                 records,
                 recordSlots,
                 historyPage,
-                totalPages
+                totalPages,
+                view
         );
 
         Component title =
@@ -197,7 +198,8 @@ public final class ModerationHistoryScreen {
             List<ModerationHistoryItem> records,
             Map<Integer, ModerationHistoryItem> recordSlots,
             int historyPage,
-            int totalPages
+            int totalPages,
+            PlayerHistoryView view
     ) {
         addBorder(container);
 
@@ -248,7 +250,7 @@ public final class ModerationHistoryScreen {
                     container,
                     22,
                     Items.PAPER,
-                    "No Moderation History"
+                    emptyStateText(view)
             );
         }
 
@@ -284,7 +286,7 @@ public final class ModerationHistoryScreen {
                 container,
                 ModerationHistoryMenu.BACK_SLOT,
                 Items.OAK_DOOR,
-                "Back to History"
+                "Back to History Menu"
         );
 
         setButton(
@@ -293,6 +295,16 @@ public final class ModerationHistoryScreen {
                 Items.BARRIER,
                 "Close"
         );
+    }
+
+    private static String emptyStateText(
+            PlayerHistoryView view
+    ) {
+        if (view == PlayerHistoryView.PUNISHMENT_HISTORY) {
+            return "No Punishment History";
+        }
+
+        return "No Moderation History";
     }
 
     private static Item itemIcon(

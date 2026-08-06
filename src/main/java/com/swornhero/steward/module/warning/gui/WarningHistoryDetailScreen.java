@@ -81,7 +81,9 @@ public final class WarningHistoryDetailScreen {
 
         populate(
                 container,
-                record
+                record,
+                returnTarget
+
         );
 
         Component title =
@@ -110,7 +112,8 @@ public final class WarningHistoryDetailScreen {
 
     private static void populate(
             SimpleContainer container,
-            WarningRecord record
+            WarningRecord record,
+            HistoryReturnTarget returnTarget
     ) {
         addBorder(container);
 
@@ -243,7 +246,7 @@ public final class WarningHistoryDetailScreen {
                 container,
                 WarningHistoryDetailMenu.BACK_SLOT,
                 Items.OAK_DOOR,
-                "Back to History"
+                backButtonText(returnTarget)
         );
 
         setButton(
@@ -259,6 +262,44 @@ public final class WarningHistoryDetailScreen {
                 Items.BARRIER,
                 "Close"
         );
+    }
+
+    private static String backButtonText(
+            HistoryReturnTarget returnTarget
+    ) {
+        HistoryReturnTarget safeReturnTarget =
+                returnTarget != null
+                        ? returnTarget
+                        : HistoryReturnTarget.WARNING_HISTORY;
+
+        return switch (safeReturnTarget) {
+            case ALL_ACTIVITY ->
+                    "Back to All Activity";
+
+            case PUNISHMENT_HISTORY ->
+                    "Back to Punishment History";
+
+            case GLOBAL_ALL_ACTIVITY ->
+                    "Back to Global Activity";
+
+            case GLOBAL_WARNING_HISTORY ->
+                    "Back to Global Warning History";
+
+            case GLOBAL_FREEZE_HISTORY ->
+                    "Back to Global Freeze History";
+
+            case GLOBAL_PUNISHMENT_HISTORY ->
+                    "Back to Global Punishment History";
+
+            case WARNING_HISTORY ->
+                    "Back to Warning History";
+
+            case FREEZE_HISTORY ->
+                    "Back to Freeze History";
+
+            case PUNISHMENT_MODULE_HISTORY ->
+                    "Back to Punishment History";
+        };
     }
 
     private static void addLifecycleDetails(
