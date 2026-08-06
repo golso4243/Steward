@@ -19,6 +19,7 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import com.swornhero.steward.module.punishment.gui.PunishmentHistoryDetailScreen;
 
 import java.util.Map;
 import java.util.UUID;
@@ -305,9 +306,9 @@ public final class ModerationHistoryMenu
                  TEMPORARY_BAN,
                  PERMANENT_BAN ->
                     openPunishmentRecord(
-                            viewer
-                    );
-        }
+                            viewer,
+                            item.recordId()
+                    );        }
     }
 
     private void openWarningRecord(
@@ -390,15 +391,17 @@ public final class ModerationHistoryMenu
     }
 
     private void openPunishmentRecord(
-            ServerPlayer viewer
+            ServerPlayer viewer,
+            UUID punishmentId
     ) {
-        viewer.sendSystemMessage(
-                Component.literal(
-                        "Punishment detail viewing is not available yet."
-                )
+        PunishmentHistoryDetailScreen.open(
+                viewer,
+                punishmentId,
+                targetUuid,
+                browserPage,
+                historyPage,
+                view.returnTarget()
         );
-
-        reopenCurrentPage(viewer);
     }
 
     private void reopenCurrentPage(

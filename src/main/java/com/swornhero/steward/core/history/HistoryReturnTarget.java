@@ -16,5 +16,7 @@ public enum HistoryReturnTarget {
 
     FREEZE_HISTORY,
 
-    PUNISHMENT_HISTORY
+    PUNISHMENT_HISTORY,
+
+    PUNISHMENT_MODULE_HISTORY
 }

@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.punishment.gui;
 
+import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
 import com.swornhero.steward.module.punishment.model.PunishmentStatus;
@@ -43,6 +44,24 @@ public final class PunishmentHistoryDetailScreen {
             UUID punishmentId,
             int historyPage
     ) {
+        open(
+                viewer,
+                punishmentId,
+                new UUID(0L, 0L),
+                0,
+                historyPage,
+                HistoryReturnTarget.PUNISHMENT_MODULE_HISTORY
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            UUID punishmentId,
+            UUID targetUuid,
+            int browserPage,
+            int historyPage,
+            HistoryReturnTarget returnTarget
+    ) {
         if (!StewardPermissions.require(
                 viewer,
                 StewardPermissions.PUNISHMENT_VIEW
@@ -62,9 +81,12 @@ public final class PunishmentHistoryDetailScreen {
                     )
             );
 
-            PunishmentHistoryScreen.open(
+            returnToSource(
                     viewer,
-                    historyPage
+                    targetUuid,
+                    browserPage,
+                    historyPage,
+                    returnTarget
             );
 
             return;
@@ -94,7 +116,10 @@ public final class PunishmentHistoryDetailScreen {
                                         inventory,
                                         container,
                                         punishmentId,
-                                        historyPage
+                                        targetUuid,
+                                        browserPage,
+                                        historyPage,
+                                        returnTarget
                                 ),
                         title
                 )
@@ -261,7 +286,7 @@ public final class PunishmentHistoryDetailScreen {
                 container,
                 PunishmentHistoryDetailMenu.BACK_SLOT,
                 Items.OAK_DOOR,
-                "Back to Punishment History"
+                "Back to History"
         );
 
         setButton(
@@ -465,6 +490,102 @@ public final class PunishmentHistoryDetailScreen {
         return value;
     }
 
+    private static void returnToSource(
+            ServerPlayer viewer,
+            UUID targetUuid,
+            int browserPage,
+            int historyPage,
+            HistoryReturnTarget returnTarget
+    ) {
+        HistoryReturnTarget safeReturnTarget =
+                returnTarget != null
+                        ? returnTarget
+                        : HistoryReturnTarget
+                        .PUNISHMENT_MODULE_HISTORY;
+
+        switch (safeReturnTarget) {
+            case PUNISHMENT_MODULE_HISTORY ->
+                    PunishmentHistoryScreen.open(
+                            viewer,
+                            historyPage
+                    );
+
+            case ALL_ACTIVITY ->
+                    com.swornhero.steward.core.history
+                            .ModerationHistoryScreen.open(
+                                    viewer,
+                                    targetUuid,
+                                    browserPage,
+                                    com.swornhero.steward.core.history
+                                            .PlayerHistoryView.ALL_ACTIVITY,
+                                    historyPage
+                            );
+
+            case PUNISHMENT_HISTORY ->
+                    com.swornhero.steward.core.history
+                            .ModerationHistoryScreen.open(
+                                    viewer,
+                                    targetUuid,
+                                    browserPage,
+                                    com.swornhero.steward.core.history
+                                            .PlayerHistoryView
+                                            .PUNISHMENT_HISTORY,
+                                    historyPage
+                            );
+
+            case GLOBAL_ALL_ACTIVITY ->
+                    com.swornhero.steward.core.history
+                            .GlobalModerationHistoryScreen.open(
+                                    viewer,
+                                    com.swornhero.steward.core.history
+                                            .GlobalHistoryView.ALL_ACTIVITY,
+                                    historyPage
+                            );
+
+            case GLOBAL_PUNISHMENT_HISTORY ->
+                    com.swornhero.steward.core.history
+                            .GlobalModerationHistoryScreen.open(
+                                    viewer,
+                                    com.swornhero.steward.core.history
+                                            .GlobalHistoryView
+                                            .PUNISHMENT_HISTORY,
+                                    historyPage
+                            );
+
+            case GLOBAL_WARNING_HISTORY ->
+                    com.swornhero.steward.core.history
+                            .GlobalModerationHistoryScreen.open(
+                                    viewer,
+                                    com.swornhero.steward.core.history
+                                            .GlobalHistoryView
+                                            .WARNING_HISTORY,
+                                    historyPage
+                            );
+
+            case GLOBAL_FREEZE_HISTORY ->
+                    com.swornhero.steward.core.history
+                            .GlobalModerationHistoryScreen.open(
+                                    viewer,
+                                    com.swornhero.steward.core.history
+                                            .GlobalHistoryView
+                                            .FREEZE_HISTORY,
+                                    historyPage
+                            );
+
+            case WARNING_HISTORY,
+                 FREEZE_HISTORY ->
+                    com.swornhero.steward.core.history
+                            .ModerationHistoryScreen.open(
+                                    viewer,
+                                    targetUuid,
+                                    browserPage,
+                                    com.swornhero.steward.core.history
+                                            .PlayerHistoryView.ALL_ACTIVITY,
+                                    historyPage
+                            );
+        }
+    }
+
     private static void addBorder(
             SimpleContainer container
     ) {
@@ -525,6 +646,22 @@ public final class PunishmentHistoryDetailScreen {
         stack.set(
                 DataComponents.CUSTOM_NAME,
                 Component.literal(name)
+        );
+
+        LinkedHashSet<net.minecraft.core.component.DataComponentType<?>>
+                hiddenComponents =
+                new LinkedHashSet<>();
+
+        hiddenComponents.add(
+                DataComponents.ATTRIBUTE_MODIFIERS
+        );
+
+        stack.set(
+                DataComponents.TOOLTIP_DISPLAY,
+                new TooltipDisplay(
+                        false,
+                        hiddenComponents
+                )
         );
 
         container.setItem(

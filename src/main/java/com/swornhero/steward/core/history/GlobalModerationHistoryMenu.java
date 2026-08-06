@@ -18,6 +18,7 @@ import com.swornhero.steward.module.freeze.service.FreezeHistoryService;
 import com.swornhero.steward.module.warning.gui.WarningHistoryDetailScreen;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.module.warning.service.WarningService;
+import com.swornhero.steward.module.punishment.gui.PunishmentHistoryDetailScreen;
 
 import java.util.Map;
 
@@ -274,6 +275,15 @@ public final class GlobalModerationHistoryMenu
                             viewer,
                             item
                     );
+
+            case MUTE,
+                 KICK,
+                 TEMPORARY_BAN,
+                 PERMANENT_BAN ->
+                    openPunishmentRecord(
+                            viewer,
+                            item
+                    );
         }
     }
 
@@ -339,6 +349,20 @@ public final class GlobalModerationHistoryMenu
                 0,
                 historyPage,
                 record,
+                view.returnTarget()
+        );
+    }
+
+    private void openPunishmentRecord(
+            ServerPlayer viewer,
+            ModerationHistoryItem item
+    ) {
+        PunishmentHistoryDetailScreen.open(
+                viewer,
+                item.recordId(),
+                item.targetUuid(),
+                0,
+                historyPage,
                 view.returnTarget()
         );
     }

@@ -1,5 +1,10 @@
 package com.swornhero.steward.module.punishment.gui;
 
+import com.swornhero.steward.core.history.GlobalHistoryView;
+import com.swornhero.steward.core.history.GlobalModerationHistoryScreen;
+import com.swornhero.steward.core.history.HistoryReturnTarget;
+import com.swornhero.steward.core.history.ModerationHistoryScreen;
+import com.swornhero.steward.core.history.PlayerHistoryView;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
 import com.swornhero.steward.module.punishment.service.PunishmentService;
@@ -29,14 +34,20 @@ public final class PunishmentHistoryDetailMenu
     private final Container menuContainer;
 
     private final UUID punishmentId;
+    private final UUID targetUuid;
+    private final int browserPage;
     private final int historyPage;
+    private final HistoryReturnTarget returnTarget;
 
     public PunishmentHistoryDetailMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID punishmentId,
-            int historyPage
+            UUID targetUuid,
+            int browserPage,
+            int historyPage,
+            HistoryReturnTarget returnTarget
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -50,7 +61,15 @@ public final class PunishmentHistoryDetailMenu
 
         this.menuContainer = menuContainer;
         this.punishmentId = punishmentId;
+        this.targetUuid = targetUuid;
+        this.browserPage = browserPage;
         this.historyPage = historyPage;
+
+        this.returnTarget =
+                returnTarget != null
+                        ? returnTarget
+                        : HistoryReturnTarget
+                        .PUNISHMENT_MODULE_HISTORY;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -69,14 +88,21 @@ public final class PunishmentHistoryDetailMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                new UUID(0L, 0L),
+                0,
+                0,
+                HistoryReturnTarget
+                        .PUNISHMENT_MODULE_HISTORY
         );
     }
 
     private void addMenuSlots(
             Container container
     ) {
-        for (int row = 0; row < ROWS; row++) {
+        for (int row = 0;
+             row < ROWS;
+             row++) {
+
             for (int column = 0;
                  column < 9;
                  column++) {
@@ -121,7 +147,10 @@ public final class PunishmentHistoryDetailMenu
     ) {
         int inventoryStartY = 140;
 
-        for (int row = 0; row < 3; row++) {
+        for (int row = 0;
+             row < 3;
+             row++) {
+
             for (int column = 0;
                  column < 9;
                  column++) {
@@ -203,20 +232,13 @@ public final class PunishmentHistoryDetailMenu
                     )
             );
 
-            PunishmentHistoryScreen.open(
-                    viewer,
-                    historyPage
-            );
-
+            returnToSource(viewer);
             return;
         }
 
         switch (slotId) {
             case BACK_SLOT ->
-                    PunishmentHistoryScreen.open(
-                            viewer,
-                            historyPage
-                    );
+                    returnToSource(viewer);
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
@@ -224,6 +246,74 @@ public final class PunishmentHistoryDetailMenu
             default -> {
                 // Detail items are informational only.
             }
+        }
+    }
+
+    private void returnToSource(
+            ServerPlayer viewer
+    ) {
+        switch (returnTarget) {
+            case PUNISHMENT_MODULE_HISTORY ->
+                    PunishmentHistoryScreen.open(
+                            viewer,
+                            historyPage
+                    );
+
+            case ALL_ACTIVITY ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            PlayerHistoryView.ALL_ACTIVITY,
+                            historyPage
+                    );
+
+            case PUNISHMENT_HISTORY ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            PlayerHistoryView.PUNISHMENT_HISTORY,
+                            historyPage
+                    );
+
+            case GLOBAL_ALL_ACTIVITY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.ALL_ACTIVITY,
+                            historyPage
+                    );
+
+            case GLOBAL_PUNISHMENT_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.PUNISHMENT_HISTORY,
+                            historyPage
+                    );
+
+            case GLOBAL_WARNING_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.WARNING_HISTORY,
+                            historyPage
+                    );
+
+            case GLOBAL_FREEZE_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.FREEZE_HISTORY,
+                            historyPage
+                    );
+
+            case WARNING_HISTORY,
+                 FREEZE_HISTORY ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            PlayerHistoryView.ALL_ACTIVITY,
+                            historyPage
+                    );
         }
     }
 

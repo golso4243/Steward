@@ -7,6 +7,7 @@ import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.history.ModerationHistoryScreen;
 import com.swornhero.steward.core.history.GlobalModerationHistoryScreen;
+import com.swornhero.steward.core.history.PlayerHistoryView;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -231,12 +232,23 @@ public final class FreezeHistoryDetailMenu
                             viewer,
                             targetUuid,
                             browserPage,
+                            PlayerHistoryView.ALL_ACTIVITY,
+                            historyPage
+                    );
+
+            case PUNISHMENT_HISTORY ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            PlayerHistoryView.PUNISHMENT_HISTORY,
                             historyPage
                     );
 
             case GLOBAL_ALL_ACTIVITY ->
                     GlobalModerationHistoryScreen.open(
                             viewer,
+                            GlobalHistoryView.ALL_ACTIVITY,
                             historyPage
                     );
 
@@ -254,7 +266,14 @@ public final class FreezeHistoryDetailMenu
                             historyPage
                     );
 
-            case FREEZE_HISTORY, WARNING_HISTORY ->
+            case GLOBAL_PUNISHMENT_HISTORY ->
+                    GlobalModerationHistoryScreen.open(
+                            viewer,
+                            GlobalHistoryView.PUNISHMENT_HISTORY,
+                            historyPage
+                    );
+
+            case FREEZE_HISTORY ->
                     FreezeHistoryScreen.open(
                             viewer,
                             targetUuid,
@@ -262,6 +281,21 @@ public final class FreezeHistoryDetailMenu
                             historyPage
                     );
 
+            case WARNING_HISTORY ->
+                    com.swornhero.steward.module.warning.gui
+                            .WarningHistoryScreen.open(
+                                    viewer,
+                                    targetUuid,
+                                    browserPage,
+                                    historyPage
+                            );
+
+            case PUNISHMENT_MODULE_HISTORY ->
+                    com.swornhero.steward.module.punishment.gui
+                            .PunishmentHistoryScreen.open(
+                                    viewer,
+                                    historyPage
+                            );
         }
     }
 
