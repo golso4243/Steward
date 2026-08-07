@@ -1,5 +1,6 @@
 package com.swornhero.steward;
 
+import com.swornhero.steward.module.staffmode.StaffModeModule;
 import com.swornhero.steward.core.command.StewardCommands;
 import com.swornhero.steward.module.freeze.FreezeModule;
 import com.swornhero.steward.module.punishment.PunishmentModule;
@@ -31,6 +32,7 @@ public final class Steward implements ModInitializer {
 		FreezeModule.register();
 		WarningModule.register();
 		PunishmentModule.register();
+		StaffModeModule.register();
 
 		LOGGER.info(
 				"{} commands registered.",
