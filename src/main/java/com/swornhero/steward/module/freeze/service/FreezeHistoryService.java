@@ -87,6 +87,72 @@ public final class FreezeHistoryService {
                 .toList();
     }
 
+    public static synchronized FreezeHistoryEntry findByDisplayId(
+            String displayId
+    ) {
+        if (displayId == null
+                || displayId.isBlank()) {
+
+            return null;
+        }
+
+        String normalized =
+                displayId.trim()
+                        .toUpperCase();
+
+        if (normalized.startsWith("FRZ-")) {
+            normalized =
+                    normalized.substring(4);
+        }
+
+        if (normalized.length() != 8) {
+            return null;
+        }
+
+        FreezeHistoryEntry match =
+                null;
+
+        for (FreezeHistoryEntry entry : HISTORY) {
+            String compactId =
+                    entry.freezeId()
+                            .toString()
+                            .replace("-", "")
+                            .substring(0, 8)
+                            .toUpperCase();
+
+            if (!compactId.equals(normalized)) {
+                continue;
+            }
+
+            if (match != null) {
+                Steward.LOGGER.error(
+                        "Freeze display ID FRZ-{} is ambiguous.",
+                        normalized
+                );
+
+                return null;
+            }
+
+            match = entry;
+        }
+
+        return match;
+    }
+
+    public static String formatFreezeId(
+            UUID freezeId
+    ) {
+        if (freezeId == null) {
+            return "FRZ-UNKNOWN";
+        }
+
+        return "FRZ-"
+                + freezeId.toString()
+                .replace("-", "")
+                .substring(0, 8)
+                .toUpperCase();
+    }
+
     public static synchronized int countForPlayer(
             UUID playerUuid
     ) {

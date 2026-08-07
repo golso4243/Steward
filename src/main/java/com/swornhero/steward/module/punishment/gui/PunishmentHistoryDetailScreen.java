@@ -1,5 +1,7 @@
 package com.swornhero.steward.module.punishment.gui;
 
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
+import com.swornhero.steward.core.gui.StaffControlScreen;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
@@ -367,6 +369,9 @@ public final class PunishmentHistoryDetailScreen {
 
             case PUNISHMENT_MODULE_HISTORY ->
                     "Back to Punishment History";
+
+            case STAFF_MENU ->
+                    "Back to Staff Menu";
         };
     }
 
@@ -583,7 +588,7 @@ public final class PunishmentHistoryDetailScreen {
                             historyPage
                     );
 
-            case ALL_ACTIVITY ->
+            case ALL_ACTIVITY, WARNING_HISTORY, FREEZE_HISTORY ->
                     com.swornhero.steward.core.history
                             .ModerationHistoryScreen.open(
                                     viewer,
@@ -645,17 +650,9 @@ public final class PunishmentHistoryDetailScreen {
                                     historyPage
                             );
 
-            case WARNING_HISTORY,
-                 FREEZE_HISTORY ->
-                    com.swornhero.steward.core.history
-                            .ModerationHistoryScreen.open(
-                                    viewer,
-                                    targetUuid,
-                                    browserPage,
-                                    com.swornhero.steward.core.history
-                                            .PlayerHistoryView.ALL_ACTIVITY,
-                                    historyPage
-                            );
+            case STAFF_MENU ->
+                    StaffControlScreen.open(viewer);
+
         }
     }
 

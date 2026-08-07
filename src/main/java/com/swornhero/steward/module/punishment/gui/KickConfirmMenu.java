@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.punishment.gui;
 
+import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.KickReason;
@@ -291,12 +292,22 @@ public final class KickConfirmMenu
             viewer.closeContainer();
 
             viewer.sendSystemMessage(
-                    Component.literal(
-                            punishmentId
-                                    + " issued to "
-                                    + targetName
-                                    + ". The player was kicked."
-                    )
+                    Component.empty()
+                            .append(
+                                    ClickableRecordId.create(
+                                            punishmentId,
+                                            "/steward view punishment "
+                                                    + punishmentId,
+                                            "Click to view punishment details"
+                                    )
+                            )
+                            .append(
+                                    Component.literal(
+                                            " issued to "
+                                                    + targetName
+                                                    + ". The player was kicked."
+                                    )
+                            )
             );
 
             target.connection.disconnect(

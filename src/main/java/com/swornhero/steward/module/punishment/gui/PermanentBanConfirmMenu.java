@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.punishment.gui;
 
+import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
 import com.swornhero.steward.module.punishment.model.PunishmentType;
@@ -332,12 +333,22 @@ public final class PermanentBanConfirmMenu
             viewer.closeContainer();
 
             viewer.sendSystemMessage(
-                    Component.literal(
-                            punishmentId
-                                    + " issued to "
-                                    + targetName
-                                    + ". The player was permanently banned."
-                    )
+                    Component.empty()
+                            .append(
+                                    ClickableRecordId.create(
+                                            punishmentId,
+                                            "/steward view punishment "
+                                                    + punishmentId,
+                                            "Click to view punishment details"
+                                    )
+                            )
+                            .append(
+                                    Component.literal(
+                                            " issued to "
+                                                    + targetName
+                                                    + ". The player was permanently banned."
+                                    )
+                            )
             );
 
             target.connection.disconnect(

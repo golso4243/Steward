@@ -1,5 +1,7 @@
 package com.swornhero.steward.module.freeze.gui;
 
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
+import com.swornhero.steward.core.gui.StaffControlScreen;
 import com.swornhero.steward.core.history.GlobalHistoryView;
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
 import com.swornhero.steward.core.history.PlayerHistoryView;
@@ -335,6 +337,9 @@ public final class FreezeHistoryDetailScreen {
 
             case PUNISHMENT_MODULE_HISTORY ->
                     "Back to Punishment History";
+
+            case STAFF_MENU ->
+                    "Back to Staff Menu";
         };
     }
 
@@ -451,6 +456,9 @@ public final class FreezeHistoryDetailScreen {
                                     viewer,
                                     historyPage
                             );
+
+            case STAFF_MENU ->
+                    StaffControlScreen.open(viewer);
         }
     }
 

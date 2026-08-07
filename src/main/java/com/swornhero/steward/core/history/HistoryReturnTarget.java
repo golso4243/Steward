@@ -18,5 +18,7 @@ public enum HistoryReturnTarget {
 
     PUNISHMENT_HISTORY,
 
-    PUNISHMENT_MODULE_HISTORY
+    PUNISHMENT_MODULE_HISTORY,
+
+    STAFF_MENU
 }

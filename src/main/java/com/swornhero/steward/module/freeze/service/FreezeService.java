@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.freeze.service;
 
+import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.module.freeze.config.FreezePolicyService;
 import com.swornhero.steward.module.freeze.model.FreezePosition;
 import com.swornhero.steward.module.freeze.model.FreezeRecord;
@@ -313,6 +314,74 @@ public final class FreezeService {
         return Map.copyOf(FROZEN_PLAYERS);
     }
 
+    public static FreezeRecord findByDisplayId(
+            String displayId
+    ) {
+        if (displayId == null
+                || displayId.isBlank()) {
+
+            return null;
+        }
+
+        String normalized =
+                displayId.trim()
+                        .toUpperCase();
+
+        if (normalized.startsWith("FRZ-")) {
+            normalized =
+                    normalized.substring(4);
+        }
+
+        if (normalized.length() != 8) {
+            return null;
+        }
+
+        FreezeRecord match =
+                null;
+
+        for (FreezeRecord record
+                : FROZEN_PLAYERS.values()) {
+
+            String compactId =
+                    record.freezeId()
+                            .toString()
+                            .replace("-", "")
+                            .substring(0, 8)
+                            .toUpperCase();
+
+            if (!compactId.equals(normalized)) {
+                continue;
+            }
+
+            if (match != null) {
+                Steward.LOGGER.error(
+                        "Active freeze display ID FRZ-{} is ambiguous.",
+                        normalized
+                );
+
+                return null;
+            }
+
+            match = record;
+        }
+
+        return match;
+    }
+
+    public static String formatFreezeId(
+            UUID freezeId
+    ) {
+        if (freezeId == null) {
+            return "FRZ-UNKNOWN";
+        }
+
+        return "FRZ-"
+                + freezeId.toString()
+                .replace("-", "")
+                .substring(0, 8)
+                .toUpperCase();
+    }
+
     public static FreezeRecord getRecordByName(
             String playerName
     ) {
@@ -365,6 +434,11 @@ public final class FreezeService {
                 Instant.now()
         );
 
+        String freezeDisplayId =
+                formatFreezeId(
+                        record.freezeId()
+                );
+
         FROZEN_PLAYERS.put(
                 target.getUUID(),
                 record
@@ -397,7 +471,14 @@ public final class FreezeService {
                                 + target.getName().getString()
                                 + " was frozen by "
                                 + staff.getName().getString()
-                                + "."
+                                + ". Freeze ID: "
+                ).append(
+                        ClickableRecordId.create(
+                                freezeDisplayId,
+                                "/steward view freeze "
+                                        + freezeDisplayId,
+                                "Click to view freeze details"
+                        )
                 )
         );
 

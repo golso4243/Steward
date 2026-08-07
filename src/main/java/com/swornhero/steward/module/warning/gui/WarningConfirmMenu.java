@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.warning.gui;
 
+import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
@@ -293,12 +294,23 @@ public final class WarningConfirmMenu
                     );
 
             viewer.sendSystemMessage(
-                    Component.literal(
-                            warningId
-                                    + " issued to "
-                                    + target.getName().getString()
-                                    + "."
-                    )
+                    Component.empty()
+                            .append(
+                                    ClickableRecordId.create(
+                                            warningId,
+                                            "/steward view warning "
+                                                    + warningId,
+                                            "Click to view warning details"
+                                    )
+                            )
+                            .append(
+                                    Component.literal(
+                                            " issued to "
+                                                    + target.getName()
+                                                    .getString()
+                                                    + "."
+                                    )
+                            )
             );
 
             target.sendSystemMessage(

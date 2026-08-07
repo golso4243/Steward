@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.warning.gui;
 
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.history.GlobalHistoryView;
 import com.swornhero.steward.core.history.ModerationHistoryScreen;
 import com.swornhero.steward.module.warning.model.WarningRecord;
@@ -18,6 +19,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.history.GlobalModerationHistoryScreen;
 import com.swornhero.steward.core.history.PlayerHistoryView;
+import com.swornhero.steward.core.gui.StaffControlScreen;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -299,6 +301,9 @@ public final class WarningHistoryDetailScreen {
 
             case PUNISHMENT_MODULE_HISTORY ->
                     "Back to Punishment History";
+
+            case STAFF_MENU ->
+                    "Back to Staff Menu";
         };
     }
 
@@ -568,6 +573,9 @@ public final class WarningHistoryDetailScreen {
                                     viewer,
                                     historyPage
                             );
+
+            case STAFF_MENU ->
+                    StaffControlScreen.open(viewer);
         }
     }
 

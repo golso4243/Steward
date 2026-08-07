@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.punishment.gui;
 
+import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.model.BanReason;
 import com.swornhero.steward.module.punishment.model.PunishmentDuration;
@@ -341,14 +342,24 @@ public final class TemporaryBanConfirmMenu
             viewer.closeContainer();
 
             viewer.sendSystemMessage(
-                    Component.literal(
-                            punishmentId
-                                    + " issued to "
-                                    + targetName
-                                    + ". Temporary Ban duration: "
-                                    + duration.displayName()
-                                    + "."
-                    )
+                    Component.empty()
+                            .append(
+                                    ClickableRecordId.create(
+                                            punishmentId,
+                                            "/steward view punishment "
+                                                    + punishmentId,
+                                            "Click to view punishment details"
+                                    )
+                            )
+                            .append(
+                                    Component.literal(
+                                            " issued to "
+                                                    + targetName
+                                                    + ". Temporary Ban duration: "
+                                                    + duration.displayName()
+                                                    + "."
+                                    )
+                            )
             );
 
             target.connection.disconnect(

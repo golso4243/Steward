@@ -1,6 +1,7 @@
 package com.swornhero.steward.module.freeze.gui;
 
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
+import com.swornhero.steward.core.gui.StaffControlScreen;
 import com.swornhero.steward.core.history.GlobalHistoryView;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
@@ -296,6 +297,9 @@ public final class FreezeHistoryDetailMenu
                                     viewer,
                                     historyPage
                             );
+
+            case STAFF_MENU ->
+                    StaffControlScreen.open(viewer);
         }
     }
 

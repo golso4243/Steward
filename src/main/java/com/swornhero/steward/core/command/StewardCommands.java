@@ -11,6 +11,20 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.swornhero.steward.core.history.HistoryReturnTarget;
+import com.swornhero.steward.module.warning.gui.WarningHistoryDetailScreen;
+import com.swornhero.steward.module.warning.model.WarningRecord;
+import com.swornhero.steward.module.warning.service.WarningService;
+import com.swornhero.steward.module.freeze.gui.ActiveFreezeDetailScreen;
+import com.swornhero.steward.module.freeze.gui.FreezeHistoryDetailScreen;
+import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
+import com.swornhero.steward.module.freeze.model.FreezeRecord;
+import com.swornhero.steward.module.freeze.service.FreezeHistoryService;
+import com.swornhero.steward.module.freeze.service.FreezeService;
+import com.swornhero.steward.module.punishment.gui.PunishmentHistoryDetailScreen;
+import com.swornhero.steward.module.punishment.model.PunishmentRecord;
+import com.swornhero.steward.module.punishment.service.PunishmentService;
 
 public final class StewardCommands {
 
@@ -44,6 +58,57 @@ public final class StewardCommands {
                                                         ::showStatus
                                         )
                         )
+                        .then(
+                                Commands.literal("view")
+                                        .then(
+                                                Commands.literal("warning")
+                                                        .requires(
+                                                                StewardCommands
+                                                                        ::canViewWarningRecord
+                                                        )
+                                                        .then(
+                                                                Commands.argument(
+                                                                        "id",
+                                                                        StringArgumentType.word()
+                                                                ).executes(
+                                                                        StewardCommands
+                                                                                ::viewWarningRecord
+                                                                )
+                                                        )
+                                        )
+                                        .then(
+                                                Commands.literal("freeze")
+                                                        .requires(
+                                                                StewardCommands
+                                                                        ::canViewFreezeRecord
+                                                        )
+                                                        .then(
+                                                                Commands.argument(
+                                                                        "id",
+                                                                        StringArgumentType.word()
+                                                                ).executes(
+                                                                        StewardCommands
+                                                                                ::viewFreezeRecord
+                                                                )
+                                                        )
+                                        )
+                                        .then(
+                                                Commands.literal("punishment")
+                                                        .requires(
+                                                                StewardCommands
+                                                                        ::canViewPunishmentRecord
+                                                        )
+                                                        .then(
+                                                                Commands.argument(
+                                                                        "id",
+                                                                        StringArgumentType.word()
+                                                                ).executes(
+                                                                        StewardCommands
+                                                                                ::viewPunishmentRecord
+                                                                )
+                                                        )
+                                        )
+                        )
         );
 
         dispatcher.register(
@@ -56,6 +121,155 @@ public final class StewardCommands {
                                 StewardCommands::openStaffMenu
                         )
         );
+    }
+
+    private static boolean canViewPunishmentRecord(
+            CommandSourceStack source
+    ) {
+        return StewardPermissions.has(
+                source,
+                StewardPermissions.PUNISHMENT_VIEW
+        ) || StewardPermissions.has(
+                source,
+                StewardPermissions.HISTORY_VIEW
+        );
+    }
+
+    private static int viewPunishmentRecord(
+            CommandContext<CommandSourceStack> context
+    ) throws CommandSyntaxException {
+        CommandSourceStack source =
+                context.getSource();
+
+        if (!canViewPunishmentRecord(source)) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] You do not have permission "
+                                    + "to view punishment records."
+                    )
+            );
+
+            return 0;
+        }
+
+        ServerPlayer viewer =
+                source.getPlayerOrException();
+
+        String displayId =
+                StringArgumentType.getString(
+                        context,
+                        "id"
+                );
+
+        PunishmentRecord record =
+                PunishmentService.findByDisplayId(
+                        displayId
+                );
+
+        if (record == null) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] Punishment record "
+                                    + displayId
+                                    + " was not found."
+                    )
+            );
+
+            return 0;
+        }
+
+        PunishmentHistoryDetailScreen.open(
+                viewer,
+                record.punishmentId(),
+                record.targetUuid(),
+                0,
+                0,
+                HistoryReturnTarget.STAFF_MENU
+        );
+
+        return 1;
+    }
+
+    private static boolean canViewFreezeRecord(
+            CommandSourceStack source
+    ) {
+        return StewardPermissions.has(
+                source,
+                StewardPermissions.FREEZE_VIEW
+        ) || StewardPermissions.has(
+                source,
+                StewardPermissions.HISTORY_VIEW
+        );
+    }
+
+    private static int viewFreezeRecord(
+            CommandContext<CommandSourceStack> context
+    ) throws CommandSyntaxException {
+        CommandSourceStack source =
+                context.getSource();
+
+        if (!canViewFreezeRecord(source)) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] You do not have permission "
+                                    + "to view freeze records."
+                    )
+            );
+
+            return 0;
+        }
+
+        ServerPlayer viewer =
+                source.getPlayerOrException();
+
+        String displayId =
+                StringArgumentType.getString(
+                        context,
+                        "id"
+                );
+
+        FreezeRecord activeRecord =
+                FreezeService.findByDisplayId(
+                        displayId
+                );
+
+        if (activeRecord != null) {
+            ActiveFreezeDetailScreen.open(
+                    viewer,
+                    activeRecord.targetUuid(),
+                    0
+            );
+
+            return 1;
+        }
+
+        FreezeHistoryEntry historyEntry =
+                FreezeHistoryService.findByDisplayId(
+                        displayId
+                );
+
+        if (historyEntry != null) {
+            FreezeHistoryDetailScreen.open(
+                    viewer,
+                    historyEntry.targetUuid(),
+                    0,
+                    0,
+                    historyEntry,
+                    HistoryReturnTarget.STAFF_MENU
+            );
+
+            return 1;
+        }
+
+        source.sendFailure(
+                Component.literal(
+                        "[Steward] Freeze record "
+                                + displayId
+                                + " was not found."
+                )
+        );
+
+        return 0;
     }
 
     private static boolean canUseStaffCommands(
@@ -73,6 +287,18 @@ public final class StewardCommands {
         return StewardPermissions.has(
                 source,
                 StewardPermissions.STATUS_VIEW
+        );
+    }
+
+    private static boolean canViewWarningRecord(
+            CommandSourceStack source
+    ) {
+        return StewardPermissions.has(
+                source,
+                StewardPermissions.WARNING_VIEW
+        ) || StewardPermissions.has(
+                source,
+                StewardPermissions.HISTORY_VIEW
         );
     }
 
@@ -107,5 +333,60 @@ public final class StewardCommands {
         return StewardStatusService.sendStatus(
                 context.getSource()
         );
+    }
+
+    private static int viewWarningRecord(
+            CommandContext<CommandSourceStack> context
+    ) throws CommandSyntaxException {
+        CommandSourceStack source =
+                context.getSource();
+
+        if (!canViewWarningRecord(source)) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] You do not have permission "
+                                    + "to view warning records."
+                    )
+            );
+
+            return 0;
+        }
+
+        ServerPlayer viewer =
+                source.getPlayerOrException();
+
+        String displayId =
+                StringArgumentType.getString(
+                        context,
+                        "id"
+                );
+
+        WarningRecord record =
+                WarningService.findByDisplayId(
+                        displayId
+                );
+
+        if (record == null) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] Warning record "
+                                    + displayId
+                                    + " was not found."
+                    )
+            );
+
+            return 0;
+        }
+
+        WarningHistoryDetailScreen.open(
+                viewer,
+                record.targetUuid(),
+                0,
+                0,
+                record,
+                HistoryReturnTarget.STAFF_MENU
+        );
+
+        return 1;
     }
 }
