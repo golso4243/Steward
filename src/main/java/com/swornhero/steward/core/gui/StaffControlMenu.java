@@ -215,7 +215,7 @@ public final class StaffControlMenu extends AbstractContainerMenu {
         )) {
             boolean disabled =
                     StaffModeService.disable(
-                            player.getUUID()
+                            player
                     );
 
             if (disabled) {
@@ -224,14 +224,22 @@ public final class StaffControlMenu extends AbstractContainerMenu {
                                 "Staff Mode disabled."
                         )
                 );
+
+                return;
             }
+
+            player.sendSystemMessage(
+                    Component.literal(
+                            "Staff Mode could not be disabled safely."
+                    )
+            );
 
             return;
         }
 
         boolean enabled =
                 StaffModeService.enable(
-                        player.getUUID()
+                        player
                 );
 
         if (enabled) {
@@ -240,7 +248,15 @@ public final class StaffControlMenu extends AbstractContainerMenu {
                             "Staff Mode enabled."
                     )
             );
+
+            return;
         }
+
+        player.sendSystemMessage(
+                Component.literal(
+                        "Staff Mode could not be enabled."
+                )
+        );
     }
 
     private String actionDisplayName(StaffControlAction action) {
