@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.staffmode.service;
 
+import com.swornhero.steward.Steward;
 import com.swornhero.steward.module.staffmode.model.StaffModeSnapshot;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -133,6 +134,26 @@ public final class StaffModeService {
         );
     }
 
+    private static boolean hasPersistedSnapshot(
+            UUID staffUuid
+    ) {
+        if (staffUuid == null) {
+            return false;
+        }
+
+        for (StaffModeSnapshotEntry entry
+                : StaffModeStorageService.load()) {
+
+            if (staffUuid.equals(
+                    entry.staffUuid()
+            )) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static void restorePersistedSnapshots(
             HolderLookup.Provider registries
     ) {
@@ -194,7 +215,13 @@ public final class StaffModeService {
             return false;
         }
 
-        SNAPSHOTS.remove(staffUuid);
+        ACTIVE_STAFF.remove(
+                staffUuid
+        );
+
+        SNAPSHOTS.remove(
+                staffUuid
+        );
 
         if (!persistSnapshots(
                 player.registryAccess()
@@ -206,8 +233,6 @@ public final class StaffModeService {
 
             return false;
         }
-
-        ACTIVE_STAFF.remove(staffUuid);
 
         return true;
     }
@@ -226,6 +251,10 @@ public final class StaffModeService {
             return false;
         }
 
+        if (hasSnapshot(staffUuid)) {
+            return false;
+        }
+
         if (!captureSnapshot(player)) {
             return false;
         }
@@ -238,7 +267,42 @@ public final class StaffModeService {
             return false;
         }
 
-        return ACTIVE_STAFF.add(staffUuid);
+        /*
+         * Critical safety check:
+         * never clear the inventory unless the snapshot
+         * can actually be read back from disk.
+         */
+        if (!hasPersistedSnapshot(staffUuid)) {
+            SNAPSHOTS.remove(staffUuid);
+
+            Steward.LOGGER.error(
+                    "Staff Mode enable aborted for {}: persisted snapshot verification failed. File: {}",
+                    staffUuid,
+                    StaffModeStorageService
+                            .snapshotFile()
+                            .toAbsolutePath()
+            );
+
+            return false;
+        }
+
+        if (!ACTIVE_STAFF.add(staffUuid)) {
+            return false;
+        }
+
+        StaffModeSnapshotService.prepareStaffInventory(
+                player
+        );
+
+        Steward.LOGGER.info(
+                "Staff Mode enabled for {}. Recovery snapshot: {}",
+                staffUuid,
+                StaffModeStorageService
+                        .snapshotFile()
+                        .toAbsolutePath()
+        );
+
+        return true;
     }
 
     public static boolean isActive(UUID staffUuid) {
@@ -260,6 +324,11 @@ public final class StaffModeService {
                 player.getUUID();
 
         if (!isActive(staffUuid)) {
+            Steward.LOGGER.error(
+                    "Staff Mode disable failed for {}: not active.",
+                    staffUuid
+            );
+
             return false;
         }
 
@@ -267,13 +336,40 @@ public final class StaffModeService {
                 SNAPSHOTS.get(staffUuid);
 
         if (snapshot == null) {
+            Steward.LOGGER.error(
+                    "Staff Mode disable failed for {}: in-memory snapshot missing.",
+                    staffUuid
+            );
+
             return false;
         }
+
+        Steward.LOGGER.info(
+                "Staff Mode disable for {}: snapshot slots={}, inventory slots={}, persisted={}",
+                staffUuid,
+                snapshot.inventory().size(),
+                player.getInventory().getContainerSize(),
+                hasPersistedSnapshot(staffUuid)
+        );
 
         if (!StaffModeSnapshotService.restore(
                 player,
                 snapshot
         )) {
+            Steward.LOGGER.error(
+                    "Staff Mode disable failed for {}: inventory restoration failed.",
+                    staffUuid
+            );
+
+            return false;
+        }
+
+        if (!ACTIVE_STAFF.remove(staffUuid)) {
+            Steward.LOGGER.error(
+                    "Staff Mode disable failed for {}: active-state removal failed.",
+                    staffUuid
+            );
+
             return false;
         }
 
@@ -282,18 +378,19 @@ public final class StaffModeService {
         if (!persistSnapshots(
                 player.registryAccess()
         )) {
-            /*
-             * Keep the recovery snapshot in memory if
-             * Steward could not update the disk state.
-             */
             SNAPSHOTS.put(
                     staffUuid,
                     snapshot
             );
 
+            Steward.LOGGER.error(
+                    "Staff Mode disable failed for {}: recovery-file cleanup failed.",
+                    staffUuid
+            );
+
             return false;
         }
 
-        return ACTIVE_STAFF.remove(staffUuid);
+        return true;
     }
 }

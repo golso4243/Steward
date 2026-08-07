@@ -89,4 +89,28 @@ public final class StaffModeSnapshotService {
 
         return true;
     }
+
+    public static void prepareStaffInventory(
+            ServerPlayer player
+    ) {
+        if (player == null) {
+            return;
+        }
+
+        Inventory inventory =
+                player.getInventory();
+
+        for (int slot = 0;
+             slot < inventory.getContainerSize();
+             slot++) {
+
+            inventory.setItem(
+                    slot,
+                    ItemStack.EMPTY
+            );
+        }
+
+        inventory.setSelectedSlot(0);
+        inventory.setChanged();
+    }
 }
