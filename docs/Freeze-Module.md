@@ -14,9 +14,13 @@ The module also supports:
 - Confirmed frozen-player relocation
 - Original-location preservation
 - Relocation history
-- Unique freeze case IDs
+- Unique freeze case IDs with short `FRZ-XXXXXXXX` display IDs
+- Clickable freeze IDs in authorized staff chat alerts
+- Direct record lookup with `/steward view freeze <id>`
 - Active freeze persistence across restarts
 - Completed freeze history
+- Player and global moderation-history integration
+- Source-aware detail-screen navigation
 - Console audit logging
 - Configurable freeze behavior
 
@@ -59,6 +63,32 @@ steward.status.view
 ```
 
 The status command is intended for staff, administrators, developers, and owners. It does not display active freeze counts or private case information.
+
+### `/steward view freeze <id>`
+
+Opens the freeze record associated with the supplied short freeze ID.
+
+Example:
+
+```text
+/steward view freeze FRZ-A18D52F3
+```
+
+The command resolves both active and completed freeze records:
+
+- Active records open the Active Freeze detail screen.
+- Completed records open the Freeze History detail screen.
+
+The `FRZ-` prefix is accepted as part of the display ID. The lookup uses Steward's short eight-character case identifier while the full UUID remains stored internally.
+
+Required permission: the viewer must have either:
+
+```text
+steward.freeze.view
+steward.history.view
+```
+
+This command is also used internally by clickable freeze IDs sent to authorized staff.
 
 ---
 
@@ -248,6 +278,7 @@ The Active Freezes interface allows authorized staff to review current cases.
 A freeze detail view can include:
 
 - Full case ID
+- Short `FRZ-XXXXXXXX` display ID for staff-facing references
 - Player name
 - Freeze reason
 - Frozen-by staff member
@@ -398,11 +429,19 @@ The history record preserves:
 - Reconnect count
 - Relocation history
 
-Required permission:
+Required permission for the dedicated Freeze History interface:
 
 ```text
 steward.freeze.history
 ```
+
+Freeze records are also integrated into Steward's unified moderation history. Unified player/global history access uses:
+
+```text
+steward.history.view
+```
+
+When a completed freeze is opened directly from a clickable chat ID, the detail screen uses source-aware navigation and can return the viewer to the main Staff Menu.
 
 History file:
 
@@ -440,21 +479,28 @@ The save process uses a temporary file before replacing the final JSON file, red
 
 Every freeze receives a UUID-based case ID.
 
-Example:
+Example full UUID:
 
 ```text
 a18d52f3-7cf3-4ea1-a573-4f0263d7b4c1
 ```
 
-The full ID is stored with the case.
-
-Audit messages use the first eight characters for readability:
+The full UUID is retained in active storage and completed history. For staff-facing interfaces and chat, Steward also formats the case as a short display ID using the first eight hexadecimal characters:
 
 ```text
-[Freeze:a18d52f3]
+FRZ-A18D52F3
 ```
 
-The same ID follows the case through:
+The short display ID is used by:
+
+- Staff freeze alerts
+- `/steward view freeze <id>`
+- Clickable chat links
+- Readable references to active and completed freeze records
+
+Steward can resolve the display ID against both active freeze storage and completed freeze history. Ambiguous short IDs are rejected rather than opening an uncertain record.
+
+The same underlying case ID follows the freeze through:
 
 - Initial freeze
 - Disconnects
@@ -462,8 +508,17 @@ The same ID follows the case through:
 - Relocations
 - Unfreeze
 - Completed history
+- Unified moderation history
 
-This makes it easier to connect console messages to a specific case.
+### Clickable staff alerts
+
+When a player is frozen, authorized staff alerts include the short `FRZ-XXXXXXXX` ID as an aqua, underlined clickable component. Hovering the ID identifies it as a link to freeze details. Clicking it runs the internal command:
+
+```text
+/steward view freeze FRZ-XXXXXXXX
+```
+
+If the case is still active, Steward opens the Active Freeze detail screen. After the case has been completed, the same ID resolves to the completed Freeze History detail screen. Target-facing freeze messages remain ordinary text and do not expose staff-only record navigation.
 
 ---
 
@@ -522,6 +577,7 @@ Hierarchy checks apply to important freeze actions, including freeze, unfreeze, 
 ```text
 steward.staff.open
 steward.status.view
+steward.history.view
 ```
 
 ### Freeze permissions
@@ -544,6 +600,7 @@ steward.freeze.bypass-hierarchy
 |---|---|
 | `steward.staff.open` | Opens the Steward staff interface. |
 | `steward.status.view` | Views `/steward status`. |
+| `steward.history.view` | Views unified player/global moderation history and may open moderation records through history-aware detail routes. |
 | `steward.freeze.use` | Allows freezing players. |
 | `steward.freeze.view` | Allows viewing active freeze records. |
 | `steward.freeze.unfreeze` | Allows unfreezing an online player. |
@@ -563,6 +620,7 @@ Example staff grants:
 ```text
 /lp group staff permission set steward.staff.open true
 /lp group staff permission set steward.status.view true
+/lp group staff permission set steward.history.view true
 /lp group staff permission set steward.freeze.use true
 /lp group staff permission set steward.freeze.view true
 /lp group staff permission set steward.freeze.unfreeze true
@@ -761,11 +819,34 @@ At the time of this documentation:
 ```text
 Staff Interface: Active
 Freeze: Active
-Warnings: Not Implemented
-Mute: Not Implemented
+Warnings: Active
+Moderation History: Active
+Global Moderation History: Active
+Punishments: Active
+Mute: Active (Punishment)
+Kick: Active (Punishment)
+Temporary Ban: Active (Punishment)
+Permanent Ban: Active (Punishment)
+Clickable Moderation Record IDs: Active
 Reports: Not Implemented
-Punishments: Not Implemented
 ```
+
+---
+
+## Current Steward Integration
+
+The Freeze module is now part of Steward's broader moderation suite rather than operating as an isolated module. Freeze records participate in the same navigation and history architecture used by Warning and Punishment records.
+
+Current integration includes:
+
+- Player-specific unified moderation history
+- Global moderation history
+- Dedicated Freeze History views
+- Source-aware detail-screen return targets
+- Direct chat-to-record navigation through clickable IDs
+- Shared staff permissions and hierarchy enforcement
+
+Warning and Punishment modules are also active. Punishment actions currently include Mute, Kick, Temporary Ban, and Permanent Ban.
 
 ---
 
