@@ -1,5 +1,7 @@
 package com.swornhero.steward.core.gui;
 
+import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.staffmode.service.StaffModeService;
 import com.swornhero.steward.module.freeze.gui.ActiveFreezeScreen;
 import com.swornhero.steward.module.punishment.gui.PunishmentHubScreen;
 import net.minecraft.world.Container;
@@ -13,7 +15,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.core.history.GlobalModerationHistoryHubScreen;
 
 public final class StaffControlMenu extends AbstractContainerMenu {
@@ -151,6 +152,8 @@ public final class StaffControlMenu extends AbstractContainerMenu {
         switch (action) {
             case CLOSE -> player.closeContainer();
 
+            case STAFF_MODE -> toggleStaffMode(player);
+
             case PLAYERS -> PlayerBrowserScreen.open(player);
 
             case ACTIVE_FREEZES -> {
@@ -192,6 +195,49 @@ public final class StaffControlMenu extends AbstractContainerMenu {
                     Component.literal(
                             actionDisplayName(action)
                                     + " is not available yet."
+                    )
+            );
+        }
+    }
+
+    private void toggleStaffMode(
+            ServerPlayer player
+    ) {
+        if (!StewardPermissions.require(
+                player,
+                StewardPermissions.STAFF_MODE_USE
+        )) {
+            return;
+        }
+
+        if (StaffModeService.isActive(
+                player.getUUID()
+        )) {
+            boolean disabled =
+                    StaffModeService.disable(
+                            player.getUUID()
+                    );
+
+            if (disabled) {
+                player.sendSystemMessage(
+                        Component.literal(
+                                "Staff Mode disabled."
+                        )
+                );
+            }
+
+            return;
+        }
+
+        boolean enabled =
+                StaffModeService.enable(
+                        player.getUUID()
+                );
+
+        if (enabled) {
+            player.sendSystemMessage(
+                    Component.literal(
+                            "Staff Mode enabled."
                     )
             );
         }
