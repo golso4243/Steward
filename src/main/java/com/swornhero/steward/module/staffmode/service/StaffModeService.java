@@ -294,6 +294,10 @@ public final class StaffModeService {
                 player
         );
 
+        StaffModeToolService.giveDefaultTools(
+                player
+        );
+
         Steward.LOGGER.info(
                 "Staff Mode enabled for {}. Recovery snapshot: {}",
                 staffUuid,
