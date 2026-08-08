@@ -12,6 +12,15 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.freeze.gui.FreezeReasonScreen;
+import com.swornhero.steward.module.freeze.gui.UnfreezeConfirmScreen;
+import com.swornhero.steward.module.freeze.gui.UnfreezeReturnTarget;
+import com.swornhero.steward.module.freeze.service.FreezeService;
+import com.swornhero.steward.module.staffmode.model.StaffToolAction;
+import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
+import com.swornhero.steward.module.punishment.gui.PunishmentTypeScreen;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -210,11 +219,103 @@ public final class PlayerBrowserMenu
                     )
             );
 
-            PlayerBrowserScreen.open(viewer, page);
+            PlayerBrowserScreen.open(
+                    viewer,
+                    page
+            );
+
             return;
         }
 
-        PlayerProfileScreen.open(
+        StaffToolAction pendingAction =
+                StaffToolSelectionService.consumePendingAction(
+                        viewer.getUUID()
+                );
+
+        if (pendingAction == null
+                || pendingAction == StaffToolAction.PLAYER_BROWSER) {
+
+            PlayerProfileScreen.open(
+                    viewer,
+                    targetUuid,
+                    page
+            );
+
+            return;
+        }
+
+        switch (pendingAction) {
+            case FREEZE ->
+                    handleFreezeSelection(
+                            viewer,
+                            target,
+                            targetUuid
+                    );
+
+            case PUNISHMENTS ->
+                    handlePunishmentSelection(
+                            viewer,
+                            targetUuid
+                    );
+
+            default ->
+                    PlayerProfileScreen.open(
+                            viewer,
+                            targetUuid,
+                            page
+                    );
+        }
+    }
+
+    private void handlePunishmentSelection(
+            ServerPlayer viewer,
+            UUID targetUuid
+    ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.PUNISHMENT_MANAGE
+        )) {
+            return;
+        }
+
+        PunishmentTypeScreen.open(
+                viewer,
+                targetUuid,
+                page
+        );
+    }
+
+    private void handleFreezeSelection(
+            ServerPlayer viewer,
+            ServerPlayer target,
+            UUID targetUuid
+    ) {
+        if (FreezeService.isFrozen(target)) {
+            if (!StewardPermissions.require(
+                    viewer,
+                    StewardPermissions.FREEZE_UNFREEZE
+            )) {
+                return;
+            }
+
+            UnfreezeConfirmScreen.open(
+                    viewer,
+                    targetUuid,
+                    page,
+                    UnfreezeReturnTarget.PLAYER_PROFILE
+            );
+
+            return;
+        }
+
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.FREEZE_USE
+        )) {
+            return;
+        }
+
+        FreezeReasonScreen.open(
                 viewer,
                 targetUuid,
                 page
