@@ -1,5 +1,6 @@
 package com.swornhero.steward.module.staffmode.service;
 
+import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.gui.StaffControlScreen;
 import net.fabricmc.fabric.api.event.player.ItemEvents;
 import net.minecraft.network.chat.Component;
@@ -8,6 +9,7 @@ import net.minecraft.world.InteractionResult;
 
 public final class StaffModeToolInteractionService {
 
+    private static final int PLAYER_BROWSER_SLOT = 0;
     private static final int STAFF_CONTROL_SLOT = 7;
     private static final int EXIT_STAFF_MODE_SLOT = 8;
 
@@ -32,6 +34,14 @@ public final class StaffModeToolInteractionService {
                             serverPlayer
                                     .getInventory()
                                     .getSelectedSlot();
+
+                    if (selectedSlot == PLAYER_BROWSER_SLOT) {
+                        PlayerBrowserScreen.open(
+                                serverPlayer
+                        );
+
+                        return InteractionResult.SUCCESS;
+                    }
 
                     if (selectedSlot == STAFF_CONTROL_SLOT) {
                         StaffControlScreen.open(
