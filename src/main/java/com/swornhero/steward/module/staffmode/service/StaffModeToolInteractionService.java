@@ -96,7 +96,10 @@ public final class StaffModeToolInteractionService {
                         return InteractionResult.SUCCESS;
                     }
 
-                    return null;
+                    // Prevent Staff Mode tools from falling through to vanilla behavior.
+                    // This also stops unfinished tools, such as the ender pearl,
+                    // from being consumed or thrown.
+                    return InteractionResult.FAIL;
                 }
         );
     }

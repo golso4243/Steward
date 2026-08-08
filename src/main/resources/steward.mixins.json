@@ -5,7 +5,9 @@
 	"mixins": [
 		"freeze.ServerGamePacketListenerMixin",
 		"freeze.ItemEntityMixin",
-        "freeze.ExperienceOrbMixin"
+        "freeze.ExperienceOrbMixin",
+		"staffmode.ServerGamePacketListenerMixin",
+		"staffmode.ItemEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

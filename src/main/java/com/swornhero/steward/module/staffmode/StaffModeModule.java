@@ -3,6 +3,7 @@ package com.swornhero.steward.module.staffmode;
 import com.swornhero.steward.module.staffmode.service.StaffModeToolInteractionService;
 import com.swornhero.steward.module.staffmode.service.StaffModeRecoveryService;
 import com.swornhero.steward.module.staffmode.service.StaffModeService;
+import com.swornhero.steward.module.staffmode.service.StaffModeProtectionService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
 public final class StaffModeModule {
@@ -22,5 +23,6 @@ public final class StaffModeModule {
 
         StaffModeRecoveryService.register();
         StaffModeToolInteractionService.register();
+        StaffModeProtectionService.register();
     }
 }
