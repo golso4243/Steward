@@ -242,7 +242,7 @@ public final class MuteConfirmMenu
         if (targetUuid.equals(viewer.getUUID())) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "You cannot mute yourself."
+                            "[Steward] You cannot mute yourself."
                     )
             );
 
@@ -256,7 +256,7 @@ public final class MuteConfirmMenu
 
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The selected mute is invalid."
+                            "[Steward] The selected mute is invalid."
                     )
             );
 
@@ -273,7 +273,7 @@ public final class MuteConfirmMenu
         if (target == null) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "That player is no longer online."
+                            "[Steward] That player is no longer online."
                     )
             );
 
@@ -291,7 +291,8 @@ public final class MuteConfirmMenu
         ).isEmpty()) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            target.getName().getString()
+                            "[Steward] "
+                                    + target.getName().getString()
                                     + " already has an active mute."
                     )
             );
@@ -351,7 +352,7 @@ public final class MuteConfirmMenu
 
             target.sendSystemMessage(
                     Component.literal(
-                            "You have been muted for "
+                            "[Steward] You have been muted for "
                                     + duration.displayName()
                                     + ". Reason: "
                                     + muteReason.displayName()
@@ -371,7 +372,7 @@ public final class MuteConfirmMenu
 
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The mute could not be issued."
+                            "[Steward] The mute could not be issued."
                     )
             );
         }

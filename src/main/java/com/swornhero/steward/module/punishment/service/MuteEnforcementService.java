@@ -64,7 +64,7 @@ public final class MuteEnforcementService {
     ) {
         StringBuilder message =
                 new StringBuilder(
-                        "You are currently muted."
+                        "[Steward] You are currently muted."
                 );
 
         message.append(

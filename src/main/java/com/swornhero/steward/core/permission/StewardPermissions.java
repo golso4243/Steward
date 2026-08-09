@@ -20,6 +20,12 @@ public final class StewardPermissions {
     public static final Identifier STAFF_MODE_USE =
             create("staff-mode.use");
 
+    public static final Identifier TELEPORT_USE =
+            create("teleport.use");
+
+    public static final Identifier TELEPORT_OTHERS =
+            create("teleport.others");
+
     public static final Identifier FREEZE_USE =
             create("freeze.use");
 

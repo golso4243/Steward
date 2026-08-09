@@ -20,6 +20,7 @@ import com.swornhero.steward.module.freeze.service.FreezeService;
 import com.swornhero.steward.module.staffmode.model.StaffToolAction;
 import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
 import com.swornhero.steward.module.punishment.gui.PunishmentTypeScreen;
+import com.swornhero.steward.module.staffmode.gui.TeleportActionsScreen;
 
 import java.util.Map;
 import java.util.UUID;
@@ -245,6 +246,13 @@ public final class PlayerBrowserMenu
         }
 
         switch (pendingAction) {
+            case TELEPORT ->
+                    TeleportActionsScreen.open(
+                            viewer,
+                            targetUuid,
+                            page
+                    );
+
             case FREEZE ->
                     handleFreezeSelection(
                             viewer,

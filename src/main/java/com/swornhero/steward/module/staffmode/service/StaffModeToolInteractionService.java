@@ -54,6 +54,19 @@ public final class StaffModeToolInteractionService {
                         return InteractionResult.SUCCESS;
                     }
 
+                    if (selectedSlot == TELEPORT_SLOT) {
+                        StaffToolSelectionService.setPendingAction(
+                                serverPlayer.getUUID(),
+                                StaffToolAction.TELEPORT
+                        );
+
+                        PlayerBrowserScreen.open(
+                                serverPlayer
+                        );
+
+                        return InteractionResult.SUCCESS;
+                    }
+
                     if (selectedSlot == FREEZE_SLOT) {
                         StaffToolSelectionService.setPendingAction(
                                 serverPlayer.getUUID(),

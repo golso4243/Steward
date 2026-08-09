@@ -258,7 +258,7 @@ public final class WarningConfirmMenu
         if (target == null) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "That player is no longer online."
+                            "[Steward] That player is no longer online."
                     )
             );
 
@@ -315,7 +315,7 @@ public final class WarningConfirmMenu
 
             target.sendSystemMessage(
                     Component.literal(
-                            "You received a "
+                            "[Steward] You received a "
                                     + warningLevel.displayName()
                                     + ". Reason: "
                                     + warningReason
@@ -335,7 +335,7 @@ public final class WarningConfirmMenu
 
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The warning could not be issued."
+                            "[Steward] The warning could not be issued."
                     )
             );
         }

@@ -1,10 +1,9 @@
-package com.swornhero.steward.module.punishment.gui;
+package com.swornhero.steward.module.staffmode.gui;
 
-import com.swornhero.steward.core.permission.StewardPermissions;
-import com.swornhero.steward.module.punishment.model.PunishmentRecord;
-import com.swornhero.steward.module.punishment.model.PunishmentRevocationReason;
-import com.swornhero.steward.module.punishment.service.PunishmentService;
-import net.minecraft.network.chat.Component;
+import com.swornhero.steward.module.staffmode.model.StaffToolAction;
+import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
+import com.swornhero.steward.core.permission.StaffHierarchyService;
+import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -15,36 +14,32 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import com.swornhero.steward.core.permission.StewardPermissions;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Relative;
 
+import java.util.Set;
 import java.util.UUID;
 
-public final class PunishmentRevocationConfirmMenu
+public final class TeleportActionsMenu
         extends AbstractContainerMenu {
 
-    public static final int ROWS = 6;
+    public static final int ROWS = 3;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int CONFIRM_SLOT = 22;
-    public static final int BACK_SLOT = 48;
-    public static final int CANCEL_SLOT = 50;
-
     private final Container menuContainer;
-    private final UUID punishmentId;
-    private final int activePunishmentPage;
-    private final PunishmentRevocationReason revocationReason;
+    private final UUID targetUuid;
+    private final int browserPage;
 
-    private boolean submitted;
-
-    public PunishmentRevocationConfirmMenu(
+    public TeleportActionsMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
-            UUID punishmentId,
-            int activePunishmentPage,
-            PunishmentRevocationReason revocationReason
+            UUID targetUuid,
+            int browserPage
     ) {
         super(
-                MenuType.GENERIC_9x6,
+                MenuType.GENERIC_9x3,
                 containerId
         );
 
@@ -54,12 +49,8 @@ public final class PunishmentRevocationConfirmMenu
         );
 
         this.menuContainer = menuContainer;
-        this.punishmentId = punishmentId;
-        this.activePunishmentPage =
-                activePunishmentPage;
-        this.revocationReason =
-                revocationReason;
-        this.submitted = false;
+        this.targetUuid = targetUuid;
+        this.browserPage = browserPage;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -69,7 +60,7 @@ public final class PunishmentRevocationConfirmMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public PunishmentRevocationConfirmMenu(
+    public TeleportActionsMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -78,8 +69,7 @@ public final class PunishmentRevocationConfirmMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0,
-                PunishmentRevocationReason.OTHER
+                0
         );
     }
 
@@ -129,7 +119,7 @@ public final class PunishmentRevocationConfirmMenu
     private void addPlayerInventorySlots(
             Inventory inventory
     ) {
-        int inventoryStartY = 140;
+        int inventoryStartY = 86;
 
         for (int row = 0; row < 3; row++) {
             for (int column = 0;
@@ -143,8 +133,7 @@ public final class PunishmentRevocationConfirmMenu
                         8 + column * 18;
 
                 int y =
-                        inventoryStartY
-                                + row * 18;
+                        inventoryStartY + row * 18;
 
                 addSlot(
                         new Slot(
@@ -193,160 +182,202 @@ public final class PunishmentRevocationConfirmMenu
             return;
         }
 
-        if (slotId == BACK_SLOT) {
-            PunishmentRevocationReasonScreen.open(
-                    viewer,
-                    punishmentId,
-                    activePunishmentPage
-            );
+        TeleportAction action =
+                TeleportAction.fromSlot(slotId);
 
+        if (action == null) {
             return;
         }
 
-        if (slotId == CANCEL_SLOT) {
-            viewer.closeContainer();
-            return;
-        }
+        switch (action) {
+            case TELEPORT_TO ->
+                    teleportToPlayer(viewer);
 
-        if (slotId != CONFIRM_SLOT || submitted) {
-            return;
-        }
+            case BRING_HERE ->
+                    bringPlayerHere(viewer);
 
-        confirmRevocation(viewer);
+            case BACK -> {
+                StaffToolSelectionService.setPendingAction(
+                        viewer.getUUID(),
+                        StaffToolAction.TELEPORT
+                );
+
+                PlayerBrowserScreen.open(
+                        viewer,
+                        browserPage
+                );
+            }
+
+            case CLOSE ->
+                    viewer.closeContainer();
+        }
     }
 
-    private void confirmRevocation(
+    private void teleportToPlayer(
             ServerPlayer viewer
     ) {
         if (!StewardPermissions.require(
                 viewer,
-                StewardPermissions.PUNISHMENT_REVOKE
+                StewardPermissions.TELEPORT_USE
         )) {
-            ActivePunishmentScreen.open(
+            return;
+        }
+
+        ServerPlayer target =
+                viewer.level()
+                        .getServer()
+                        .getPlayerList()
+                        .getPlayer(targetUuid);
+
+        if (target == null) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "[Steward] That player is no longer online."
+                    )
+            );
+
+            StaffToolSelectionService.setPendingAction(
+                    viewer.getUUID(),
+                    StaffToolAction.TELEPORT
+            );
+
+            PlayerBrowserScreen.open(
                     viewer,
-                    activePunishmentPage
+                    browserPage
             );
 
             return;
         }
 
-        PunishmentRecord record =
-                PunishmentService.findById(
-                        punishmentId
-                );
-
-        if (record == null || !record.isActive()) {
+        if (viewer.getUUID().equals(target.getUUID())) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "[Steward] That punishment is no longer active."
+                            "[Steward] You cannot teleport to yourself."
                     )
-            );
-
-            ActivePunishmentScreen.open(
-                    viewer,
-                    activePunishmentPage
             );
 
             return;
         }
 
-        if (revocationReason == null) {
+        viewer.closeContainer();
+
+        viewer.setDeltaMovement(
+                0.0D,
+                0.0D,
+                0.0D
+        );
+
+        viewer.fallDistance = 0.0F;
+
+        viewer.teleportTo(
+                target.level(),
+                target.getX(),
+                target.getY(),
+                target.getZ(),
+                Set.<Relative>of(),
+                target.getYRot(),
+                target.getXRot(),
+                false
+        );
+
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "[Steward] Teleported to "
+                                + target.getName().getString()
+                                + "."
+                )
+        );
+    }
+
+    private void bringPlayerHere(
+            ServerPlayer viewer
+    ) {
+        if (!StewardPermissions.require(
+                viewer,
+                StewardPermissions.TELEPORT_OTHERS
+        )) {
+            return;
+        }
+
+        ServerPlayer target =
+                viewer.level()
+                        .getServer()
+                        .getPlayerList()
+                        .getPlayer(targetUuid);
+
+        if (target == null) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "[Steward] The selected revocation reason is invalid."
+                            "[Steward] That player is no longer online."
                     )
             );
 
-            PunishmentRevocationReasonScreen.open(
+            StaffToolSelectionService.setPendingAction(
+                    viewer.getUUID(),
+                    StaffToolAction.TELEPORT
+            );
+
+            PlayerBrowserScreen.open(
                     viewer,
-                    punishmentId,
-                    activePunishmentPage
+                    browserPage
             );
 
             return;
         }
 
-        submitted = true;
-
-        try {
-            boolean revoked =
-                    PunishmentService.revokePunishment(
-                            punishmentId,
-                            viewer.getUUID(),
-                            viewer.getName().getString(),
-                            revocationReason.displayName()
-                    );
-
-            if (!revoked) {
-                submitted = false;
-
-                viewer.sendSystemMessage(
-                        Component.literal(
-                                "[Steward] That punishment could not be revoked."
-                        )
-                );
-
-                ActivePunishmentScreen.open(
-                        viewer,
-                        activePunishmentPage
-                );
-
-                return;
-            }
-
-            String punishmentDisplayId =
-                    PunishmentService.formatPunishmentId(
-                            punishmentId
-                    );
-
+        if (viewer.getUUID().equals(target.getUUID())) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            punishmentDisplayId
-                                    + " was revoked for "
-                                    + record.targetName()
-                                    + "by"
-                                    + viewer.getName().getString()
-                                    + ". Reason: "
-                                    + revocationReason.displayName()
-                                    + "."
+                            "[Steward] You cannot bring yourself to yourself."
                     )
             );
 
-            ServerPlayer target =
-                    viewer.level()
-                            .getServer()
-                            .getPlayerList()
-                            .getPlayer(
-                                    record.targetUuid()
-                            );
-
-            if (target != null) {
-                target.sendSystemMessage(
-                        Component.literal(
-                                "Your "
-                                        + record.type().displayName()
-                                        + " has been revoked. Reason: "
-                                        + revocationReason.displayName()
-                                        + ". Punishment ID: "
-                                        + punishmentDisplayId
-                                        + "."
-                        )
-                );
-            }
-
-            ActivePunishmentScreen.open(
-                    viewer,
-                    activePunishmentPage
-            );
-        } catch (RuntimeException exception) {
-            submitted = false;
-
-            viewer.sendSystemMessage(
-                    Component.literal(
-                            "The punishment could not be revoked."
-                    )
-            );
+            return;
         }
+
+        if (!StaffHierarchyService.requireCanAct(
+                viewer,
+                target
+        )) {
+            return;
+        }
+
+        target.setDeltaMovement(
+                0.0D,
+                0.0D,
+                0.0D
+        );
+
+        target.fallDistance = 0.0F;
+
+        target.teleportTo(
+                viewer.level(),
+                viewer.getX(),
+                viewer.getY(),
+                viewer.getZ(),
+                Set.<Relative>of(),
+                viewer.getYRot(),
+                viewer.getXRot(),
+                false
+        );
+
+        viewer.closeContainer();
+
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "[Steward] Brought "
+                                + target.getName().getString()
+                                + " to your location."
+                )
+        );
+
+        target.sendSystemMessage(
+                Component.literal(
+                        "[Steward] You were teleported to "
+                                + viewer.getName().getString()
+                                + "."
+                )
+        );
     }
 
     @Override
@@ -377,7 +408,6 @@ public final class PunishmentRevocationConfirmMenu
             Player player
     ) {
         super.removed(player);
-
         menuContainer.stopOpen(player);
     }
 }

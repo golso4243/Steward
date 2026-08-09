@@ -72,7 +72,7 @@ public final class FreezeService {
              * happen during a severe server/world initialization issue.
              */
             Steward.LOGGER.error(
-                    "Unable to restore frozen player {} because "
+                    "[Steward] Unable to restore frozen player {} because "
                             + "neither the saved dimension nor the "
                             + "fallback dimension is available.",
                     record.targetName()
@@ -214,7 +214,7 @@ public final class FreezeService {
         }
 
         Steward.LOGGER.warn(
-                "Frozen player {} could not be restored to "
+                "[Steward] Frozen player {} could not be restored to "
                         + "{} at [{}, {}, {}]. "
                         + "Using fallback {} at [{}, {}, {}].",
                 record.targetName(),
@@ -454,7 +454,11 @@ public final class FreezeService {
 
         target.sendSystemMessage(
                 Component.literal(
-                        "You have been frozen by a staff member."
+                        "[Steward] You have been frozen by "
+                        + staff.getName().getString()
+                        + ". Reason: "
+                        + reason
+                        + "."
                 )
         );
 
@@ -520,7 +524,7 @@ public final class FreezeService {
                             () -> {
                                 if (throwable != null) {
                                     Steward.LOGGER.error(
-                                            "Failed to resolve hierarchy "
+                                            "[Steward] Failed to resolve hierarchy "
                                                     + "for offline unfreeze.",
                                             throwable
                                     );
@@ -611,7 +615,7 @@ public final class FreezeService {
 
             onlineTarget.sendSystemMessage(
                     Component.literal(
-                            "You are no longer frozen."
+                            "[Steward] You are no longer frozen."
                     )
             );
 
@@ -722,7 +726,7 @@ public final class FreezeService {
         }
 
         String relocationNote =
-                "Player relocated by staff to a safe location "
+                "[Steward] Player relocated by staff to a safe location "
                         + "while remaining frozen.";
 
         record.relocate(
@@ -780,7 +784,7 @@ public final class FreezeService {
 
         target.sendSystemMessage(
                 Component.literal(
-                        "A staff member moved you to a safe location. "
+                        "[Steward] A staff member moved you to a safe location. "
                                 + "You are still frozen."
                 )
         );
