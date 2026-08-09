@@ -7,6 +7,7 @@ import net.luckperms.api.model.group.Group;
 import net.luckperms.api.model.user.User;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.Identifier;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -19,12 +20,14 @@ public final class StaffHierarchyService {
 
     public static boolean requireCanAct(
             ServerPlayer actor,
-            ServerPlayer target
+            ServerPlayer target,
+            Identifier bypassPermission
     ) {
         HierarchyResult result =
                 checkLoadedUsers(
                         actor,
-                        target
+                        target,
+                        bypassPermission
                 );
 
         if (result.allowed()) {
@@ -42,7 +45,8 @@ public final class StaffHierarchyService {
     public static CompletableFuture<HierarchyResult>
     checkCanActOnUuid(
             ServerPlayer actor,
-            UUID targetUuid
+            UUID targetUuid,
+            Identifier bypassPermission
     ) {
         if (actor.getUUID().equals(targetUuid)) {
             return CompletableFuture.completedFuture(
@@ -56,7 +60,7 @@ public final class StaffHierarchyService {
 
         if (StewardPermissions.has(
                 actor,
-                StewardPermissions.FREEZE_BYPASS_HIERARCHY
+                bypassPermission
         )) {
             return CompletableFuture.completedFuture(
                     HierarchyResult.allowed(
@@ -109,7 +113,8 @@ public final class StaffHierarchyService {
 
     private static HierarchyResult checkLoadedUsers(
             ServerPlayer actor,
-            ServerPlayer target
+            ServerPlayer target,
+            Identifier bypassPermission
     ) {
         if (actor.getUUID().equals(target.getUUID())) {
             return HierarchyResult.denied(
@@ -121,7 +126,7 @@ public final class StaffHierarchyService {
 
         if (StewardPermissions.has(
                 actor,
-                StewardPermissions.FREEZE_BYPASS_HIERARCHY
+                bypassPermission
         )) {
             return HierarchyResult.allowed(
                     getLoadedWeight(actor.getUUID()),

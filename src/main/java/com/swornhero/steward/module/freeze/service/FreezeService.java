@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Relative;
 import com.swornhero.steward.Steward;
+import com.swornhero.steward.core.permission.StewardPermissions;
 import net.minecraft.core.BlockPos;
 import java.util.function.Consumer;
 
@@ -406,7 +407,8 @@ public final class FreezeService {
 
         if (!StaffHierarchyService.requireCanAct(
                 staff,
-                target
+                target,
+                StewardPermissions.FREEZE_BYPASS_HIERARCHY
         )) {
             return false;
         }
@@ -495,7 +497,8 @@ public final class FreezeService {
     ) {
         if (!StaffHierarchyService.requireCanAct(
                 staff,
-                target
+                target,
+                StewardPermissions.FREEZE_BYPASS_HIERARCHY
         )) {
             return false;
         }
@@ -513,7 +516,8 @@ public final class FreezeService {
     ) {
         StaffHierarchyService.checkCanActOnUuid(
                 staff,
-                targetUuid
+                targetUuid,
+                StewardPermissions.FREEZE_BYPASS_HIERARCHY
         ).whenComplete(
                 (result, throwable) -> {
                     MinecraftServer server =
@@ -687,7 +691,8 @@ public final class FreezeService {
 
         if (!StaffHierarchyService.requireCanAct(
                 staff,
-                target
+                target,
+                StewardPermissions.FREEZE_BYPASS_HIERARCHY
         )) {
             return false;
         }
