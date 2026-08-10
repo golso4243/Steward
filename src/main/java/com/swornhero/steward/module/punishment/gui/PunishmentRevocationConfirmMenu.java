@@ -1,9 +1,12 @@
 package com.swornhero.steward.module.punishment.gui;
 
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StaffHierarchyService;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
 import com.swornhero.steward.module.punishment.model.PunishmentRevocationReason;
 import com.swornhero.steward.module.punishment.service.PunishmentService;
+import com.swornhero.steward.Steward;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -268,6 +271,71 @@ public final class PunishmentRevocationConfirmMenu
 
         submitted = true;
 
+        MinecraftServer server =
+                viewer.level().getServer();
+
+        StaffHierarchyService.checkCanActOnUuid(
+                viewer,
+                record.targetUuid(),
+                StewardPermissions.PUNISHMENT_BYPASS_HIERARCHY
+        ).whenComplete(
+                (hierarchyResult, exception) ->
+                        server.execute(
+                                () -> {
+                                    if (exception != null) {
+                                        submitted = false;
+
+                                        Steward.LOGGER.error(
+                                                "Could not resolve hierarchy while "
+                                                        + "revoking punishment {}.",
+                                                punishmentId,
+                                                exception
+                                        );
+
+                                        viewer.sendSystemMessage(
+                                                Component.literal(
+                                                        "[Steward] The staff hierarchy "
+                                                                + "could not be resolved."
+                                                )
+                                        );
+
+                                        ActivePunishmentScreen.open(
+                                                viewer,
+                                                activePunishmentPage
+                                        );
+
+                                        return;
+                                    }
+
+                                    if (!hierarchyResult.allowed()) {
+                                        submitted = false;
+
+                                        StaffHierarchyService.sendDenial(
+                                                viewer,
+                                                hierarchyResult
+                                        );
+
+                                        ActivePunishmentScreen.open(
+                                                viewer,
+                                                activePunishmentPage
+                                        );
+
+                                        return;
+                                    }
+
+                                    completeRevocation(
+                                            viewer,
+                                            record
+                                    );
+                                }
+                        )
+        );
+    }
+
+    private void completeRevocation(
+            ServerPlayer viewer,
+            PunishmentRecord record
+    ) {
         try {
             boolean revoked =
                     PunishmentService.revokePunishment(
@@ -304,7 +372,7 @@ public final class PunishmentRevocationConfirmMenu
                             punishmentDisplayId
                                     + " was revoked for "
                                     + record.targetName()
-                                    + "by"
+                                    + " by "
                                     + viewer.getName().getString()
                                     + ". Reason: "
                                     + revocationReason.displayName()
@@ -323,7 +391,7 @@ public final class PunishmentRevocationConfirmMenu
             if (target != null) {
                 target.sendSystemMessage(
                         Component.literal(
-                                "Your "
+                                "[Steward] Your "
                                         + record.type().displayName()
                                         + " has been revoked. Reason: "
                                         + revocationReason.displayName()
@@ -341,9 +409,15 @@ public final class PunishmentRevocationConfirmMenu
         } catch (RuntimeException exception) {
             submitted = false;
 
+            Steward.LOGGER.error(
+                    "[Steward] Could not revoke punishment {}.",
+                    punishmentId,
+                    exception
+            );
+
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The punishment could not be revoked."
+                            "[Steward] The punishment could not be revoked."
                     )
             );
         }
