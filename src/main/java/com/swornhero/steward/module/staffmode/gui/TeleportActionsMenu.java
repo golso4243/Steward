@@ -338,7 +338,7 @@ public final class TeleportActionsMenu
         if (!StaffHierarchyService.requireCanAct(
                 viewer,
                 target,
-                StewardPermissions.FREEZE_BYPASS_HIERARCHY
+                StewardPermissions.TELEPORT_BYPASS_HIERARCHY
         )) {
             return;
         }

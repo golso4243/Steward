@@ -26,6 +26,9 @@ public final class StewardPermissions {
     public static final Identifier TELEPORT_OTHERS =
             create("teleport.others");
 
+    public static final Identifier TELEPORT_BYPASS_HIERARCHY =
+            create("teleport.bypass-hierarchy");
+
     public static final Identifier FREEZE_USE =
             create("freeze.use");
 
