@@ -3,6 +3,7 @@ package com.swornhero.steward.module.punishment.gui;
 import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StaffHierarchyService;
 import com.swornhero.steward.module.punishment.model.KickReason;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
 import com.swornhero.steward.module.punishment.model.PunishmentType;
@@ -235,7 +236,7 @@ public final class KickConfirmMenu
         if (targetUuid.equals(viewer.getUUID())) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "You cannot kick yourself."
+                            "[Steward] You cannot kick yourself."
                     )
             );
 
@@ -252,7 +253,7 @@ public final class KickConfirmMenu
         if (target == null) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "That player is no longer online."
+                            "[Steward] That player is no longer online."
                     )
             );
 
@@ -261,6 +262,14 @@ public final class KickConfirmMenu
                     browserPage
             );
 
+            return;
+        }
+
+        if (!StaffHierarchyService.requireCanAct(
+                viewer,
+                target,
+                StewardPermissions.PUNISHMENT_BYPASS_HIERARCHY
+        )) {
             return;
         }
 
@@ -312,7 +321,7 @@ public final class KickConfirmMenu
 
             target.connection.disconnect(
                     Component.literal(
-                            "You were kicked from the server.\n\n"
+                            "[Steward] You were kicked from the server.\n\n"
                                     + "Reason: "
                                     + kickReason.displayName()
                                     + "\n"
@@ -325,7 +334,7 @@ public final class KickConfirmMenu
 
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The kick could not be completed."
+                            "[Steward] The kick could not be completed."
                     )
             );
         }

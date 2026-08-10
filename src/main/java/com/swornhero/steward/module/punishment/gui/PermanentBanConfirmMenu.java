@@ -6,6 +6,7 @@ import com.swornhero.steward.module.punishment.model.PunishmentRecord;
 import com.swornhero.steward.module.punishment.model.PunishmentType;
 import com.swornhero.steward.module.punishment.service.PunishmentService;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StaffHierarchyService;
 import com.swornhero.steward.module.punishment.model.BanReason;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -235,7 +236,7 @@ public final class PermanentBanConfirmMenu
         if (banReason == null) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The selected Permanent Ban is invalid."
+                            "[Steward] The selected Permanent Ban is invalid."
                     )
             );
 
@@ -251,7 +252,7 @@ public final class PermanentBanConfirmMenu
         if (targetUuid.equals(viewer.getUUID())) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "You cannot permanently ban yourself."
+                            "[Steward] You cannot permanently ban yourself."
                     )
             );
 
@@ -268,7 +269,7 @@ public final class PermanentBanConfirmMenu
         if (target == null) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "That player is no longer online."
+                            "[Steward] That player is no longer online."
                     )
             );
 
@@ -277,6 +278,14 @@ public final class PermanentBanConfirmMenu
                     browserPage
             );
 
+            return;
+        }
+
+        if (!StaffHierarchyService.requireCanAct(
+                viewer,
+                target,
+                StewardPermissions.PUNISHMENT_BYPASS_HIERARCHY
+        )) {
             return;
         }
 
@@ -293,7 +302,7 @@ public final class PermanentBanConfirmMenu
         if (alreadyBanned) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "That player already has an active ban."
+                            "[Steward] That player already has an active ban."
                     )
             );
 
@@ -353,7 +362,7 @@ public final class PermanentBanConfirmMenu
 
             target.connection.disconnect(
                     Component.literal(
-                            "You have been permanently banned from the server.\n\n"
+                            "[Steward] You have been permanently banned from the server.\n\n"
                                     + "Reason: "
                                     + banReason.displayName()
                                     + "\n"
@@ -366,7 +375,7 @@ public final class PermanentBanConfirmMenu
 
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The Permanent Ban could not be completed."
+                            "[Steward] The Permanent Ban could not be completed."
                     )
             );
         }

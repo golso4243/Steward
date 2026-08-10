@@ -2,6 +2,7 @@ package com.swornhero.steward.module.punishment.gui;
 
 import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StaffHierarchyService;
 import com.swornhero.steward.module.punishment.model.BanReason;
 import com.swornhero.steward.module.punishment.model.PunishmentDuration;
 import net.minecraft.network.chat.Component;
@@ -244,7 +245,7 @@ public final class TemporaryBanConfirmMenu
 
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The selected Temporary Ban is invalid."
+                            "[Steward] The selected Temporary Ban is invalid."
                     )
             );
 
@@ -260,7 +261,7 @@ public final class TemporaryBanConfirmMenu
         if (targetUuid.equals(viewer.getUUID())) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "You cannot temporarily ban yourself."
+                            "[Steward] You cannot temporarily ban yourself."
                     )
             );
 
@@ -277,7 +278,7 @@ public final class TemporaryBanConfirmMenu
         if (target == null) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "That player is no longer online."
+                            "[Steward] That player is no longer online."
                     )
             );
 
@@ -286,6 +287,14 @@ public final class TemporaryBanConfirmMenu
                     browserPage
             );
 
+            return;
+        }
+
+        if (!StaffHierarchyService.requireCanAct(
+                viewer,
+                target,
+                StewardPermissions.PUNISHMENT_BYPASS_HIERARCHY
+        )) {
             return;
         }
 
@@ -302,7 +311,7 @@ public final class TemporaryBanConfirmMenu
         if (alreadyBanned) {
             viewer.sendSystemMessage(
                     Component.literal(
-                            "That player already has an active ban."
+                            "[Steward] That player already has an active ban."
                     )
             );
 
@@ -364,7 +373,7 @@ public final class TemporaryBanConfirmMenu
 
             target.connection.disconnect(
                     Component.literal(
-                            "You have been temporarily banned from the server.\n\n"
+                            "[Steward] You have been temporarily banned from the server.\n\n"
                                     + "Reason: "
                                     + banReason.displayName()
                                     + "\n"
@@ -380,7 +389,7 @@ public final class TemporaryBanConfirmMenu
 
             viewer.sendSystemMessage(
                     Component.literal(
-                            "The Temporary Ban could not be completed."
+                            "[Steward] The Temporary Ban could not be completed."
                     )
             );
         }

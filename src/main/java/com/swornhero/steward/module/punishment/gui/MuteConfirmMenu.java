@@ -3,6 +3,7 @@ package com.swornhero.steward.module.punishment.gui;
 import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StaffHierarchyService;
 import com.swornhero.steward.module.punishment.model.MuteReason;
 import com.swornhero.steward.module.punishment.model.PunishmentDuration;
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
@@ -282,6 +283,14 @@ public final class MuteConfirmMenu
                     browserPage
             );
 
+            return;
+        }
+
+        if (!StaffHierarchyService.requireCanAct(
+                viewer,
+                target,
+                StewardPermissions.PUNISHMENT_BYPASS_HIERARCHY
+        )) {
             return;
         }
 
