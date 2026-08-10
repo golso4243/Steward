@@ -4,6 +4,7 @@ import com.swornhero.steward.core.chat.ClickableRecordId;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.permission.StaffHierarchyService;
 import com.swornhero.steward.module.warning.model.WarningCategory;
 import com.swornhero.steward.module.warning.model.WarningExpiration;
 import com.swornhero.steward.module.warning.model.WarningLevel;
@@ -267,6 +268,14 @@ public final class WarningConfirmMenu
                     browserPage
             );
 
+            return;
+        }
+
+        if (!StaffHierarchyService.requireCanAct(
+                viewer,
+                target,
+                StewardPermissions.WARNING_BYPASS_HIERARCHY
+        )) {
             return;
         }
 
