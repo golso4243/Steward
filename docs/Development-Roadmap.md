@@ -38,8 +38,8 @@ Build validation and runtime acceptance are tracked separately. An item may be
 | 1 | Hierarchy enforcement and action-specific bypass permissions | Implemented |
 | 2 | Teleport integration with staff control and player profiles | Implemented |
 | 3 | Warning lifecycle, warning notes, and evidence | Implemented |
-| 4 | Inventory inspection | Active |
-| 5 | Vanish | Planned |
+| 4 | Inventory inspection | Implemented |
+| 5 | Vanish | Active |
 | 6 | Staff chat | Planned |
 | 7 | Reports and persistent player staff notes | Planned |
 | 8 | Tests, documentation, metadata, and template cleanup | Planned |
@@ -114,9 +114,9 @@ Remaining after this increment:
 
 ## Item 4: Inventory inspection
 
-Status: `Active`.
+Status: `Implemented`.
 
-Active increment:
+Implemented in the inventory inspection increment:
 
 - Add a read-only snapshot of an online player's main inventory, hotbar, armor,
   and offhand slots.
@@ -129,7 +129,7 @@ Active increment:
 
 Remaining after this increment:
 
-- Pass the clean build and consolidated inspection runtime gate.
+- Pass the consolidated inspection runtime gate.
 - Add automated permission and snapshot-mapping tests under roadmap item 8.
 
 ## Items 5-7
@@ -184,8 +184,11 @@ Run once after item 4 implementation is build-clean:
 | 2026-08-13 | Warning lifecycle increment | Static checks passed | All 182 Java files parsed successfully; `git diff --check` passed. |
 | 2026-08-13 | Warning lifecycle clean build | Environment blocked | Gradle was recovered, but the isolated build process could not reach Fabric Loom dependencies. |
 | 2026-08-13 | Warning lifecycle remote build | Build passed | GitHub Actions passed at `ccdae91` in run `31746147322`. |
+| 2026-08-13 | Inventory inspection static gate | Passed | All 180 main-source Java files parsed and `git diff --check` passed. |
+| 2026-08-13 | Inventory inspection initial build | Failed, fixed | GitHub Actions identified an unavailable mapped `Items` constant at `4ca986e`; the placeholder now resolves through the item registry. |
+| 2026-08-13 | Inventory inspection clean build | Build passed | GitHub Actions passed at `d4b8f31` in run `31746908937`. |
 
 ## Next action
 
-Finish inventory inspection, run static checks and one authoritative GitHub
-Actions build, then use a single runtime gate for roadmap items 1-4.
+Implement vanish visibility, connection handling, persistence, staff awareness,
+and permission boundaries. Keep roadmap items 1-4 in one deferred runtime gate.
