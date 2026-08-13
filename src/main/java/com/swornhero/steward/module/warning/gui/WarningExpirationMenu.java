@@ -5,6 +5,7 @@ import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.warning.model.WarningCategory;
 import com.swornhero.steward.module.warning.model.WarningExpiration;
+import com.swornhero.steward.module.warning.model.WarningDraft;
 import com.swornhero.steward.module.warning.model.WarningLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,6 +36,8 @@ public final class WarningExpirationMenu
     private final WarningLevel warningLevel;
     private final WarningCategory warningCategory;
     private final String warningReason;
+    private final String staffNotes;
+    private final String evidenceReference;
 
     public WarningExpirationMenu(
             int containerId,
@@ -44,7 +47,9 @@ public final class WarningExpirationMenu
             int browserPage,
             WarningLevel warningLevel,
             WarningCategory warningCategory,
-            String warningReason
+            String warningReason,
+            String staffNotes,
+            String evidenceReference
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -62,6 +67,8 @@ public final class WarningExpirationMenu
         this.warningLevel = warningLevel;
         this.warningCategory = warningCategory;
         this.warningReason = warningReason;
+        this.staffNotes = staffNotes;
+        this.evidenceReference = evidenceReference;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -83,7 +90,9 @@ public final class WarningExpirationMenu
                 0,
                 WarningLevel.VERBAL,
                 WarningCategory.OTHER,
-                "Other documented reason"
+                "Other documented reason",
+                null,
+                null
         );
     }
 
@@ -265,14 +274,18 @@ public final class WarningExpirationMenu
             return;
         }
 
-        WarningConfirmScreen.open(
+        WarningMetadataScreen.open(
                 viewer,
-                targetUuid,
-                browserPage,
-                warningLevel,
-                warningCategory,
-                warningReason,
-                expiration
+                new WarningDraft(
+                        targetUuid,
+                        browserPage,
+                        warningLevel,
+                        warningCategory,
+                        warningReason,
+                        expiration,
+                        staffNotes,
+                        evidenceReference
+                )
         );
     }
 

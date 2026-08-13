@@ -30,6 +30,7 @@ public final class WarningHistoryDetailMenu
     public static final int MENU_SIZE = ROWS * 9;
 
     public static final int REVOKE_SLOT = 40;
+    public static final int ESCALATE_SLOT = 41;
     public static final int BACK_SLOT = 48;
     public static final int PROFILE_SLOT = 49;
     public static final int CLOSE_SLOT = 50;
@@ -281,10 +282,19 @@ public final class WarningHistoryDetailMenu
             return;
         }
 
-        if (!StewardPermissions.require(
+        if (!StewardPermissions.has(
                 viewer,
                 StewardPermissions.HISTORY_VIEW
+        ) && !StewardPermissions.has(
+                viewer,
+                StewardPermissions.WARNING_VIEW
         )) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "[Steward] You do not have permission "
+                                    + "to view warning records."
+                    )
+            );
             viewer.closeContainer();
             return;
         }
@@ -317,6 +327,33 @@ public final class WarningHistoryDetailMenu
                         viewer,
                         record.warningId(),
                         targetUuid,
+                        browserPage,
+                        historyPage,
+                        returnTarget
+                );
+            }
+
+            case ESCALATE_SLOT -> {
+                if (record == null || !record.isActive()) {
+                    viewer.sendSystemMessage(
+                            Component.literal(
+                                    "[Steward] That warning is no longer active."
+                            )
+                    );
+                    returnToSource(viewer);
+                    return;
+                }
+
+                if (!StewardPermissions.require(
+                        viewer,
+                        StewardPermissions.WARNING_MANAGE
+                )) {
+                    return;
+                }
+
+                WarningEscalationConfirmScreen.open(
+                        viewer,
+                        record,
                         browserPage,
                         historyPage,
                         returnTarget

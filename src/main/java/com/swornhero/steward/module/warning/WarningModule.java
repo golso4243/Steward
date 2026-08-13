@@ -1,6 +1,7 @@
 package com.swornhero.steward.module.warning;
 
 import com.swornhero.steward.module.warning.service.WarningService;
+import com.swornhero.steward.module.warning.service.WarningDraftInputService;
 
 public final class WarningModule {
 
@@ -10,5 +11,6 @@ public final class WarningModule {
 
     public static void register() {
         WarningService.register();
+        WarningDraftInputService.register();
     }
 }

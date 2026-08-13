@@ -256,6 +256,13 @@ public final class WarningHistoryDetailScreen {
                     ),
                     "Revoke Warning"
             );
+
+            setButton(
+                    container,
+                    WarningHistoryDetailMenu.ESCALATE_SLOT,
+                    Items.ANVIL,
+                    "Escalate Warning"
+            );
         }
 
         setButton(

@@ -257,6 +257,10 @@ public final class WarningService {
             return false;
         }
 
+        if (!record.isActive()) {
+            return false;
+        }
+
         if (record.acknowledged()) {
             return false;
         }

@@ -97,28 +97,35 @@ public final class StewardStatusService {
         sendModule(
                 source,
                 "Warnings",
-                "Not Implemented",
-                ChatFormatting.GRAY
-        );
-
-        sendModule(
-                source,
-                "Mute",
-                "Not Implemented",
-                ChatFormatting.GRAY
-        );
-
-        sendModule(
-                source,
-                "Reports",
-                "Not Implemented",
-                ChatFormatting.GRAY
+                "Active",
+                ChatFormatting.GREEN
         );
 
         sendModule(
                 source,
                 "Punishments",
-                "Not Implemented",
+                "Active",
+                ChatFormatting.GREEN
+        );
+
+        sendModule(
+                source,
+                "Staff Mode",
+                "Active",
+                ChatFormatting.GREEN
+        );
+
+        sendModule(
+                source,
+                "Teleport Tools",
+                "Active",
+                ChatFormatting.GREEN
+        );
+
+        sendModule(
+                source,
+                "Reports, Inspection, Vanish, Staff Chat",
+                "Planned",
                 ChatFormatting.GRAY
         );
 

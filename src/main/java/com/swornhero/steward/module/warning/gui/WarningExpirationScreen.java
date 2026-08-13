@@ -33,6 +33,28 @@ public final class WarningExpirationScreen {
             WarningCategory warningCategory,
             String warningReason
     ) {
+        open(
+                viewer,
+                targetUuid,
+                browserPage,
+                warningLevel,
+                warningCategory,
+                warningReason,
+                null,
+                null
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            UUID targetUuid,
+            int browserPage,
+            WarningLevel warningLevel,
+            WarningCategory warningCategory,
+            String warningReason,
+            String staffNotes,
+            String evidenceReference
+    ) {
         if (warningLevel == null) {
             WarningLevelScreen.open(
                     viewer,
@@ -116,7 +138,9 @@ public final class WarningExpirationScreen {
                                         browserPage,
                                         warningLevel,
                                         warningCategory,
-                                        warningReason
+                                        warningReason,
+                                        staffNotes,
+                                        evidenceReference
                                 ),
                         title
                 )

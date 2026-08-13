@@ -550,6 +550,11 @@ Audit logs are not a replacement for a dedicated external moderation database, b
 
 Steward checks staff hierarchy before allowing one staff member to act on another player.
 
+Freeze actions explicitly use the Freeze-family bypass. Other Steward bypass
+permissions, including teleport, warning, and punishment bypasses, do not
+authorize Freeze actions. See [Hierarchy and Teleportation](Hierarchy-and-Teleport.md)
+for the shared rank policy.
+
 The intended behavior is:
 
 - Staff may act on regular members.

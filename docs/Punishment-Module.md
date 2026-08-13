@@ -687,6 +687,11 @@ This reduces the chance of duplicate records or inconsistent writes when multipl
 
 Punishment actions integrate with Steward's staff hierarchy system.
 
+Punishment issue and revocation explicitly use the Punishment-family bypass.
+Freeze, warning, and teleport bypass permissions do not authorize punishment
+actions. See [Hierarchy and Teleportation](Hierarchy-and-Teleport.md) for the
+shared rank policy.
+
 The intended behavior is:
 
 - Staff may act on normal members.

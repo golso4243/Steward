@@ -16,6 +16,7 @@ import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.module.warning.gui.WarningHistoryDetailScreen;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.module.warning.service.WarningService;
+import com.swornhero.steward.module.warning.service.WarningDraftInputService;
 import com.swornhero.steward.module.freeze.gui.ActiveFreezeDetailScreen;
 import com.swornhero.steward.module.freeze.gui.FreezeHistoryDetailScreen;
 import com.swornhero.steward.module.freeze.model.FreezeHistoryEntry;
@@ -106,6 +107,48 @@ public final class StewardCommands {
                                                                         StewardCommands
                                                                                 ::viewPunishmentRecord
                                                                 )
+                                                        )
+                                        )
+                        )
+                        .then(
+                                Commands.literal("warning")
+                                        .then(
+                                                Commands.literal("acknowledge")
+                                                        .then(
+                                                                Commands.argument(
+                                                                        "id",
+                                                                        StringArgumentType.word()
+                                                                ).executes(
+                                                                        StewardCommands
+                                                                                ::acknowledgeWarning
+                                                                )
+                                                        )
+                                        )
+                                        .then(
+                                                Commands.literal("input")
+                                                        .requires(
+                                                                StewardCommands
+                                                                        ::canIssueWarning
+                                                        )
+                                                        .then(
+                                                                Commands.argument(
+                                                                        "text",
+                                                                        StringArgumentType.greedyString()
+                                                                ).executes(
+                                                                        StewardCommands
+                                                                                ::submitWarningInput
+                                                                )
+                                                        )
+                                        )
+                                        .then(
+                                                Commands.literal("cancel-input")
+                                                        .requires(
+                                                                StewardCommands
+                                                                        ::canIssueWarning
+                                                        )
+                                                        .executes(
+                                                                StewardCommands
+                                                                        ::cancelWarningInput
                                                         )
                                         )
                         )
@@ -300,6 +343,130 @@ public final class StewardCommands {
                 source,
                 StewardPermissions.HISTORY_VIEW
         );
+    }
+
+    private static boolean canIssueWarning(
+            CommandSourceStack source
+    ) {
+        return StewardPermissions.has(
+                source,
+                StewardPermissions.WARNING_ISSUE
+        );
+    }
+
+    private static int submitWarningInput(
+            CommandContext<CommandSourceStack> context
+    ) throws CommandSyntaxException {
+        ServerPlayer staff =
+                context.getSource()
+                        .getPlayerOrException();
+
+        String value =
+                StringArgumentType.getString(
+                        context,
+                        "text"
+                );
+
+        return WarningDraftInputService.submit(
+                staff,
+                value
+        ) ? 1 : 0;
+    }
+
+    private static int cancelWarningInput(
+            CommandContext<CommandSourceStack> context
+    ) throws CommandSyntaxException {
+        ServerPlayer staff =
+                context.getSource()
+                        .getPlayerOrException();
+
+        return WarningDraftInputService.cancel(staff)
+                ? 1
+                : 0;
+    }
+
+    private static int acknowledgeWarning(
+            CommandContext<CommandSourceStack> context
+    ) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        ServerPlayer player = source.getPlayerOrException();
+
+        String displayId =
+                StringArgumentType.getString(
+                        context,
+                        "id"
+                );
+
+        WarningRecord record =
+                WarningService.findByDisplayId(displayId);
+
+        if (record == null) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] Warning record "
+                                    + displayId
+                                    + " was not found."
+                    )
+            );
+
+            return 0;
+        }
+
+        if (!player.getUUID().equals(record.targetUuid())) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] You can only acknowledge your own warnings."
+                    )
+            );
+
+            return 0;
+        }
+
+        if (!record.isActive()) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] Only active warnings can be acknowledged."
+                    )
+            );
+
+            return 0;
+        }
+
+        if (record.acknowledged()) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] That warning is already acknowledged."
+                    )
+            );
+
+            return 0;
+        }
+
+        if (!WarningService.acknowledgeWarning(
+                record.warningId(),
+                player.getUUID()
+        )) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] The warning could not be acknowledged."
+                    )
+            );
+
+            return 0;
+        }
+
+        source.sendSuccess(
+                () -> Component.literal(
+                        "[Steward] Warning "
+                                + WarningService.formatWarningId(
+                                record.warningId()
+                        )
+                                + " acknowledged."
+                ),
+                false
+        );
+
+        return 1;
     }
 
     private static int openStaffMenu(

@@ -9,6 +9,8 @@ import com.swornhero.steward.module.warning.model.WarningCategory;
 import com.swornhero.steward.module.warning.model.WarningExpiration;
 import com.swornhero.steward.module.warning.model.WarningLevel;
 import com.swornhero.steward.module.warning.model.WarningRecord;
+import com.swornhero.steward.module.warning.model.WarningDraft;
+import com.swornhero.steward.module.warning.service.WarningDraftInputService;
 import com.swornhero.steward.module.warning.service.WarningService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -41,6 +43,8 @@ public final class WarningConfirmMenu
     private final WarningCategory warningCategory;
     private final String warningReason;
     private final WarningExpiration warningExpiration;
+    private final String staffNotes;
+    private final String evidenceReference;
 
     private boolean submitted;
 
@@ -53,7 +57,9 @@ public final class WarningConfirmMenu
             WarningLevel warningLevel,
             WarningCategory warningCategory,
             String warningReason,
-            WarningExpiration warningExpiration
+            WarningExpiration warningExpiration,
+            String staffNotes,
+            String evidenceReference
     ) {
         super(
                 MenuType.GENERIC_9x6,
@@ -72,6 +78,8 @@ public final class WarningConfirmMenu
         this.warningCategory = warningCategory;
         this.warningReason = warningReason;
         this.warningExpiration = warningExpiration;
+        this.staffNotes = staffNotes;
+        this.evidenceReference = evidenceReference;
         this.submitted = false;
 
         this.menuContainer.startOpen(
@@ -95,7 +103,9 @@ public final class WarningConfirmMenu
                 WarningLevel.VERBAL,
                 WarningCategory.OTHER,
                 "Other: Other documented reason",
-                WarningExpiration.DEFAULT
+                WarningExpiration.DEFAULT,
+                null,
+                null
         );
     }
 
@@ -210,19 +220,25 @@ public final class WarningConfirmMenu
         }
 
         if (slotId == BACK_SLOT) {
-            WarningExpirationScreen.open(
+            WarningMetadataScreen.open(
                     viewer,
-                    targetUuid,
-                    browserPage,
-                    warningLevel,
-                    warningCategory,
-                    warningReason
+                    new WarningDraft(
+                            targetUuid,
+                            browserPage,
+                            warningLevel,
+                            warningCategory,
+                            warningReason,
+                            warningExpiration,
+                            staffNotes,
+                            evidenceReference
+                    )
             );
 
             return;
         }
 
         if (slotId == CANCEL_SLOT) {
+            WarningDraftInputService.clear(viewer.getUUID());
             viewer.closeContainer();
             return;
         }
@@ -291,8 +307,8 @@ public final class WarningConfirmMenu
                             warningReason,
                             viewer.getUUID(),
                             viewer.getName().getString(),
-                            null,
-                            null,
+                            staffNotes,
+                            evidenceReference,
                             true,
                             warningExpiration
                     );
@@ -323,15 +339,24 @@ public final class WarningConfirmMenu
             );
 
             target.sendSystemMessage(
-                    Component.literal(
+                    Component.empty()
+                            .append(Component.literal(
                             "[Steward] You received a "
                                     + warningLevel.displayName()
                                     + ". Reason: "
                                     + warningReason
                                     + ". Warning ID: "
                                     + warningId
-                                    + "."
-                    )
+                                    + ". "
+                            ))
+                            .append(
+                                    ClickableRecordId.create(
+                                            "[Acknowledge]",
+                                            "/steward warning acknowledge "
+                                                    + warningId,
+                                            "Click to acknowledge this warning"
+                                    )
+                            )
             );
 
             PlayerProfileScreen.open(
@@ -339,6 +364,7 @@ public final class WarningConfirmMenu
                     targetUuid,
                     browserPage
             );
+            WarningDraftInputService.clear(viewer.getUUID());
         } catch (RuntimeException exception) {
             submitted = false;
 

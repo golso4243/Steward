@@ -4,6 +4,7 @@ import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.module.warning.model.WarningCategory;
 import com.swornhero.steward.module.warning.model.WarningExpiration;
 import com.swornhero.steward.module.warning.model.WarningLevel;
+import com.swornhero.steward.module.warning.model.WarningDraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -34,6 +35,32 @@ public final class WarningConfirmScreen {
             String warningReason,
             WarningExpiration warningExpiration
     ) {
+        open(
+                viewer,
+                new WarningDraft(
+                        targetUuid,
+                        browserPage,
+                        warningLevel,
+                        warningCategory,
+                        warningReason,
+                        warningExpiration,
+                        null,
+                        null
+                )
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            WarningDraft draft
+    ) {
+        UUID targetUuid = draft.targetUuid();
+        int browserPage = draft.browserPage();
+        WarningLevel warningLevel = draft.level();
+        WarningCategory warningCategory = draft.category();
+        String warningReason = draft.reason();
+        WarningExpiration warningExpiration = draft.expiration();
+
         if (warningLevel == null) {
             WarningLevelScreen.open(
                     viewer,
@@ -114,7 +141,9 @@ public final class WarningConfirmScreen {
                 warningLevel,
                 warningCategory,
                 warningReason,
-                warningExpiration
+                warningExpiration,
+                draft.staffNotes(),
+                draft.evidenceReference()
         );
 
         Component title =
@@ -135,7 +164,9 @@ public final class WarningConfirmScreen {
                                         warningLevel,
                                         warningCategory,
                                         warningReason,
-                                        warningExpiration
+                                        warningExpiration,
+                                        draft.staffNotes(),
+                                        draft.evidenceReference()
                                 ),
                         title
                 )
@@ -148,7 +179,9 @@ public final class WarningConfirmScreen {
             WarningLevel warningLevel,
             WarningCategory warningCategory,
             String warningReason,
-            WarningExpiration warningExpiration
+            WarningExpiration warningExpiration,
+            String staffNotes,
+            String evidenceReference
     ) {
         addBorder(container);
 
@@ -157,6 +190,24 @@ public final class WarningConfirmScreen {
                 13,
                 Items.PLAYER_HEAD,
                 "Target: " + targetName
+        );
+
+        setButton(
+                container,
+                29,
+                Items.WRITTEN_BOOK,
+                staffNotes == null
+                        ? "Staff Notes: None"
+                        : "Staff Notes: " + staffNotes
+        );
+
+        setButton(
+                container,
+                33,
+                Items.SPYGLASS,
+                evidenceReference == null
+                        ? "Evidence: None"
+                        : "Evidence: " + evidenceReference
         );
 
         setButton(
@@ -210,7 +261,7 @@ public final class WarningConfirmScreen {
                 container,
                 WarningConfirmMenu.BACK_SLOT,
                 Items.ARROW,
-                "Back to Expiration"
+                "Back to Notes and Evidence"
         );
 
         setButton(
