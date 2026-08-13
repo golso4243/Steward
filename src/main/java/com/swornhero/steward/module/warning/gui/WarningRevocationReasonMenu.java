@@ -1,14 +1,10 @@
 package com.swornhero.steward.module.warning.gui;
 
-import com.swornhero.steward.core.gui.PlayerProfileScreen;
-import com.swornhero.steward.core.gui.StaffControlScreen;
-import com.swornhero.steward.core.history.GlobalHistoryView;
+import com.swornhero.steward.core.history.HistoryReturnTarget;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.warning.model.WarningRecord;
-import com.swornhero.steward.core.history.HistoryReturnTarget;
-import com.swornhero.steward.core.history.ModerationHistoryScreen;
-import com.swornhero.steward.core.history.GlobalModerationHistoryScreen;
-import com.swornhero.steward.core.history.PlayerHistoryView;
+import com.swornhero.steward.module.warning.model.WarningRevocationReason;
+import com.swornhero.steward.module.warning.service.WarningService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -23,32 +19,30 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-public final class WarningHistoryDetailMenu
+public final class WarningRevocationReasonMenu
         extends AbstractContainerMenu {
 
     public static final int ROWS = 6;
     public static final int MENU_SIZE = ROWS * 9;
 
-    public static final int REVOKE_SLOT = 40;
-    public static final int BACK_SLOT = 48;
-    public static final int PROFILE_SLOT = 49;
+    public static final int BACK_SLOT = 49;
     public static final int CLOSE_SLOT = 50;
 
     private final Container menuContainer;
+    private final UUID warningId;
     private final UUID targetUuid;
     private final int browserPage;
     private final int historyPage;
-    private final WarningRecord record;
     private final HistoryReturnTarget returnTarget;
 
-    public WarningHistoryDetailMenu(
+    public WarningRevocationReasonMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
+            UUID warningId,
             UUID targetUuid,
             int browserPage,
             int historyPage,
-            WarningRecord record,
             HistoryReturnTarget returnTarget
     ) {
         super(
@@ -62,10 +56,10 @@ public final class WarningHistoryDetailMenu
         );
 
         this.menuContainer = menuContainer;
+        this.warningId = warningId;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
         this.historyPage = historyPage;
-        this.record = record;
 
         this.returnTarget =
                 returnTarget != null
@@ -80,7 +74,7 @@ public final class WarningHistoryDetailMenu
         addPlayerInventorySlots(playerInventory);
     }
 
-    public WarningHistoryDetailMenu(
+    public WarningRevocationReasonMenu(
             int containerId,
             Inventory playerInventory
     ) {
@@ -89,90 +83,11 @@ public final class WarningHistoryDetailMenu
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
+                new UUID(0L, 0L),
                 0,
                 0,
-                null,
                 HistoryReturnTarget.WARNING_HISTORY
         );
-    }
-
-    private void returnToSource(
-            ServerPlayer viewer
-    ) {
-        switch (returnTarget) {
-            case ALL_ACTIVITY ->
-                    ModerationHistoryScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage,
-                            PlayerHistoryView.ALL_ACTIVITY,
-                            historyPage
-                    );
-
-            case PUNISHMENT_HISTORY ->
-                    ModerationHistoryScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage,
-                            PlayerHistoryView.PUNISHMENT_HISTORY,
-                            historyPage
-                    );
-
-            case GLOBAL_ALL_ACTIVITY ->
-                    GlobalModerationHistoryScreen.open(
-                            viewer,
-                            GlobalHistoryView.ALL_ACTIVITY,
-                            historyPage
-                    );
-
-            case GLOBAL_WARNING_HISTORY ->
-                    GlobalModerationHistoryScreen.open(
-                            viewer,
-                            GlobalHistoryView.WARNING_HISTORY,
-                            historyPage
-                    );
-
-            case GLOBAL_FREEZE_HISTORY ->
-                    GlobalModerationHistoryScreen.open(
-                            viewer,
-                            GlobalHistoryView.FREEZE_HISTORY,
-                            historyPage
-                    );
-
-            case GLOBAL_PUNISHMENT_HISTORY ->
-                    GlobalModerationHistoryScreen.open(
-                            viewer,
-                            GlobalHistoryView.PUNISHMENT_HISTORY,
-                            historyPage
-                    );
-
-            case WARNING_HISTORY ->
-                    WarningHistoryScreen.open(
-                            viewer,
-                            targetUuid,
-                            browserPage,
-                            historyPage
-                    );
-
-            case FREEZE_HISTORY ->
-                    com.swornhero.steward.module.freeze.gui
-                            .FreezeHistoryScreen.open(
-                                    viewer,
-                                    targetUuid,
-                                    browserPage,
-                                    historyPage
-                            );
-
-            case PUNISHMENT_MODULE_HISTORY ->
-                    com.swornhero.steward.module.punishment.gui
-                            .PunishmentHistoryScreen.open(
-                                    viewer,
-                                    historyPage
-                            );
-
-            case STAFF_MENU ->
-                    StaffControlScreen.open(viewer);
-        }
     }
 
     private void addMenuSlots(
@@ -283,7 +198,7 @@ public final class WarningHistoryDetailMenu
 
         if (!StewardPermissions.require(
                 viewer,
-                StewardPermissions.HISTORY_VIEW
+                StewardPermissions.WARNING_REVOKE
         )) {
             viewer.closeContainer();
             return;
@@ -293,56 +208,60 @@ public final class WarningHistoryDetailMenu
             return;
         }
 
-        switch (slotId) {
-            case REVOKE_SLOT -> {
-                if (record == null || !record.isActive()) {
-                    viewer.sendSystemMessage(
-                            Component.literal(
-                                    "[Steward] That warning is no longer active."
-                            )
-                    );
-
-                    returnToSource(viewer);
-                    return;
-                }
-
-                if (!StewardPermissions.require(
-                        viewer,
-                        StewardPermissions.WARNING_REVOKE
-                )) {
-                    return;
-                }
-
-                WarningRevocationReasonScreen.open(
-                        viewer,
-                        record.warningId(),
-                        targetUuid,
-                        browserPage,
-                        historyPage,
-                        returnTarget
+        WarningRecord record =
+                WarningService.findById(
+                        warningId
                 );
-            }
 
+        if (record == null || !record.isActive()) {
+            viewer.sendSystemMessage(
+                    Component.literal(
+                            "[Steward] That warning is no longer active."
+                    )
+            );
+
+            viewer.closeContainer();
+            return;
+        }
+
+        WarningRevocationReason reason =
+                WarningRevocationReason.fromSlot(
+                        slotId
+                );
+
+        if (reason != null) {
+            WarningRevocationConfirmScreen.open(
+                    viewer,
+                    warningId,
+                    targetUuid,
+                    browserPage,
+                    historyPage,
+                    returnTarget,
+                    reason
+            );
+
+            return;
+        }
+
+        switch (slotId) {
             case BACK_SLOT ->
-                    returnToSource(viewer);
-
-            case PROFILE_SLOT ->
-                    PlayerProfileScreen.open(
+                    WarningHistoryDetailScreen.open(
                             viewer,
                             targetUuid,
-                            browserPage
+                            browserPage,
+                            historyPage,
+                            record,
+                            returnTarget
                     );
 
             case CLOSE_SLOT ->
                     viewer.closeContainer();
 
             default -> {
-                // Detail items are informational only.
+                // Border or informational slot.
             }
         }
     }
-
-
 
     @Override
     public ItemStack quickMoveStack(
@@ -372,7 +291,6 @@ public final class WarningHistoryDetailMenu
             Player player
     ) {
         super.removed(player);
-
         menuContainer.stopOpen(player);
     }
 }

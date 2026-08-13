@@ -244,6 +244,20 @@ public final class WarningHistoryDetailScreen {
                 record
         );
 
+        if (record.isActive()) {
+            setButton(
+                    container,
+                    WarningHistoryDetailMenu.REVOKE_SLOT,
+                    BuiltInRegistries.ITEM.getValue(
+                            Identifier.fromNamespaceAndPath(
+                                    "minecraft",
+                                    "red_concrete"
+                            )
+                    ),
+                    "Revoke Warning"
+            );
+        }
+
         setButton(
                 container,
                 WarningHistoryDetailMenu.BACK_SLOT,
