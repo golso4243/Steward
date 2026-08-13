@@ -6,7 +6,9 @@ import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.staffmode.model.StaffToolAction;
 import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
@@ -262,7 +264,12 @@ public final class InventoryInspectionScreen {
         setButton(
                 container,
                 destinationSlot,
-                Items.LIGHT_GRAY_STAINED_GLASS_PANE,
+                BuiltInRegistries.ITEM.getValue(
+                        Identifier.fromNamespaceAndPath(
+                                "minecraft",
+                                "light_gray_stained_glass_pane"
+                        )
+                ),
                 emptyName
         );
     }
