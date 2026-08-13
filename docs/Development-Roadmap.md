@@ -37,8 +37,8 @@ Build validation and runtime acceptance are tracked separately. An item may be
 |---|---|---|
 | 1 | Hierarchy enforcement and action-specific bypass permissions | Implemented |
 | 2 | Teleport integration with staff control and player profiles | Implemented |
-| 3 | Warning lifecycle, warning notes, and evidence | Active |
-| 4 | Inventory inspection | Planned |
+| 3 | Warning lifecycle, warning notes, and evidence | Implemented |
+| 4 | Inventory inspection | Active |
 | 5 | Vanish | Planned |
 | 6 | Staff chat | Planned |
 | 7 | Reports and persistent player staff notes | Planned |
@@ -88,7 +88,7 @@ Implemented:
 
 ## Item 3: Warning lifecycle, notes, and evidence
 
-Status: `Active`.
+Status: `Implemented`.
 
 Already implemented before this roadmap refresh:
 
@@ -97,7 +97,7 @@ Already implemented before this roadmap refresh:
 - Warning hierarchy enforcement and action-specific bypass.
 - Warning revocation workflow with offline hierarchy lookup.
 
-Active increment:
+Implemented in the warning lifecycle increment:
 
 - Add optional staff notes and evidence references before final confirmation.
 - Preserve the draft while staff enters free-form text through a restricted
@@ -112,13 +112,31 @@ Remaining after this increment:
 - Add warning lifecycle automated tests under roadmap item 8.
 - Pass the consolidated warning runtime gate.
 
-## Items 4-7
+## Item 4: Inventory inspection
+
+Status: `Active`.
+
+Active increment:
+
+- Add a read-only snapshot of an online player's main inventory, hotbar, armor,
+  and offhand slots.
+- Connect inspection to the control panel, Staff Mode tool, player browser, and
+  player profile.
+- Enforce `steward.inspection.view`, hierarchy checks, self-target rejection,
+  and the action-specific `steward.inspection.bypass-hierarchy` permission.
+- Preserve the originating navigation flow and allow explicit snapshot refresh.
+- Document the module and its permission boundary.
+
+Remaining after this increment:
+
+- Pass the clean build and consolidated inspection runtime gate.
+- Add automated permission and snapshot-mapping tests under roadmap item 8.
+
+## Items 5-7
 
 These items currently have control-panel or player-profile placeholders but no
 complete domain service:
 
-4. Inventory inspection: read-only inspection first; controlled mutation only
-   if explicitly designed and separately permissioned.
 5. Vanish: visibility, join/leave behavior, persistence, and staff awareness.
 6. Staff chat: permissioned channel, toggle/send behavior, and formatting.
 7. Reports and persistent player staff notes: independent persistent records,
@@ -138,7 +156,7 @@ Planned work:
 
 ## Consolidated runtime gate A
 
-Run once after item 3 implementation is build-clean:
+Run once after item 4 implementation is build-clean:
 
 - Freeze, warning, punishment issuance, and revocation reject self-targets.
 - Equal/higher staff targets are denied without the family bypass.
@@ -149,6 +167,10 @@ Run once after item 3 implementation is build-clean:
 - Warning notes and evidence survive persistence and appear in details.
 - Only the target can acknowledge an active warning.
 - Warning escalation confirms, enforces hierarchy, and persists.
+- Inspection opens from every entry point, maps main inventory, hotbar, armor,
+  and offhand correctly, and refreshes without permitting item movement.
+- Inspection rejects self-targets and equal or higher ranks unless the
+  inspection-specific hierarchy bypass is granted.
 
 ## Validation log
 
@@ -161,8 +183,9 @@ Run once after item 3 implementation is build-clean:
 | 2026-08-13 | Local clean build | Environment blocked | Gradle 9.6.1 was not cached and its distribution host was unreachable. |
 | 2026-08-13 | Warning lifecycle increment | Static checks passed | All 182 Java files parsed successfully; `git diff --check` passed. |
 | 2026-08-13 | Warning lifecycle clean build | Environment blocked | Gradle was recovered, but the isolated build process could not reach Fabric Loom dependencies. |
+| 2026-08-13 | Warning lifecycle remote build | Build passed | GitHub Actions passed at `ccdae91` in run `31746147322`. |
 
 ## Next action
 
-Finish the active warning increment, run available checks, commit it, and use a
-single runtime gate for items 1-3 after the build result is confirmed.
+Finish inventory inspection, run static checks and one authoritative GitHub
+Actions build, then use a single runtime gate for roadmap items 1-4.

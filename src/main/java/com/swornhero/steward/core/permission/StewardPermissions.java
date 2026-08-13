@@ -29,6 +29,12 @@ public final class StewardPermissions {
     public static final Identifier TELEPORT_BYPASS_HIERARCHY =
             create("teleport.bypass-hierarchy");
 
+    public static final Identifier INSPECTION_VIEW =
+            create("inspection.view");
+
+    public static final Identifier INSPECTION_BYPASS_HIERARCHY =
+            create("inspection.bypass-hierarchy");
+
     public static final Identifier FREEZE_USE =
             create("freeze.use");
 

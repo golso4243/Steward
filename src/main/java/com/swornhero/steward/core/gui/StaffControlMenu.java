@@ -173,6 +173,22 @@ public final class StaffControlMenu extends AbstractContainerMenu {
                 PlayerBrowserScreen.open(player);
             }
 
+            case INSPECTION -> {
+                if (!StewardPermissions.require(
+                        player,
+                        StewardPermissions.INSPECTION_VIEW
+                )) {
+                    return;
+                }
+
+                StaffToolSelectionService.setPendingAction(
+                        player.getUUID(),
+                        StaffToolAction.INSPECTION
+                );
+
+                PlayerBrowserScreen.open(player);
+            }
+
             case ACTIVE_FREEZES -> {
                 if (!StewardPermissions.require(
                         player,

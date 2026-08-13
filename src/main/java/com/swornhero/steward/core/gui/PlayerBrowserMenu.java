@@ -21,6 +21,8 @@ import com.swornhero.steward.module.staffmode.model.StaffToolAction;
 import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
 import com.swornhero.steward.module.punishment.gui.PunishmentTypeScreen;
 import com.swornhero.steward.module.staffmode.gui.TeleportActionsScreen;
+import com.swornhero.steward.module.inspection.gui.InventoryInspectionScreen;
+import com.swornhero.steward.module.inspection.gui.InspectionReturnTarget;
 
 import java.util.Map;
 import java.util.UUID;
@@ -274,6 +276,14 @@ public final class PlayerBrowserMenu
                     handlePunishmentSelection(
                             viewer,
                             targetUuid
+                    );
+
+            case INSPECTION ->
+                    InventoryInspectionScreen.open(
+                            viewer,
+                            targetUuid,
+                            page,
+                            InspectionReturnTarget.PLAYER_BROWSER
                     );
 
             default ->

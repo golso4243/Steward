@@ -124,7 +124,14 @@ public final class StewardStatusService {
 
         sendModule(
                 source,
-                "Reports, Inspection, Vanish, Staff Chat",
+                "Inspection",
+                "Active",
+                ChatFormatting.GREEN
+        );
+
+        sendModule(
+                source,
+                "Reports, Vanish, Staff Chat",
                 "Planned",
                 ChatFormatting.GRAY
         );

@@ -21,6 +21,8 @@ import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.gui.PunishmentTypeScreen;
 import com.swornhero.steward.module.staffmode.gui.TeleportActionsScreen;
 import com.swornhero.steward.module.staffmode.gui.TeleportReturnTarget;
+import com.swornhero.steward.module.inspection.gui.InventoryInspectionScreen;
+import com.swornhero.steward.module.inspection.gui.InspectionReturnTarget;
 
 import java.util.UUID;
 
@@ -262,11 +264,11 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                 );
             }
 
-            case INSPECT -> viewer.sendSystemMessage(
-                    Component.literal(
-                            "Inventory inspection selected for "
-                                    + target.getName().getString()
-                    )
+            case INSPECT -> InventoryInspectionScreen.open(
+                    viewer,
+                    targetUuid,
+                    browserPage,
+                    InspectionReturnTarget.PLAYER_PROFILE
             );
 
             case REPORTS -> viewer.sendSystemMessage(

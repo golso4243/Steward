@@ -14,6 +14,7 @@ Every action family selects its own bypass permission:
 | Warning issue, revoke, and escalate | `steward.warning.bypass-hierarchy` |
 | Punishment issue and revoke | `steward.punishment.bypass-hierarchy` |
 | Bring Player Here | `steward.teleport.bypass-hierarchy` |
+| Inventory inspection | `steward.inspection.bypass-hierarchy` |
 
 A bypass skips only rank comparison. It never permits a staff member to target
 themselves. Actions fail closed when Steward cannot resolve the required
@@ -26,6 +27,7 @@ Recommended owner-only grants:
 /lp group owner permission set steward.warning.bypass-hierarchy true
 /lp group owner permission set steward.punishment.bypass-hierarchy true
 /lp group owner permission set steward.teleport.bypass-hierarchy true
+/lp group owner permission set steward.inspection.bypass-hierarchy true
 ```
 
 Do not grant one family bypass as a substitute for another. For example, a

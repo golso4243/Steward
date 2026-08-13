@@ -93,6 +93,19 @@ public final class StaffModeToolInteractionService {
                         return InteractionResult.SUCCESS;
                     }
 
+                    if (selectedSlot == INSPECTION_SLOT) {
+                        StaffToolSelectionService.setPendingAction(
+                                serverPlayer.getUUID(),
+                                StaffToolAction.INSPECTION
+                        );
+
+                        PlayerBrowserScreen.open(
+                                serverPlayer
+                        );
+
+                        return InteractionResult.SUCCESS;
+                    }
+
                     if (selectedSlot == STAFF_CONTROL_SLOT) {
                         StaffControlScreen.open(
                                 serverPlayer
