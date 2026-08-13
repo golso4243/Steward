@@ -19,6 +19,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import com.swornhero.steward.module.punishment.gui.PunishmentTypeScreen;
+import com.swornhero.steward.module.staffmode.gui.TeleportActionsScreen;
+import com.swornhero.steward.module.staffmode.gui.TeleportReturnTarget;
 
 import java.util.UUID;
 
@@ -204,21 +206,13 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                     )
             );
 
-            case TELEPORT_TO -> viewer.sendSystemMessage(
-                    Component.literal(
-                            "Teleport to "
-                                    + target.getName().getString()
-                                    + " will be added later."
-                    )
-            );
-
-            case BRING_HERE -> viewer.sendSystemMessage(
-                    Component.literal(
-                            "Bring "
-                                    + target.getName().getString()
-                                    + " here will be added later."
-                    )
-            );
+            case TELEPORT_TO, BRING_HERE ->
+                    TeleportActionsScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            TeleportReturnTarget.PLAYER_PROFILE
+                    );
 
             case FREEZE -> {
                 if (FreezeService.isFrozen(target)) {

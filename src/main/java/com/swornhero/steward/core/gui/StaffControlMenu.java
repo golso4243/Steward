@@ -16,6 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import com.swornhero.steward.core.history.GlobalModerationHistoryHubScreen;
+import com.swornhero.steward.module.staffmode.model.StaffToolAction;
+import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
 
 public final class StaffControlMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
@@ -154,7 +156,22 @@ public final class StaffControlMenu extends AbstractContainerMenu {
 
             case STAFF_MODE -> toggleStaffMode(player);
 
-            case PLAYERS -> PlayerBrowserScreen.open(player);
+            case PLAYERS -> {
+                StaffToolSelectionService.clear(
+                        player.getUUID()
+                );
+
+                PlayerBrowserScreen.open(player);
+            }
+
+            case TELEPORT -> {
+                StaffToolSelectionService.setPendingAction(
+                        player.getUUID(),
+                        StaffToolAction.TELEPORT
+                );
+
+                PlayerBrowserScreen.open(player);
+            }
 
             case ACTIVE_FREEZES -> {
                 if (!StewardPermissions.require(

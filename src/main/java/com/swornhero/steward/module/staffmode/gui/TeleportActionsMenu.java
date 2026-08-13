@@ -4,6 +4,7 @@ import com.swornhero.steward.module.staffmode.model.StaffToolAction;
 import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
 import com.swornhero.steward.core.permission.StaffHierarchyService;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
+import com.swornhero.steward.core.gui.PlayerProfileScreen;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Relative;
+import com.swornhero.steward.module.freeze.service.FreezeService;
 
 import java.util.Set;
 import java.util.UUID;
@@ -30,13 +32,14 @@ public final class TeleportActionsMenu
     private final Container menuContainer;
     private final UUID targetUuid;
     private final int browserPage;
+    private final TeleportReturnTarget returnTarget;
 
     public TeleportActionsMenu(
             int containerId,
             Inventory playerInventory,
             Container menuContainer,
             UUID targetUuid,
-            int browserPage
+            int browserPage, TeleportReturnTarget returnTarget
     ) {
         super(
                 MenuType.GENERIC_9x3,
@@ -51,6 +54,7 @@ public final class TeleportActionsMenu
         this.menuContainer = menuContainer;
         this.targetUuid = targetUuid;
         this.browserPage = browserPage;
+        this.returnTarget = returnTarget;
 
         this.menuContainer.startOpen(
                 playerInventory.player
@@ -62,14 +66,15 @@ public final class TeleportActionsMenu
 
     public TeleportActionsMenu(
             int containerId,
-            Inventory playerInventory
+            Inventory playerInventory, TeleportReturnTarget returnTarget
     ) {
         this(
                 containerId,
                 playerInventory,
                 new SimpleContainer(MENU_SIZE),
                 new UUID(0L, 0L),
-                0
+                0,
+                TeleportReturnTarget.PLAYER_BROWSER
         );
     }
 
@@ -197,6 +202,22 @@ public final class TeleportActionsMenu
                     bringPlayerHere(viewer);
 
             case BACK -> {
+                if (returnTarget
+                        == TeleportReturnTarget.PLAYER_PROFILE) {
+
+                    StaffToolSelectionService.clear(
+                            viewer.getUUID()
+                    );
+
+                    PlayerProfileScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage
+                    );
+
+                    return;
+                }
+
                 StaffToolSelectionService.setPendingAction(
                         viewer.getUUID(),
                         StaffToolAction.TELEPORT
@@ -208,9 +229,42 @@ public final class TeleportActionsMenu
                 );
             }
 
-            case CLOSE ->
-                    viewer.closeContainer();
+            case CLOSE -> {
+                StaffToolSelectionService.clear(
+                        viewer.getUUID()
+                );
+
+                viewer.closeContainer();
+            }
         }
+    }
+
+    private void handleOfflineTarget(
+            ServerPlayer viewer
+    ) {
+        viewer.sendSystemMessage(
+                Component.literal(
+                        "[Steward] That player is no longer online."
+                )
+        );
+
+        if (returnTarget
+                == TeleportReturnTarget.PLAYER_BROWSER) {
+
+            StaffToolSelectionService.setPendingAction(
+                    viewer.getUUID(),
+                    StaffToolAction.TELEPORT
+            );
+        } else {
+            StaffToolSelectionService.clear(
+                    viewer.getUUID()
+            );
+        }
+
+        PlayerBrowserScreen.open(
+                viewer,
+                browserPage
+        );
     }
 
     private void teleportToPlayer(
@@ -230,22 +284,7 @@ public final class TeleportActionsMenu
                         .getPlayer(targetUuid);
 
         if (target == null) {
-            viewer.sendSystemMessage(
-                    Component.literal(
-                            "[Steward] That player is no longer online."
-                    )
-            );
-
-            StaffToolSelectionService.setPendingAction(
-                    viewer.getUUID(),
-                    StaffToolAction.TELEPORT
-            );
-
-            PlayerBrowserScreen.open(
-                    viewer,
-                    browserPage
-            );
-
+            handleOfflineTarget(viewer);
             return;
         }
 
@@ -280,6 +319,10 @@ public final class TeleportActionsMenu
                 false
         );
 
+        StaffToolSelectionService.clear(
+                viewer.getUUID()
+        );
+
         viewer.sendSystemMessage(
                 Component.literal(
                         "[Steward] Teleported to "
@@ -306,22 +349,7 @@ public final class TeleportActionsMenu
                         .getPlayer(targetUuid);
 
         if (target == null) {
-            viewer.sendSystemMessage(
-                    Component.literal(
-                            "[Steward] That player is no longer online."
-                    )
-            );
-
-            StaffToolSelectionService.setPendingAction(
-                    viewer.getUUID(),
-                    StaffToolAction.TELEPORT
-            );
-
-            PlayerBrowserScreen.open(
-                    viewer,
-                    browserPage
-            );
-
+            handleOfflineTarget(viewer);
             return;
         }
 
@@ -332,6 +360,26 @@ public final class TeleportActionsMenu
                     )
             );
 
+            return;
+        }
+
+        if (FreezeService.isFrozen(target)) {
+            boolean relocated =
+                    FreezeService.relocateToStaff(
+                            viewer,
+                            targetUuid,
+                            StewardPermissions.TELEPORT_BYPASS_HIERARCHY
+                    );
+
+            if (!relocated) {
+                return;
+            }
+
+            StaffToolSelectionService.clear(
+                    viewer.getUUID()
+            );
+
+            viewer.closeContainer();
             return;
         }
 
@@ -360,6 +408,10 @@ public final class TeleportActionsMenu
                 viewer.getYRot(),
                 viewer.getXRot(),
                 false
+        );
+
+        StaffToolSelectionService.clear(
+                viewer.getUUID()
         );
 
         viewer.closeContainer();

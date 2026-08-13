@@ -186,11 +186,21 @@ public final class PlayerBrowserMenu
                 }
             }
 
-            case BACK_SLOT ->
-                    StaffControlScreen.open(serverPlayer);
+            case BACK_SLOT -> {
+                StaffToolSelectionService.clear(
+                        serverPlayer.getUUID()
+                );
 
-            case CLOSE_SLOT ->
-                    serverPlayer.closeContainer();
+                StaffControlScreen.open(serverPlayer);
+            }
+
+            case CLOSE_SLOT -> {
+                StaffToolSelectionService.clear(
+                        serverPlayer.getUUID()
+                );
+
+                serverPlayer.closeContainer();
+            }
 
             default -> {
                 // Border, page indicator, or empty slot.

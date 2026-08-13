@@ -27,6 +27,20 @@ public final class TeleportActionsScreen {
             UUID targetUuid,
             int browserPage
     ) {
+        open(
+                viewer,
+                targetUuid,
+                browserPage,
+                TeleportReturnTarget.PLAYER_BROWSER
+        );
+    }
+
+    public static void open(
+            ServerPlayer viewer,
+            UUID targetUuid,
+            int browserPage,
+            TeleportReturnTarget returnTarget
+    ) {
         ServerPlayer target =
                 viewer.level()
                         .getServer()
@@ -68,7 +82,8 @@ public final class TeleportActionsScreen {
                                         inventory,
                                         container,
                                         targetUuid,
-                                        browserPage
+                                        browserPage,
+                                        returnTarget
                                 ),
                         title
                 )

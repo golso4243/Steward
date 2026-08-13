@@ -16,6 +16,7 @@ import com.swornhero.steward.Steward;
 import com.swornhero.steward.core.permission.StewardPermissions;
 import net.minecraft.core.BlockPos;
 import java.util.function.Consumer;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashSet;
 
@@ -457,10 +458,10 @@ public final class FreezeService {
         target.sendSystemMessage(
                 Component.literal(
                         "[Steward] You have been frozen by "
-                        + staff.getName().getString()
-                        + ". Reason: "
-                        + reason
-                        + "."
+                                + staff.getName().getString()
+                                + ". Reason: "
+                                + reason
+                                + "."
                 )
         );
 
@@ -658,6 +659,18 @@ public final class FreezeService {
             ServerPlayer staff,
             UUID targetUuid
     ) {
+        return relocateToStaff(
+                staff,
+                targetUuid,
+                StewardPermissions.FREEZE_BYPASS_HIERARCHY
+        );
+    }
+
+    public static boolean relocateToStaff(
+            ServerPlayer staff,
+            UUID targetUuid,
+            Identifier hierarchyBypassPermission
+    ) {
         FreezeRecord record =
                 FROZEN_PLAYERS.get(targetUuid);
 
@@ -692,7 +705,7 @@ public final class FreezeService {
         if (!StaffHierarchyService.requireCanAct(
                 staff,
                 target,
-                StewardPermissions.FREEZE_BYPASS_HIERARCHY
+                hierarchyBypassPermission
         )) {
             return false;
         }
