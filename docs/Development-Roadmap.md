@@ -46,16 +46,17 @@ Build validation and runtime acceptance are tracked separately. An item may be
 
 ## Current baseline
 
-- Branch: `v26.2`
+- Required integration branch: `agent/warning-lifecycle-roadmap`
 - Previous audit baseline: `7137e337c4aa24e53935a9e9b02e0058b959fc0a`
 - Current implementation baseline before this update:
-  `503b01ea90a7953ac9b06b74dabe74b728fac116`
+  `89e8476d9157ab67d97b008e2c23339e32198f5c`
 - Latest baseline GitHub Actions result: successful
 - Automated test suite: not yet present
 
 ## Item 1: Hierarchy enforcement
 
-Status: `Implemented`; consolidated runtime gate pending.
+Status: `Active`; implementation is committed, but an authoritative clean build
+is still required before this item can advance to `Implemented`.
 
 Implemented:
 
@@ -132,12 +133,41 @@ Remaining after this increment:
 - Pass the consolidated inspection runtime gate.
 - Add automated permission and snapshot-mapping tests under roadmap item 8.
 
-## Items 5-7
+## Item 5: Vanish
+
+Status: `Implemented`; consolidated runtime gate pending.
+
+Implemented in the Vanish increment:
+
+- Add a dedicated module with connection, domain, and atomic JSON persistence
+  services.
+- Add separate use, identify/see, and staff-awareness permissions.
+- Toggle Vanish from the Staff Control panel and Staff Mode Vanish tool.
+- Reapply persisted invisible state on reconnect and reconcile tab-list entries
+  for both the joining viewer and already connected viewers.
+- Hide unauthorized tab entries using mapped Minecraft 26.2 player-info
+  packets while retaining identification for authorized staff.
+- Report Vanish as active in `/steward status` and document the operational
+  concealment boundary.
+
+Implementation decisions and discovered limitations:
+
+- Entity invisibility and mapped player-info packets were selected instead of
+  brittle entity tracking packets or a connection/tracker mixin.
+- Authorized staff can identify vanished players in tab and through separately
+  permissioned awareness notices, but the entity model remains invisible.
+- Vanilla entity tracking, equipment, effects, sounds, collision, and indirect
+  interactions are not concealed by this safe API surface.
+- The current Fabric connection events do not safely suppress targeted vanilla
+  join/leave messages. Strict connection-message secrecy therefore remains an
+  explicitly documented integration limitation, not a claimed behavior.
+- Minecraft runtime validation remains required; the item is not Accepted.
+
+## Items 6-7
 
 These items currently have control-panel or player-profile placeholders but no
 complete domain service:
 
-5. Vanish: visibility, join/leave behavior, persistence, and staff awareness.
 6. Staff chat: permissioned channel, toggle/send behavior, and formatting.
 7. Reports and persistent player staff notes: independent persistent records,
    history integration, permissions, and profile workflows.
@@ -171,6 +201,19 @@ Run once after item 4 implementation is build-clean:
   and offhand correctly, and refreshes without permitting item movement.
 - Inspection rejects self-targets and equal or higher ranks unless the
   inspection-specific hierarchy bypass is granted.
+- Vanish use is denied without `steward.vanish.use`; see and notification
+  permissions do not implicitly grant use.
+- Vanish toggles from both the control panel and Staff Mode tool and gives clear
+  actor feedback.
+- Unauthorized viewers lose the vanished tab entry; authorized viewers retain
+  it and notification-only viewers receive only the configured awareness.
+- A vanished model is invisible to ordinary viewers, and disabling restores
+  the model and tab entry without requiring reconnect.
+- Vanish survives disconnect/reconnect and a full server restart; joining
+  viewers receive the correct tab policy for all already vanished staff.
+- Persistence write failure leaves the prior state and visibility unchanged.
+- Record actual 26.2 behavior for armor, held items, particles, sounds,
+  collision, commands, and vanilla join/leave messages.
 
 ## Validation log
 
@@ -187,8 +230,9 @@ Run once after item 4 implementation is build-clean:
 | 2026-08-13 | Inventory inspection static gate | Passed | All 180 main-source Java files parsed and `git diff --check` passed. |
 | 2026-08-13 | Inventory inspection initial build | Failed, fixed | GitHub Actions identified an unavailable mapped `Items` constant at `4ca986e`; the placeholder now resolves through the item registry. |
 | 2026-08-13 | Inventory inspection clean build | Build passed | GitHub Actions passed at `d4b8f31` in run `31746908937`. |
+| 2026-08-13 | Vanish static gate | Passed | `git diff --check` passed; stable mapped APIs were selected without new mixins. |
+| 2026-08-13 | Vanish local compilation | Environment blocked | Gradle 9.6.1 distribution download was rejected by the environment proxy before compilation. |
 
 ## Next action
 
-Implement vanish visibility, connection handling, persistence, staff awareness,
-and permission boundaries. Keep roadmap items 1-4 in one deferred runtime gate.
+Implement Staff Chat. Keep roadmap items 1-5 in one deferred runtime gate.

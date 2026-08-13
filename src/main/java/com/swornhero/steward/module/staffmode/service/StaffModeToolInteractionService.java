@@ -3,6 +3,7 @@ package com.swornhero.steward.module.staffmode.service;
 import com.swornhero.steward.core.gui.PlayerBrowserScreen;
 import com.swornhero.steward.core.gui.StaffControlScreen;
 import com.swornhero.steward.module.staffmode.model.StaffToolAction;
+import com.swornhero.steward.module.vanish.service.VanishService;
 import net.fabricmc.fabric.api.event.player.ItemEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -103,6 +104,11 @@ public final class StaffModeToolInteractionService {
                                 serverPlayer
                         );
 
+                        return InteractionResult.SUCCESS;
+                    }
+
+                    if (selectedSlot == VANISH_SLOT) {
+                        VanishService.toggle(serverPlayer);
                         return InteractionResult.SUCCESS;
                     }
 

@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerPlayer;
 import com.swornhero.steward.core.history.GlobalModerationHistoryHubScreen;
 import com.swornhero.steward.module.staffmode.model.StaffToolAction;
 import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
+import com.swornhero.steward.module.vanish.service.VanishService;
 
 public final class StaffControlMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
@@ -188,6 +189,8 @@ public final class StaffControlMenu extends AbstractContainerMenu {
 
                 PlayerBrowserScreen.open(player);
             }
+
+            case VANISH -> VanishService.toggle(player);
 
             case ACTIVE_FREEZES -> {
                 if (!StewardPermissions.require(
