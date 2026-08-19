@@ -35,6 +35,15 @@ public final class StewardPermissions {
     public static final Identifier INSPECTION_BYPASS_HIERARCHY =
             create("inspection.bypass-hierarchy");
 
+    public static final Identifier VANISH_USE =
+            create("vanish.use");
+
+    public static final Identifier VANISH_SEE =
+            create("vanish.see");
+
+    public static final Identifier VANISH_NOTIFICATIONS =
+            create("vanish.notifications");
+
     public static final Identifier FREEZE_USE =
             create("freeze.use");
 
