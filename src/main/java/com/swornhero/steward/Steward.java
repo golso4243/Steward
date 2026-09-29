@@ -2,6 +2,7 @@ package com.swornhero.steward;
 
 import com.swornhero.steward.module.staffmode.StaffModeModule;
 import com.swornhero.steward.core.command.StewardCommands;
+import com.swornhero.steward.core.permission.PermissionRegistrationService;
 import com.swornhero.steward.core.input.TextPromptService;
 import com.swornhero.steward.core.player.KnownPlayerService;
 import com.swornhero.steward.module.freeze.FreezeModule;
@@ -34,6 +35,7 @@ public final class Steward implements ModInitializer {
 		);
 
 		StewardCommands.register();
+		PermissionRegistrationService.register();
 		TextPromptService.register();
 		KnownPlayerService.register();
 

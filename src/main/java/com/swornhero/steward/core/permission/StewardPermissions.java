@@ -6,7 +6,15 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionLevel;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public final class StewardPermissions {
+
+    // Must stay above the permission constants so create() can populate it.
+    private static final List<Identifier> ALL =
+            new ArrayList<>();
 
     public static final Identifier STAFF_OPEN =
             create("staff.open");
@@ -208,10 +216,25 @@ public final class StewardPermissions {
         return false;
     }
 
+    public static List<Identifier> all() {
+        return Collections.unmodifiableList(ALL);
+    }
+
+    public static String toNode(Identifier permission) {
+        return permission.getNamespace()
+                + "."
+                + permission.getPath();
+    }
+
     private static Identifier create(String path) {
-        return Identifier.fromNamespaceAndPath(
-                "steward",
-                path
-        );
+        Identifier permission =
+                Identifier.fromNamespaceAndPath(
+                        "steward",
+                        path
+                );
+
+        ALL.add(permission);
+
+        return permission;
     }
 }
