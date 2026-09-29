@@ -18,13 +18,16 @@ directly.
 - After a successful report, a reporter must wait 60 seconds before submitting
   another, unless they hold `steward.report.bypass-cooldown`.
 - A reporter may have only one open or claimed report against the same player.
-- Online players are resolved directly. Other names are resolved through the
-  server's name-to-profile cache, so recently seen offline players can be
-  reported. A name that is not cached can trigger a Mojang profile lookup on
-  the server thread, the same way vanilla `/ban` and `/whitelist` do.
-  Unresolved lookups are therefore throttled to one every 5 seconds per player.
-- In offline-mode servers the profile cache can resolve any name to an offline
-  UUID, so a report may be filed against a player who has never joined.
+- Online players are resolved directly. Offline names are resolved only
+  through Steward's known-player index (`steward/data/known-players.json`),
+  which records each player's UUID, latest name, and last-seen time on every
+  join. Lookups are case-insensitive, never contact Mojang, and work the same
+  on online-mode and offline-mode servers. A name nobody has joined with is
+  rejected with "No player named X has played on this server."
+- If a name has been held by more than one player, it resolves to the player
+  who most recently joined with it.
+- The index starts empty on first install, so players who have not joined
+  since Steward was installed cannot be reported until they join once.
 - Name suggestions list online players the reporter can see, which respects
   Vanish.
 
@@ -87,7 +90,8 @@ Invalid or duplicate entries are skipped with an error in the log.
 
 ## Runtime operating checklist
 
-- File reports against online and recently offline players; confirm alerts,
+- File reports against online players and players who joined before but are
+  now offline; confirm a never-joined name is rejected; confirm alerts,
   clickable IDs, and `/steward view report`.
 - Confirm self-reports, the cooldown, the bypass, and duplicate open reports
   are rejected.

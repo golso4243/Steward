@@ -192,6 +192,9 @@ Implemented in the Staff Chat increment:
   Chat.
 - Persist mode atomically in `steward/data/staff-chat-toggles.json`, remind on
   reconnect, and clear the mode when the permission is gone.
+- Save every message to append-only history in
+  `steward/history/staff-chat.jsonl`, viewable with `/schistory [page]`
+  (`steward.staff-chat.history`).
 - Format messages with a gold tag, aqua name with a send-time hover, and a
   256-character limit.
 - Document the module in `docs/StaffChat-Module.md`.
@@ -203,8 +206,9 @@ Status: `Implemented`; consolidated runtime gate B pending.
 Implemented in the Reports and Staff Notes increment:
 
 - Add a `report` module: `/report <player> <reason>` for every player (online
-  or cached offline targets), self-report, 60-second cooldown, and duplicate
-  open-report guards, and clickable staff alerts.
+  targets, or offline targets from Steward's known-player index), self-report,
+  60-second cooldown, and duplicate open-report guards, and clickable staff
+  alerts.
 - Report lifecycle Open, Claimed, Resolved, and Dismissed, with claim
   ownership, an override permission, required resolution notes through a
   command prompt, and a final confirmation screen.
@@ -224,8 +228,9 @@ Implemented in the Reports and Staff Notes increment:
 - Replace the control panel, player profile, and `/steward status`
   placeholders with live counts and Active module lines.
 - Add shared infrastructure: a read-only `StewardMenu`/`ActionMenu` base,
-  `MenuItems` builders, `TextPromptService`, `JsonListStorage`, and
-  `RecordIds`.
+  `MenuItems` builders, `TextPromptService`, `JsonListStorage`, `RecordIds`,
+  and `KnownPlayerService` (players recorded on join in
+  `steward/data/known-players.json`).
 - Document the modules in `docs/Report-Module.md` and
   `docs/StaffNotes-Module.md`.
 
@@ -234,10 +239,12 @@ Implementation decisions and discovered limitations:
 - Resolving requires a claim; dismissing does not.
 - Staff cannot handle reports filed against themselves.
 - Resolution notes are staff-only and are not shown to the reporter.
-- Offline name resolution uses the server profile cache, which can perform a
-  Mojang lookup on the server thread like vanilla `/ban`. Unresolved lookups
-  are throttled per reporter.
-- Staff Chat is not stored as Steward history; only the console log records it.
+- Offline report targets resolve only from Steward's known-player index,
+  never the Mojang-backed profile cache. This avoids blocking lookups and
+  works on offline-mode servers; players who have not joined since install
+  cannot be reported until they join once.
+- In-game Staff Chat history covers the most recent 5,000 messages; the
+  history file keeps everything and is not pruned.
 
 ## Item 8: Quality and release readiness
 
@@ -301,8 +308,12 @@ Run after items 6-7 are build-clean, together with gate A if practical:
   stays blocked after toggling off.
 - Mode survives reconnect and restart, and revoking the permission clears it on
   the next chat message.
+- Staff Chat messages survive a restart in `/schistory`, page links work, and
+  the command is denied without `staff-chat.history`.
 - `/report` rejects self-reports, repeats inside the cooldown (unless bypassed),
-  and duplicate open reports; offline cached targets can be reported.
+  and duplicate open reports; previously joined offline players can be
+  reported, and never-joined names are rejected on online- and offline-mode
+  servers.
 - New-report alerts reach `report.alerts` holders with a working clickable ID.
 - Claim, release, resolve, and dismiss follow the lifecycle table; resolving
   requires a claim, other staff cannot act on a claim without
@@ -338,6 +349,7 @@ Run after items 6-7 are build-clean, together with gate A if practical:
 | 2026-09-29 | Vanish completion remote build | Build passed | GitHub Actions passed at `f29e7c4` in run `36628016454`. |
 | 2026-09-29 | Staff Chat, Reports, and Staff Notes static gate | Passed | `git diff --check` passed; no linter errors in changed packages. |
 | 2026-09-29 | Staff Chat, Reports, and Staff Notes local build | Build passed | `gradlew clean build` succeeded locally; the first attempt found three exhaustive `HistoryReturnTarget` label switches, now updated. |
+| 2026-09-29 | Known-player index and Staff Chat history local build | Build passed | `gradlew build` succeeded locally after replacing profile-cache report lookups and adding persisted Staff Chat history. |
 
 ## Next action
 

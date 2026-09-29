@@ -119,6 +119,9 @@ public final class StewardPermissions {
     public static final Identifier STAFF_CHAT_USE =
             create("staff-chat.use");
 
+    public static final Identifier STAFF_CHAT_HISTORY =
+            create("staff-chat.history");
+
     public static final Identifier REPORT_SUBMIT =
             create("report.submit");
 

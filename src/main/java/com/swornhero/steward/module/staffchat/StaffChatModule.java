@@ -1,6 +1,7 @@
 package com.swornhero.steward.module.staffchat;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -38,6 +39,21 @@ public final class StaffChatModule {
                                     .executes(StaffChatModule::send))
             );
         }
+        dispatcher.register(
+                Commands.literal("schistory")
+                        .requires(source -> source.isPlayer() && StewardPermissions.has(
+                                source, StewardPermissions.STAFF_CHAT_HISTORY))
+                        .executes(context -> history(context, 1))
+                        .then(Commands.argument("page", IntegerArgumentType.integer(1))
+                                .executes(context -> history(
+                                        context, IntegerArgumentType.getInteger(context, "page"))))
+        );
+    }
+
+    private static int history(CommandContext<CommandSourceStack> context, int page)
+            throws CommandSyntaxException {
+        StaffChatService.showHistory(context.getSource().getPlayerOrException(), page);
+        return 1;
     }
 
     private static int toggle(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

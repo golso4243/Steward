@@ -5,34 +5,20 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.core.player.KnownPlayer;
+import com.swornhero.steward.core.player.KnownPlayerService;
 import com.swornhero.steward.module.report.service.ReportService;
 import com.swornhero.steward.module.vanish.service.VanishService;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.NameAndId;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 public final class ReportModule {
-
-    /**
-     * Offline names may require a Mojang profile lookup, so unresolved
-     * names are throttled separately from the successful-report cooldown.
-     */
-    private static final Duration OFFLINE_LOOKUP_THROTTLE = Duration.ofSeconds(5);
-
-    private static final Map<UUID, Instant> LAST_OFFLINE_LOOKUP = new HashMap<>();
 
     private ReportModule() {
         // Utility class
@@ -40,10 +26,6 @@ public final class ReportModule {
 
     public static void register() {
         ReportService.register();
-
-        ServerPlayConnectionEvents.DISCONNECT.register(
-                (handler, server) -> LAST_OFFLINE_LOOKUP.remove(handler.player.getUUID())
-        );
 
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, environment) -> registerCommands(dispatcher)
@@ -87,8 +69,10 @@ public final class ReportModule {
             return 0;
         }
 
-        MinecraftServer server = context.getSource().getServer();
-        ServerPlayer onlineTarget = server.getPlayerList().getPlayerByName(targetName);
+        ServerPlayer onlineTarget = context.getSource()
+                .getServer()
+                .getPlayerList()
+                .getPlayerByName(targetName);
 
         if (onlineTarget != null) {
             return ReportService.submit(
@@ -99,26 +83,13 @@ public final class ReportModule {
             ) != null ? 1 : 0;
         }
 
-        Instant now = Instant.now();
-        Instant lastLookup = LAST_OFFLINE_LOOKUP.get(reporter.getUUID());
+        Optional<KnownPlayer> knownTarget = KnownPlayerService.findByName(targetName);
 
-        if (lastLookup != null
-                && lastLookup.plus(OFFLINE_LOOKUP_THROTTLE).isAfter(now)) {
-            reporter.sendSystemMessage(
-                    Component.literal("[Steward] Please wait a moment before trying again.")
-            );
-
-            return 0;
-        }
-
-        LAST_OFFLINE_LOOKUP.put(reporter.getUUID(), now);
-
-        Optional<NameAndId> profile = server.services().nameToIdCache().get(targetName);
-
-        if (profile.isEmpty()) {
+        if (knownTarget.isEmpty()) {
             reporter.sendSystemMessage(
                     Component.literal(
-                            "[Steward] No player named " + targetName + " could be found."
+                            "[Steward] No player named " + targetName
+                                    + " has played on this server."
                     )
             );
 
@@ -127,8 +98,8 @@ public final class ReportModule {
 
         return ReportService.submit(
                 reporter,
-                profile.get().id(),
-                profile.get().name(),
+                knownTarget.get().uuid(),
+                knownTarget.get().name(),
                 reason
         ) != null ? 1 : 0;
     }
