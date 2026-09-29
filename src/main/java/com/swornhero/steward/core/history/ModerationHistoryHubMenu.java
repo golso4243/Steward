@@ -28,6 +28,8 @@ public final class ModerationHistoryHubMenu
     public static final int WARNING_HISTORY_SLOT = 22;
     public static final int FREEZE_HISTORY_SLOT = 24;
     public static final int PUNISHMENT_HISTORY_SLOT = 31;
+    public static final int REPORT_HISTORY_SLOT = 29;
+    public static final int NOTE_HISTORY_SLOT = 33;
 
     public static final int BACK_SLOT = 48;
     public static final int CLOSE_SLOT = 50;
@@ -224,6 +226,22 @@ public final class ModerationHistoryHubMenu
                             targetUuid,
                             browserPage,
                             PlayerHistoryView.PUNISHMENT_HISTORY
+                    );
+
+            case REPORT_HISTORY_SLOT ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            PlayerHistoryView.REPORT_HISTORY
+                    );
+
+            case NOTE_HISTORY_SLOT ->
+                    ModerationHistoryScreen.open(
+                            viewer,
+                            targetUuid,
+                            browserPage,
+                            PlayerHistoryView.NOTE_HISTORY
                     );
 
             case BACK_SLOT ->

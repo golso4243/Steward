@@ -20,5 +20,13 @@ public enum HistoryReturnTarget {
 
     PUNISHMENT_MODULE_HISTORY,
 
+    REPORT_HISTORY,
+
+    NOTE_HISTORY,
+
+    GLOBAL_REPORT_HISTORY,
+
+    GLOBAL_NOTE_HISTORY,
+
     STAFF_MENU
 }

@@ -23,6 +23,8 @@ import com.swornhero.steward.module.staffmode.gui.TeleportActionsScreen;
 import com.swornhero.steward.module.staffmode.gui.TeleportReturnTarget;
 import com.swornhero.steward.module.inspection.gui.InventoryInspectionScreen;
 import com.swornhero.steward.module.inspection.gui.InspectionReturnTarget;
+import com.swornhero.steward.module.notes.gui.PlayerNotesScreen;
+import com.swornhero.steward.module.report.gui.PlayerReportsScreen;
 
 import java.util.UUID;
 
@@ -271,18 +273,23 @@ public final class PlayerProfileMenu extends AbstractContainerMenu {
                     InspectionReturnTarget.PLAYER_PROFILE
             );
 
-            case REPORTS -> viewer.sendSystemMessage(
-                    Component.literal(
-                            "Reports selected for "
-                                    + target.getName().getString()
-                    )
+            case REPORTS -> PlayerReportsScreen.open(
+                    viewer,
+                    target,
+                    browserPage
             );
 
-            case NOTES -> viewer.sendSystemMessage(
-                    Component.literal(
-                            "Staff notes selected for "
-                                    + target.getName().getString()
-                    )
+            case NOTES -> PlayerNotesScreen.open(
+                    viewer,
+                    targetUuid,
+                    target.getName().getString(),
+                    0,
+                    player -> PlayerProfileScreen.open(
+                            player,
+                            targetUuid,
+                            browserPage
+                    ),
+                    "Back to Profile"
             );
 
             case HISTORY -> {

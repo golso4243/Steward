@@ -1,6 +1,17 @@
 package com.swornhero.steward.core.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.swornhero.steward.core.input.TextPromptService;
+import com.swornhero.steward.module.notes.gui.PlayerNotesScreen;
+import com.swornhero.steward.module.notes.gui.StaffNoteDetailScreen;
+import com.swornhero.steward.module.notes.model.StaffNoteRecord;
+import com.swornhero.steward.module.notes.service.StaffNoteService;
+import com.swornhero.steward.module.report.gui.ReportDetailScreen;
+import com.swornhero.steward.module.report.gui.ReportQueueScreen;
+import com.swornhero.steward.module.report.model.ReportRecord;
+import com.swornhero.steward.module.report.service.ReportService;
+import net.minecraft.resources.Identifier;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.swornhero.steward.core.gui.StaffControlScreen;
@@ -109,6 +120,54 @@ public final class StewardCommands {
                                                                 )
                                                         )
                                         )
+                                        .then(
+                                                Commands.literal("report")
+                                                        .requires(source ->
+                                                                StewardPermissions.has(
+                                                                        source,
+                                                                        StewardPermissions.REPORT_VIEW
+                                                                )
+                                                        )
+                                                        .then(
+                                                                Commands.argument(
+                                                                        "id",
+                                                                        StringArgumentType.word()
+                                                                ).executes(
+                                                                        StewardCommands
+                                                                                ::viewReportRecord
+                                                                )
+                                                        )
+                                        )
+                                        .then(
+                                                Commands.literal("note")
+                                                        .requires(source ->
+                                                                StewardPermissions.has(
+                                                                        source,
+                                                                        StewardPermissions.NOTES_VIEW
+                                                                )
+                                                        )
+                                                        .then(
+                                                                Commands.argument(
+                                                                        "id",
+                                                                        StringArgumentType.word()
+                                                                ).executes(
+                                                                        StewardCommands
+                                                                                ::viewNoteRecord
+                                                                )
+                                                        )
+                                        )
+                        )
+                        .then(
+                                promptCommands(
+                                        ReportDetailScreen.INPUT_CHANNEL,
+                                        StewardPermissions.REPORT_MANAGE
+                                )
+                        )
+                        .then(
+                                promptCommands(
+                                        PlayerNotesScreen.INPUT_CHANNEL,
+                                        StewardPermissions.NOTES_CREATE
+                                )
                         )
                         .then(
                                 Commands.literal("warning")
@@ -164,6 +223,112 @@ public final class StewardCommands {
                                 StewardCommands::openStaffMenu
                         )
         );
+    }
+
+    private static LiteralArgumentBuilder<CommandSourceStack> promptCommands(
+            String channel,
+            Identifier permission
+    ) {
+        return Commands.literal(channel)
+                .requires(source ->
+                        StewardPermissions.has(source, permission)
+                )
+                .then(
+                        Commands.literal("input")
+                                .then(
+                                        Commands.argument(
+                                                "text",
+                                                StringArgumentType.greedyString()
+                                        ).executes(context ->
+                                                TextPromptService.submit(
+                                                        context.getSource()
+                                                                .getPlayerOrException(),
+                                                        channel,
+                                                        StringArgumentType.getString(
+                                                                context,
+                                                                "text"
+                                                        )
+                                                ) ? 1 : 0
+                                        )
+                                )
+                )
+                .then(
+                        Commands.literal("cancel-input")
+                                .executes(context ->
+                                        TextPromptService.cancel(
+                                                context.getSource()
+                                                        .getPlayerOrException(),
+                                                channel
+                                        ) ? 1 : 0
+                                )
+                );
+    }
+
+    private static int viewReportRecord(
+            CommandContext<CommandSourceStack> context
+    ) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        ServerPlayer viewer = source.getPlayerOrException();
+        String displayId = StringArgumentType.getString(context, "id");
+
+        ReportRecord record = ReportService.findByDisplayId(displayId);
+
+        if (record == null) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] Report record "
+                                    + displayId
+                                    + " was not found."
+                    )
+            );
+
+            return 0;
+        }
+
+        ReportDetailScreen.open(
+                viewer,
+                record.reportId(),
+                player -> ReportQueueScreen.open(player, false, 0)
+        );
+
+        return 1;
+    }
+
+    private static int viewNoteRecord(
+            CommandContext<CommandSourceStack> context
+    ) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        ServerPlayer viewer = source.getPlayerOrException();
+        String displayId = StringArgumentType.getString(context, "id");
+
+        StaffNoteRecord record = StaffNoteService.findByDisplayId(displayId);
+
+        if (record == null) {
+            source.sendFailure(
+                    Component.literal(
+                            "[Steward] Staff note "
+                                    + displayId
+                                    + " was not found."
+                    )
+            );
+
+            return 0;
+        }
+
+        StaffNoteDetailScreen.open(
+                viewer,
+                record.noteId(),
+                player -> PlayerNotesScreen.open(
+                        player,
+                        record.targetUuid(),
+                        record.targetName(),
+                        0,
+                        StaffControlScreen::open,
+                        "Back to Control Panel"
+                )
+        );
+
+        return 1;
     }
 
     private static boolean canViewPunishmentRecord(

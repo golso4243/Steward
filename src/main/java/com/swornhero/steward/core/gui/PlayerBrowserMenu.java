@@ -1,5 +1,6 @@
 package com.swornhero.steward.core.gui;
 
+import com.swornhero.steward.module.notes.gui.PlayerNotesScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -286,6 +287,19 @@ public final class PlayerBrowserMenu
                             targetUuid,
                             page,
                             InspectionReturnTarget.PLAYER_BROWSER
+                    );
+
+            case NOTES ->
+                    PlayerNotesScreen.open(
+                            viewer,
+                            targetUuid,
+                            target.getName().getString(),
+                            0,
+                            player -> PlayerBrowserScreen.open(
+                                    player,
+                                    page
+                            ),
+                            "Back to Players"
                     );
 
             default ->

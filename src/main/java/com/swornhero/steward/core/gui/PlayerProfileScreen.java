@@ -1,5 +1,8 @@
 package com.swornhero.steward.core.gui;
 
+import com.swornhero.steward.module.notes.service.StaffNoteService;
+import com.swornhero.steward.module.report.model.ReportRecord;
+import com.swornhero.steward.module.report.service.ReportService;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -122,14 +125,21 @@ public final class PlayerProfileScreen {
                 container,
                 PlayerProfileAction.REPORTS.slot(),
                 Items.WRITABLE_BOOK,
-                "View Reports"
+                "View Reports • "
+                        + ReportService.reportsAgainst(target.getUUID())
+                        .stream()
+                        .filter(ReportRecord::isActive)
+                        .count()
+                        + " Open"
         );
 
         setButton(
                 container,
                 PlayerProfileAction.NOTES.slot(),
                 Items.WRITTEN_BOOK,
-                "Staff Notes"
+                "Staff Notes • "
+                        + StaffNoteService.notesFor(target.getUUID(), false)
+                        .size()
         );
 
         setButton(

@@ -19,6 +19,8 @@ import com.swornhero.steward.core.history.GlobalModerationHistoryHubScreen;
 import com.swornhero.steward.module.staffmode.model.StaffToolAction;
 import com.swornhero.steward.module.staffmode.service.StaffToolSelectionService;
 import com.swornhero.steward.module.vanish.service.VanishService;
+import com.swornhero.steward.module.staffchat.service.StaffChatService;
+import com.swornhero.steward.module.report.gui.ReportQueueScreen;
 
 public final class StaffControlMenu extends AbstractContainerMenu {
     public static final int ROWS = 6;
@@ -225,6 +227,33 @@ public final class StaffControlMenu extends AbstractContainerMenu {
                 }
 
                 PunishmentHubScreen.open(player);
+            }
+
+            case STAFF_CHAT -> {
+                StaffChatService.toggle(player);
+                StaffControlScreen.open(player);
+            }
+
+            case REPORTS -> ReportQueueScreen.open(
+                    player,
+                    false,
+                    0
+            );
+
+            case NOTES -> {
+                if (!StewardPermissions.require(
+                        player,
+                        StewardPermissions.NOTES_VIEW
+                )) {
+                    return;
+                }
+
+                StaffToolSelectionService.setPendingAction(
+                        player.getUUID(),
+                        StaffToolAction.NOTES
+                );
+
+                PlayerBrowserScreen.open(player);
             }
 
             default -> player.sendSystemMessage(

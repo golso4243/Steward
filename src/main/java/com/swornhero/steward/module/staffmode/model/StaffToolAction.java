@@ -8,6 +8,7 @@ public enum StaffToolAction {
     INSPECTION,
     VANISH,
     STAFF_CHAT,
+    NOTES,
     STAFF_CONTROL,
     EXIT
 }

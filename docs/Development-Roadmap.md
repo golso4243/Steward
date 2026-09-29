@@ -40,8 +40,8 @@ Build validation and runtime acceptance are tracked separately. An item may be
 | 3 | Warning lifecycle, warning notes, and evidence | Implemented |
 | 4 | Inventory inspection | Implemented |
 | 5 | Vanish | Implemented |
-| 6 | Staff chat | Planned |
-| 7 | Reports and persistent player staff notes | Planned |
+| 6 | Staff chat | Implemented |
+| 7 | Reports and persistent player staff notes | Implemented |
 | 8 | Tests, documentation, metadata, and template cleanup | Planned |
 
 ## Current baseline
@@ -49,7 +49,7 @@ Build validation and runtime acceptance are tracked separately. An item may be
 - Development branch: `v26.2` (Minecraft 26.2); this is the only branch.
 - Previous audit baseline: `7137e337c4aa24e53935a9e9b02e0058b959fc0a`
 - Current implementation baseline before this update:
-  `f29e7c4f9c59b3722680b18c11284feba0ebffe9`
+  `5031e9e9dbe42e2ee426cdb402307205e3637409`
 - Latest baseline GitHub Actions result: successful (run `36628016454`)
 - Automated test suite: not yet present
 
@@ -177,14 +177,67 @@ Implementation decisions and discovered limitations:
 - Permission changes reach the tab list within about one second, not instantly.
 - Minecraft runtime validation remains required; the item is not Accepted.
 
-## Items 6-7
+## Item 6: Staff chat
 
-These items currently have control-panel or player-profile placeholders but no
-complete domain service:
+Status: `Implemented`; consolidated runtime gate B pending.
 
-6. Staff chat: permissioned channel, toggle/send behavior, and formatting.
-7. Reports and persistent player staff notes: independent persistent records,
-   history integration, permissions, and profile workflows.
+Implemented in the Staff Chat increment:
+
+- Add a `staffchat` module with a permissioned channel
+  (`steward.staff-chat.use`) that delivers to online staff and the console.
+- Send with `/sc <message>` or `/staffchat <message>`; toggle mode with bare
+  `/sc`, the Staff Control panel, or the Staff Mode Staff Chat tool.
+- Route toggled players' normal chat to staff before public broadcast. The
+  listener is registered before mute enforcement so muted staff keep Staff
+  Chat.
+- Persist mode atomically in `steward/data/staff-chat-toggles.json`, remind on
+  reconnect, and clear the mode when the permission is gone.
+- Format messages with a gold tag, aqua name with a send-time hover, and a
+  256-character limit.
+- Document the module in `docs/StaffChat-Module.md`.
+
+## Item 7: Reports and persistent player staff notes
+
+Status: `Implemented`; consolidated runtime gate B pending.
+
+Implemented in the Reports and Staff Notes increment:
+
+- Add a `report` module: `/report <player> <reason>` for every player (online
+  or cached offline targets), self-report, 60-second cooldown, and duplicate
+  open-report guards, and clickable staff alerts.
+- Report lifecycle Open, Claimed, Resolved, and Dismissed, with claim
+  ownership, an override permission, required resolution notes through a
+  command prompt, and a final confirmation screen.
+- Notify reporters when their report closes, including delivery on next join.
+- Report Queue from the control panel, per-player reports from the profile,
+  and `/steward view report <id>`.
+- Add a `notes` module: append-only staff notes with soft-delete archiving by
+  the author (`notes.archive-own`) or a manager (`notes.manage`), an archived
+  filter, and `/steward view note <id>`.
+- Notes open from the profile, the control panel through the player browser,
+  and report details.
+- Persist reports and notes atomically in `steward/history/reports.json` and
+  `steward/history/staff-notes.json`.
+- Add Report and Staff Note entries to player and global moderation history,
+  dedicated history views and hub buttons, and permission filtering so viewers
+  without `report.view` or `notes.view` never see those entries or counts.
+- Replace the control panel, player profile, and `/steward status`
+  placeholders with live counts and Active module lines.
+- Add shared infrastructure: a read-only `StewardMenu`/`ActionMenu` base,
+  `MenuItems` builders, `TextPromptService`, `JsonListStorage`, and
+  `RecordIds`.
+- Document the modules in `docs/Report-Module.md` and
+  `docs/StaffNotes-Module.md`.
+
+Implementation decisions and discovered limitations:
+
+- Resolving requires a claim; dismissing does not.
+- Staff cannot handle reports filed against themselves.
+- Resolution notes are staff-only and are not shown to the reporter.
+- Offline name resolution uses the server profile cache, which can perform a
+  Mojang lookup on the server thread like vanilla `/ban`. Unresolved lookups
+  are throttled per reporter.
+- Staff Chat is not stored as Steward history; only the console log records it.
 
 ## Item 8: Quality and release readiness
 
@@ -236,6 +289,31 @@ Run once after item 5 implementation is build-clean:
 - Record actual 26.2 behavior for armor, held items, particles, sounds,
   collision, commands, and vanilla join/leave messages.
 
+## Consolidated runtime gate B
+
+Run after items 6-7 are build-clean, together with gate A if practical:
+
+- Staff Chat reaches only `steward.staff-chat.use` holders and the console;
+  players without the permission neither send nor receive.
+- Toggle mode from the command, control panel, and Staff Mode tool routes
+  normal chat privately while on and publicly while off.
+- A muted staff member with the mode on still reaches Staff Chat; public chat
+  stays blocked after toggling off.
+- Mode survives reconnect and restart, and revoking the permission clears it on
+  the next chat message.
+- `/report` rejects self-reports, repeats inside the cooldown (unless bypassed),
+  and duplicate open reports; offline cached targets can be reported.
+- New-report alerts reach `report.alerts` holders with a working clickable ID.
+- Claim, release, resolve, and dismiss follow the lifecycle table; resolving
+  requires a claim, other staff cannot act on a claim without
+  `report.override-claim`, and staff cannot handle reports against themselves.
+- Reporters are notified exactly once on close, online or at next join.
+- Notes can be added from the profile, the control panel browser flow, and a
+  report; archiving follows `notes.archive-own` and `notes.manage`.
+- Reports, notes, claim, closure, and archive state survive a full restart.
+- History shows report and note entries and counts only to viewers with
+  `report.view` or `notes.view` respectively.
+
 ## Validation log
 
 | Date | Increment | Result | Notes |
@@ -258,8 +336,10 @@ Run once after item 5 implementation is build-clean:
 | 2026-09-29 | Vanish completion static gate | Passed | `git diff --check` passed; no linter errors in changed files. |
 | 2026-09-29 | Vanish completion local build | Build passed | `gradlew build` succeeded locally with Fabric Loom 1.17.21. |
 | 2026-09-29 | Vanish completion remote build | Build passed | GitHub Actions passed at `f29e7c4` in run `36628016454`. |
+| 2026-09-29 | Staff Chat, Reports, and Staff Notes static gate | Passed | `git diff --check` passed; no linter errors in changed packages. |
+| 2026-09-29 | Staff Chat, Reports, and Staff Notes local build | Build passed | `gradlew clean build` succeeded locally; the first attempt found three exhaustive `HistoryReturnTarget` label switches, now updated. |
 
 ## Next action
 
-Run consolidated runtime gate A for items 1-5, or begin Staff Chat and keep
-items 1-5 in the deferred runtime gate.
+Run consolidated runtime gates A and B, or begin item 8 and keep items 1-7 in
+the deferred runtime gates.

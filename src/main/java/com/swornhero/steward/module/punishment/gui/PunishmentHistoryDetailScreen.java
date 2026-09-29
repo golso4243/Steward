@@ -370,6 +370,14 @@ public final class PunishmentHistoryDetailScreen {
             case PUNISHMENT_MODULE_HISTORY ->
                     "Back to Punishment History";
 
+            case REPORT_HISTORY,
+                 GLOBAL_REPORT_HISTORY ->
+                    "Back to Report History";
+
+            case NOTE_HISTORY,
+                 GLOBAL_NOTE_HISTORY ->
+                    "Back to Staff Note History";
+
             case STAFF_MENU ->
                     "Back to Staff Menu";
         };

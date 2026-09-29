@@ -1,5 +1,7 @@
 package com.swornhero.steward.core.gui;
 
+import com.swornhero.steward.module.report.service.ReportService;
+import com.swornhero.steward.module.staffchat.service.StaffChatService;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,7 +26,7 @@ public final class StaffControlScreen {
         SimpleContainer container =
                 new SimpleContainer(StaffControlMenu.MENU_SIZE);
 
-        populate(container);
+        populate(container, player);
 
         player.openMenu(
                 new SimpleMenuProvider(
@@ -39,7 +41,10 @@ public final class StaffControlScreen {
         );
     }
 
-    private static void populate(SimpleContainer container) {
+    private static void populate(
+            SimpleContainer container,
+            ServerPlayer player
+    ) {
         addBorder(container);
 
         setButton(
@@ -88,7 +93,9 @@ public final class StaffControlScreen {
                 container,
                 StaffControlAction.REPORTS.slot(),
                 Items.WRITABLE_BOOK,
-                "Reports"
+                "Reports • "
+                        + ReportService.activeCount()
+                        + " Open"
         );
 
         setButton(
@@ -123,7 +130,9 @@ public final class StaffControlScreen {
                 container,
                 StaffControlAction.STAFF_CHAT.slot(),
                 Items.ECHO_SHARD,
-                "Staff Chat"
+                StaffChatService.isToggled(player)
+                        ? "Staff Chat Mode: On"
+                        : "Staff Chat Mode: Off"
         );
 
         setButton(

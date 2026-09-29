@@ -117,16 +117,40 @@ public final class ModerationHistoryScreen {
                         ? target.getName().getString()
                         : targetUuid.toString();
 
+        if (view.actionType() != null
+                && !ModerationHistoryService.canView(
+                viewer,
+                view.actionType()
+        )) {
+            StewardPermissions.require(
+                    viewer,
+                    view.actionType() == ModerationActionType.REPORT
+                            ? StewardPermissions.REPORT_VIEW
+                            : StewardPermissions.NOTES_VIEW
+            );
+
+            return;
+        }
+
         List<ModerationHistoryItem> records =
-                view.isPunishmentHistory()
-                        ? ModerationHistoryService
-                        .getPunishmentsForPlayer(
-                                targetUuid
-                        )
-                        : ModerationHistoryService
-                        .getForPlayer(
-                                targetUuid
-                        );
+                ModerationHistoryService.visibleTo(
+                        viewer,
+                        view.isPunishmentHistory()
+                                ? ModerationHistoryService
+                                .getPunishmentsForPlayer(
+                                        targetUuid
+                                )
+                                : view.actionType() != null
+                                ? ModerationHistoryService
+                                .getForPlayerByType(
+                                        targetUuid,
+                                        view.actionType()
+                                )
+                                : ModerationHistoryService
+                                .getForPlayer(
+                                        targetUuid
+                                )
+                );
 
         int totalPages =
                 Math.max(
@@ -300,11 +324,12 @@ public final class ModerationHistoryScreen {
     private static String emptyStateText(
             PlayerHistoryView view
     ) {
-        if (view == PlayerHistoryView.PUNISHMENT_HISTORY) {
-            return "No Punishment History";
-        }
-
-        return "No Moderation History";
+        return switch (view) {
+            case PUNISHMENT_HISTORY -> "No Punishment History";
+            case REPORT_HISTORY -> "No Reports";
+            case NOTE_HISTORY -> "No Staff Notes";
+            case ALL_ACTIVITY -> "No Moderation History";
+        };
     }
 
     private static Item itemIcon(
@@ -328,6 +353,12 @@ public final class ModerationHistoryScreen {
 
             case PERMANENT_BAN ->
                     Items.BARRIER;
+
+            case REPORT ->
+                    Items.WRITABLE_BOOK;
+
+            case NOTE ->
+                    Items.WRITTEN_BOOK;
         };
     }
 

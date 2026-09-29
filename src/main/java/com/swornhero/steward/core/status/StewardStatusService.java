@@ -1,5 +1,6 @@
 package com.swornhero.steward.core.status;
 
+import com.swornhero.steward.module.report.service.ReportService;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -138,9 +139,25 @@ public final class StewardStatusService {
 
         sendModule(
                 source,
-                "Reports, Staff Chat",
-                "Planned",
-                ChatFormatting.GRAY
+                "Staff Chat",
+                "Active",
+                ChatFormatting.GREEN
+        );
+
+        sendModule(
+                source,
+                "Reports",
+                "Active • "
+                        + ReportService.activeCount()
+                        + " open",
+                ChatFormatting.GREEN
+        );
+
+        sendModule(
+                source,
+                "Staff Notes",
+                "Active",
+                ChatFormatting.GREEN
         );
 
         sendBlankLine(source);

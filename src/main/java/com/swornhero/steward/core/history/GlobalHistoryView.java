@@ -28,6 +28,20 @@ public enum GlobalHistoryView {
             null,
             true,
             HistoryReturnTarget.GLOBAL_PUNISHMENT_HISTORY
+    ),
+
+    REPORT_HISTORY(
+            "Global Report History",
+            ModerationActionType.REPORT,
+            false,
+            HistoryReturnTarget.GLOBAL_REPORT_HISTORY
+    ),
+
+    NOTE_HISTORY(
+            "Global Staff Note History",
+            ModerationActionType.NOTE,
+            false,
+            HistoryReturnTarget.GLOBAL_NOTE_HISTORY
     );
 
     private final String title;

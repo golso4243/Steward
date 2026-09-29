@@ -91,6 +91,21 @@ public final class GlobalModerationHistoryScreen {
                         ? requestedView
                         : GlobalHistoryView.ALL_ACTIVITY;
 
+        if (view.actionType() != null
+                && !ModerationHistoryService.canView(
+                viewer,
+                view.actionType()
+        )) {
+            StewardPermissions.require(
+                    viewer,
+                    view.actionType() == ModerationActionType.REPORT
+                            ? StewardPermissions.REPORT_VIEW
+                            : StewardPermissions.NOTES_VIEW
+            );
+
+            return;
+        }
+
         List<ModerationHistoryItem> records;
 
         if (view.showsAllTypes()) {
@@ -105,6 +120,12 @@ public final class GlobalModerationHistoryScreen {
                             view.actionType()
                     );
         }
+
+        records =
+                ModerationHistoryService.visibleTo(
+                        viewer,
+                        records
+                );
 
         int totalPages =
                 Math.max(
@@ -293,6 +314,14 @@ public final class GlobalModerationHistoryScreen {
             return "No Punishment History";
         }
 
+        if (view == GlobalHistoryView.REPORT_HISTORY) {
+            return "No Reports";
+        }
+
+        if (view == GlobalHistoryView.NOTE_HISTORY) {
+            return "No Staff Notes";
+        }
+
         return "No Moderation History";
     }
 
@@ -317,6 +346,12 @@ public final class GlobalModerationHistoryScreen {
 
             case PERMANENT_BAN ->
                     Items.BARRIER;
+
+            case REPORT ->
+                    Items.WRITABLE_BOOK;
+
+            case NOTE ->
+                    Items.WRITTEN_BOOK;
         };
     }
 

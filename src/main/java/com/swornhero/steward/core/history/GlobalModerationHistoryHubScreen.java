@@ -36,7 +36,7 @@ public final class GlobalModerationHistoryHubScreen {
                         GlobalModerationHistoryHubMenu.MENU_SIZE
                 );
 
-        populate(container);
+        populate(container, viewer);
 
         viewer.openMenu(
                 new SimpleMenuProvider(
@@ -54,12 +54,48 @@ public final class GlobalModerationHistoryHubScreen {
     }
 
     private static void populate(
-            SimpleContainer container
+            SimpleContainer container,
+            ServerPlayer viewer
     ) {
         addBorder(container);
 
         int totalCount =
-                ModerationHistoryService.countAll();
+                ModerationHistoryService.visibleTo(
+                        viewer,
+                        ModerationHistoryService.getAll()
+                ).size();
+
+        if (StewardPermissions.has(
+                viewer,
+                StewardPermissions.REPORT_VIEW
+        )) {
+            setButton(
+                    container,
+                    GlobalModerationHistoryHubMenu.REPORT_HISTORY_SLOT,
+                    Items.WRITABLE_BOOK,
+                    "Report History • "
+                            + ModerationHistoryService.countAllByType(
+                            ModerationActionType.REPORT
+                    )
+                            + " Records"
+            );
+        }
+
+        if (StewardPermissions.has(
+                viewer,
+                StewardPermissions.NOTES_VIEW
+        )) {
+            setButton(
+                    container,
+                    GlobalModerationHistoryHubMenu.NOTE_HISTORY_SLOT,
+                    Items.WRITTEN_BOOK,
+                    "Staff Note History • "
+                            + ModerationHistoryService.countAllByType(
+                            ModerationActionType.NOTE
+                    )
+                            + " Records"
+            );
+        }
 
         int warningCount =
                 ModerationHistoryService.countAllByType(

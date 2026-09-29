@@ -19,6 +19,8 @@ import com.swornhero.steward.module.warning.gui.WarningHistoryDetailScreen;
 import com.swornhero.steward.module.warning.model.WarningRecord;
 import com.swornhero.steward.module.warning.service.WarningService;
 import com.swornhero.steward.module.punishment.gui.PunishmentHistoryDetailScreen;
+import com.swornhero.steward.module.notes.gui.StaffNoteDetailScreen;
+import com.swornhero.steward.module.report.gui.ReportDetailScreen;
 
 import java.util.Map;
 
@@ -283,6 +285,20 @@ public final class GlobalModerationHistoryMenu
                     openPunishmentRecord(
                             viewer,
                             item
+                    );
+
+            case REPORT ->
+                    ReportDetailScreen.open(
+                            viewer,
+                            item.recordId(),
+                            this::reopenCurrentPage
+                    );
+
+            case NOTE ->
+                    StaffNoteDetailScreen.open(
+                            viewer,
+                            item.recordId(),
+                            this::reopenCurrentPage
                     );
         }
     }

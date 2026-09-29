@@ -30,6 +30,16 @@ public enum ModerationActionType {
     PERMANENT_BAN(
             "Permanent Ban",
             true
+    ),
+
+    REPORT(
+            "Report",
+            false
+    ),
+
+    NOTE(
+            "Staff Note",
+            false
     );
 
     private final String displayName;

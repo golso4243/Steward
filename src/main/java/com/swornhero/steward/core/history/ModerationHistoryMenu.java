@@ -20,6 +20,8 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import com.swornhero.steward.module.punishment.gui.PunishmentHistoryDetailScreen;
+import com.swornhero.steward.module.notes.gui.StaffNoteDetailScreen;
+import com.swornhero.steward.module.report.gui.ReportDetailScreen;
 
 import java.util.Map;
 import java.util.UUID;
@@ -308,7 +310,22 @@ public final class ModerationHistoryMenu
                     openPunishmentRecord(
                             viewer,
                             item.recordId()
-                    );        }
+                    );
+
+            case REPORT ->
+                    ReportDetailScreen.open(
+                            viewer,
+                            item.recordId(),
+                            this::reopenCurrentPage
+                    );
+
+            case NOTE ->
+                    StaffNoteDetailScreen.open(
+                            viewer,
+                            item.recordId(),
+                            this::reopenCurrentPage
+                    );
+        }
     }
 
     private void openWarningRecord(

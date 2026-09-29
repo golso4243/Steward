@@ -65,6 +65,7 @@ public final class ModerationHistoryHubScreen {
 
         populate(
                 container,
+                viewer,
                 targetUuid
         );
 
@@ -91,6 +92,7 @@ public final class ModerationHistoryHubScreen {
 
     private static void populate(
             SimpleContainer container,
+            ServerPlayer viewer,
             UUID targetUuid
     ) {
         addBorder(container);
@@ -111,9 +113,46 @@ public final class ModerationHistoryHubScreen {
                 );
 
         int totalCount =
-                ModerationHistoryService.countForPlayer(
-                        targetUuid
-                );
+                ModerationHistoryService.visibleTo(
+                        viewer,
+                        ModerationHistoryService.getForPlayer(
+                                targetUuid
+                        )
+                ).size();
+
+        if (StewardPermissions.has(
+                viewer,
+                StewardPermissions.REPORT_VIEW
+        )) {
+            setButton(
+                    container,
+                    ModerationHistoryHubMenu.REPORT_HISTORY_SLOT,
+                    Items.WRITABLE_BOOK,
+                    "Report History • "
+                            + ModerationHistoryService.countForPlayerByType(
+                            targetUuid,
+                            ModerationActionType.REPORT
+                    )
+                            + " Records"
+            );
+        }
+
+        if (StewardPermissions.has(
+                viewer,
+                StewardPermissions.NOTES_VIEW
+        )) {
+            setButton(
+                    container,
+                    ModerationHistoryHubMenu.NOTE_HISTORY_SLOT,
+                    Items.WRITTEN_BOOK,
+                    "Staff Note History • "
+                            + ModerationHistoryService.countForPlayerByType(
+                            targetUuid,
+                            ModerationActionType.NOTE
+                    )
+                            + " Records"
+            );
+        }
 
         setButton(
                 container,

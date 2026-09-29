@@ -7,6 +7,12 @@ import com.swornhero.steward.module.warning.service.WarningService;
 import com.swornhero.steward.module.punishment.model.PunishmentRecord;
 import com.swornhero.steward.module.punishment.model.PunishmentType;
 import com.swornhero.steward.module.punishment.service.PunishmentService;
+import com.swornhero.steward.core.permission.StewardPermissions;
+import com.swornhero.steward.module.notes.model.StaffNoteRecord;
+import com.swornhero.steward.module.notes.service.StaffNoteService;
+import com.swornhero.steward.module.report.model.ReportRecord;
+import com.swornhero.steward.module.report.service.ReportService;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -48,7 +54,67 @@ public final class ModerationHistoryService {
                 PunishmentService.allPunishments()
         );
 
+        addReportHistory(
+                history,
+                ReportService.allReports()
+        );
+
+        addNoteHistory(
+                history,
+                StaffNoteService.allNotes()
+        );
+
         return sortedCopy(history);
+    }
+
+    /**
+     * Removes records the viewer may not see. Reports and staff notes
+     * have their own view permissions on top of history access.
+     */
+    public static List<ModerationHistoryItem> visibleTo(
+            ServerPlayer viewer,
+            List<ModerationHistoryItem> history
+    ) {
+        boolean seesReports = StewardPermissions.has(
+                viewer,
+                StewardPermissions.REPORT_VIEW
+        );
+
+        boolean seesNotes = StewardPermissions.has(
+                viewer,
+                StewardPermissions.NOTES_VIEW
+        );
+
+        if (seesReports && seesNotes) {
+            return history;
+        }
+
+        return history.stream()
+                .filter(item -> canView(item.type(), seesReports, seesNotes))
+                .toList();
+    }
+
+    public static boolean canView(
+            ServerPlayer viewer,
+            ModerationActionType type
+    ) {
+        return canView(
+                type,
+                StewardPermissions.has(viewer, StewardPermissions.REPORT_VIEW),
+                StewardPermissions.has(viewer, StewardPermissions.NOTES_VIEW)
+        );
+    }
+
+    private static boolean canView(
+            ModerationActionType type,
+            boolean seesReports,
+            boolean seesNotes
+    ) {
+        return switch (type) {
+            case REPORT -> seesReports;
+            case NOTE -> seesNotes;
+            default -> true;
+        };
     }
 
     /**
@@ -83,6 +149,21 @@ public final class ModerationHistoryService {
                 history,
                 PunishmentService.punishmentsFor(
                         targetUuid
+                )
+        );
+
+        addReportHistory(
+                history,
+                ReportService.reportsAgainst(
+                        targetUuid
+                )
+        );
+
+        addNoteHistory(
+                history,
+                StaffNoteService.notesFor(
+                        targetUuid,
+                        true
                 )
         );
 
@@ -267,6 +348,55 @@ public final class ModerationHistoryService {
                             punishment.targetName(),
                             summary,
                             punishment.issuedAt()
+                    )
+            );
+        }
+    }
+
+    private static void addReportHistory(
+            List<ModerationHistoryItem> history,
+            List<ReportRecord> reports
+    ) {
+        for (ReportRecord report : reports) {
+            String summary =
+                    "Report by "
+                            + report.reporterName()
+                            + " • "
+                            + report.status().displayName();
+
+            history.add(
+                    new ModerationHistoryItem(
+                            ModerationActionType.REPORT,
+                            report.reportId(),
+                            report.targetUuid(),
+                            report.targetName(),
+                            summary,
+                            report.createdAt()
+                    )
+            );
+        }
+    }
+
+    private static void addNoteHistory(
+            List<ModerationHistoryItem> history,
+            List<StaffNoteRecord> notes
+    ) {
+        for (StaffNoteRecord note : notes) {
+            String summary =
+                    "Staff Note by "
+                            + note.authorName()
+                            + (note.archived()
+                            ? " • Archived"
+                            : " • Active");
+
+            history.add(
+                    new ModerationHistoryItem(
+                            ModerationActionType.NOTE,
+                            note.noteId(),
+                            note.targetUuid(),
+                            note.targetName(),
+                            summary,
+                            note.createdAt()
                     )
             );
         }

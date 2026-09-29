@@ -116,6 +116,39 @@ public final class StewardPermissions {
     public static final Identifier PUNISHMENT_BYPASS_HIERARCHY =
             create("punishment.bypass-hierarchy");
 
+    public static final Identifier STAFF_CHAT_USE =
+            create("staff-chat.use");
+
+    public static final Identifier REPORT_SUBMIT =
+            create("report.submit");
+
+    public static final Identifier REPORT_VIEW =
+            create("report.view");
+
+    public static final Identifier REPORT_MANAGE =
+            create("report.manage");
+
+    public static final Identifier REPORT_OVERRIDE_CLAIM =
+            create("report.override-claim");
+
+    public static final Identifier REPORT_ALERTS =
+            create("report.alerts");
+
+    public static final Identifier REPORT_BYPASS_COOLDOWN =
+            create("report.bypass-cooldown");
+
+    public static final Identifier NOTES_VIEW =
+            create("notes.view");
+
+    public static final Identifier NOTES_CREATE =
+            create("notes.create");
+
+    public static final Identifier NOTES_ARCHIVE_OWN =
+            create("notes.archive-own");
+
+    public static final Identifier NOTES_MANAGE =
+            create("notes.manage");
+
     private StewardPermissions() {
         // Utility class
     }
@@ -137,6 +170,20 @@ public final class StewardPermissions {
         return source.checkPermission(
                 permission,
                 PermissionLevel.GAMEMASTERS
+        );
+    }
+
+    /**
+     * Checks a permission that every player holds unless a
+     * permission provider explicitly denies it.
+     */
+    public static boolean hasDefault(
+            CommandSourceStack source,
+            Identifier permission
+    ) {
+        return source.checkPermission(
+                permission,
+                PermissionLevel.ALL
         );
     }
 
