@@ -26,12 +26,12 @@ public final class VanishConnectionService {
     }
 
     private static void notifyReconnect(ServerPlayer vanished) {
-        if (vanished.getServer() == null) {
+        if (vanished.level().getServer() == null) {
             return;
         }
         Component message = Component.literal("[Steward] "
                 + vanished.getName().getString() + " reconnected while vanished.");
-        for (ServerPlayer viewer : vanished.getServer().getPlayerList().getPlayers()) {
+        for (ServerPlayer viewer : vanished.level().getServer().getPlayerList().getPlayers()) {
             if (viewer != vanished
                     && StewardPermissions.has(viewer, StewardPermissions.VANISH_NOTIFICATIONS)) {
                 viewer.sendSystemMessage(message);

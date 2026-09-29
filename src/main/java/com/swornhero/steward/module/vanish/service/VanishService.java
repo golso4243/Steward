@@ -84,7 +84,7 @@ public final class VanishService {
     }
 
     public static void refreshViewer(ServerPlayer viewer) {
-        MinecraftServer server = viewer.getServer();
+        MinecraftServer server = viewer.level().getServer();
         if (server == null) {
             return;
         }
@@ -96,7 +96,7 @@ public final class VanishService {
     }
 
     private static void refreshPlayerListVisibility(ServerPlayer vanished) {
-        MinecraftServer server = vanished.getServer();
+        MinecraftServer server = vanished.level().getServer();
         if (server == null) {
             return;
         }
@@ -115,7 +115,7 @@ public final class VanishService {
     }
 
     private static void showInPlayerList(ServerPlayer player) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) {
             return;
         }
@@ -127,7 +127,7 @@ public final class VanishService {
     }
 
     private static void notifyStaff(ServerPlayer actor, boolean enabled) {
-        MinecraftServer server = actor.getServer();
+        MinecraftServer server = actor.level().getServer();
         if (server == null) {
             return;
         }
