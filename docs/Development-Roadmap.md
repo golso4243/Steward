@@ -46,8 +46,7 @@ Build validation and runtime acceptance are tracked separately. An item may be
 
 ## Current baseline
 
-- Active development branch: `v26.2` (Minecraft 26.2 port)
-- Previous integration branch: `agent/warning-lifecycle-roadmap`
+- Development branch: `v26.2` (Minecraft 26.2); this is the only branch.
 - Previous audit baseline: `7137e337c4aa24e53935a9e9b02e0058b959fc0a`
 - Current implementation baseline before this update:
   `f29e7c4f9c59b3722680b18c11284feba0ebffe9`
