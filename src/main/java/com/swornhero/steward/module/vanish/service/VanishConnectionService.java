@@ -23,6 +23,10 @@ public final class VanishConnectionService {
                 VanishService.refreshViewer(player);
             });
         });
+
+        ServerPlayConnectionEvents.DISCONNECT.register(
+                (handler, server) -> VanishService.forgetViewer(handler.player.getUUID())
+        );
     }
 
     private static void notifyReconnect(ServerPlayer vanished) {

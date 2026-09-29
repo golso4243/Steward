@@ -10,19 +10,27 @@ import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public final class VanishService {
+    private static final int PERMISSION_CHECK_INTERVAL_TICKS = 20;
+
     private static final Set<UUID> VANISHED = new HashSet<>();
+    private static final Map<UUID, Boolean> SEE_STATE = new HashMap<>();
+    private static int ticksSincePermissionCheck;
 
     private VanishService() {
     }
 
     public static synchronized void load(MinecraftServer server) {
         VANISHED.clear();
+        SEE_STATE.clear();
+        ticksSincePermissionCheck = 0;
         VANISHED.addAll(VanishStorageService.load());
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             if (isVanished(player)) {
@@ -34,6 +42,12 @@ public final class VanishService {
 
     public static synchronized boolean isVanished(ServerPlayer player) {
         return VANISHED.contains(player.getUUID());
+    }
+
+    public static boolean canSee(ServerPlayer viewer, ServerPlayer target) {
+        return viewer.getUUID().equals(target.getUUID())
+                || !isVanished(target)
+                || StewardPermissions.has(viewer, StewardPermissions.VANISH_SEE);
     }
 
     public static void toggle(ServerPlayer player) {
@@ -83,16 +97,49 @@ public final class VanishService {
         refreshPlayerListVisibility(player);
     }
 
-    public static void refreshViewer(ServerPlayer viewer) {
+    public static synchronized void onEndServerTick(MinecraftServer server) {
+        if (VANISHED.isEmpty()) {
+            return;
+        }
+
+        List<ServerPlayer> players = server.getPlayerList().getPlayers();
+
+        // Vanilla recalculates the invisible flag whenever mob effects change.
+        for (ServerPlayer player : players) {
+            if (isVanished(player) && !player.isInvisible()) {
+                player.setInvisible(true);
+            }
+        }
+
+        if (++ticksSincePermissionCheck < PERMISSION_CHECK_INTERVAL_TICKS) {
+            return;
+        }
+        ticksSincePermissionCheck = 0;
+
+        for (ServerPlayer viewer : players) {
+            boolean maySee = StewardPermissions.has(viewer, StewardPermissions.VANISH_SEE);
+            Boolean previous = SEE_STATE.put(viewer.getUUID(), maySee);
+            if (previous != null && previous != maySee) {
+                refreshViewer(viewer);
+            }
+        }
+    }
+
+    public static synchronized void refreshViewer(ServerPlayer viewer) {
         MinecraftServer server = viewer.level().getServer();
         if (server == null) {
             return;
         }
+        SEE_STATE.put(viewer.getUUID(), StewardPermissions.has(viewer, StewardPermissions.VANISH_SEE));
         for (ServerPlayer vanished : server.getPlayerList().getPlayers()) {
             if (isVanished(vanished)) {
                 sendPlayerListState(viewer, vanished);
             }
         }
+    }
+
+    public static synchronized void forgetViewer(UUID viewerUuid) {
+        SEE_STATE.remove(viewerUuid);
     }
 
     private static void refreshPlayerListVisibility(ServerPlayer vanished) {
@@ -106,8 +153,7 @@ public final class VanishService {
     }
 
     private static void sendPlayerListState(ServerPlayer viewer, ServerPlayer vanished) {
-        boolean maySee = viewer == vanished || StewardPermissions.has(viewer, StewardPermissions.VANISH_SEE);
-        if (maySee) {
+        if (canSee(viewer, vanished)) {
             viewer.connection.send(ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(vanished)));
         } else {
             viewer.connection.send(new ClientboundPlayerInfoRemovePacket(List.of(vanished.getUUID())));

@@ -23,6 +23,7 @@ import com.swornhero.steward.module.punishment.gui.PunishmentTypeScreen;
 import com.swornhero.steward.module.staffmode.gui.TeleportActionsScreen;
 import com.swornhero.steward.module.inspection.gui.InventoryInspectionScreen;
 import com.swornhero.steward.module.inspection.gui.InspectionReturnTarget;
+import com.swornhero.steward.module.vanish.service.VanishService;
 
 import java.util.Map;
 import java.util.UUID;
@@ -225,7 +226,8 @@ public final class PlayerBrowserMenu
                         .getPlayerList()
                         .getPlayer(targetUuid);
 
-        if (target == null) {
+        if (target == null
+                || !VanishService.canSee(viewer, target)) {
             viewer.sendSystemMessage(
                     Component.literal(
                             "That player is no longer online."

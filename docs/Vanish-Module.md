@@ -19,6 +19,23 @@ Disabling Vanish clears the invisible flag and initializes the player's tab
 entry for all connected players. A persistence write failure is fail-closed:
 the in-memory state is rolled back and no visibility change is made.
 
+Vanilla recalculates the invisible flag whenever a player's mob effects change,
+for example after drinking milk, when any effect expires, or after
+`/effect clear`. Steward reasserts the flag for every online vanished player at
+the end of each server tick, so these events cannot reveal the model for longer
+than one tick. Vanish is also reapplied immediately after death or respawn,
+because respawning creates a new player entity.
+
+The Steward player browser applies the same rule as the tab list: viewers
+without `steward.vanish.see` do not see vanished staff in the list, and a
+selection made from a browser opened before the target vanished is rejected as
+if the target were offline. Vanished players always see themselves.
+
+Tab visibility follows permission changes made while viewers are online.
+Steward rechecks `steward.vanish.see` for every online viewer about once per
+second while anyone is vanished and resends the viewer's tab policy when the
+result changes.
+
 ## Permissions
 
 | Permission | Purpose | Operator fallback |
@@ -40,7 +57,10 @@ with `steward.vanish.see`.
 3. Every joining viewer has all currently vanished tab entries reconciled.
 4. On toggle, the new UUID set is atomically replaced on disk before packets or
    entity state change.
-5. To recover manually, stop the server, back up and edit
+5. On respawn, a vanished player's invisibility and tab policy are reapplied
+   to the new player entity.
+6. On disconnect, the viewer's cached see-permission state is discarded.
+7. To recover manually, stop the server, back up and edit
    `steward/data/vanished-players.json`, then restart. Do not edit it while the
    server is running.
 
@@ -60,6 +80,11 @@ Consequently, Vanish is privacy-oriented rather than a security boundary:
 - Minecraft may still expose armor, held items, particles, sounds, collision,
   commands, or indirect world interaction;
 - Steward does not remove the entity from chunk tracking;
+- invisibility is restored by end-of-tick reconciliation rather than by a
+  mixin, so an effect change can expose the model to nearby clients for at
+  most one tick;
+- `steward.vanish.see` changes take effect in the tab list within about one
+  second rather than instantly;
 - Fabric exposes no stable targeted hook for suppressing vanilla join/leave
   system messages in this dependency set. A default server may briefly reveal
   a persisted vanished player's name in those messages before tab policy is
@@ -78,5 +103,13 @@ mixins. They must be retested whenever Minecraft mappings or Fabric APIs change.
   is offline and reconnect again.
 - Confirm persisted JSON is valid and an unwritable data directory leaves the
   prior state active with an error response.
+- Drink milk, let a potion effect expire, and run `/effect clear` while
+  vanished; confirm the model stays hidden.
+- Die and respawn while vanished; confirm the model and tab entry stay hidden.
+- Open the player browser as a staff member without `steward.vanish.see` and
+  confirm vanished staff are not listed. Open it before a target vanishes,
+  then select them after, and confirm the selection is rejected.
+- Grant and revoke `steward.vanish.see` for an online viewer and confirm the
+  tab entry appears and disappears within about one second.
 - Observe entity model, armor, held items, particles, sounds, collision, and
   join/leave messages so the deployment's exact concealment boundary is known.

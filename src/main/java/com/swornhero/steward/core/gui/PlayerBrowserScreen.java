@@ -1,5 +1,6 @@
 package com.swornhero.steward.core.gui;
 
+import com.swornhero.steward.module.vanish.service.VanishService;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -45,6 +46,10 @@ public final class PlayerBrowserScreen {
                                 .getPlayerList()
                                 .getPlayers()
                 );
+
+        onlinePlayers.removeIf(
+                target -> !VanishService.canSee(viewer, target)
+        );
 
         onlinePlayers.sort(
                 (first, second) ->

@@ -55,8 +55,8 @@ Build validation and runtime acceptance are tracked separately. An item may be
 
 ## Item 1: Hierarchy enforcement
 
-Status: `Active`; implementation is committed, but an authoritative clean build
-is still required before this item can advance to `Implemented`.
+Status: `Implemented`; consolidated runtime gate pending. The seven post-audit
+hierarchy commits passed GitHub Actions.
 
 Implemented:
 
@@ -135,7 +135,8 @@ Remaining after this increment:
 
 ## Item 5: Vanish
 
-Status: `Implemented`; consolidated runtime gate pending.
+Status: `Active`; the completion increment is committed, but an authoritative
+clean build is still required before this item can advance to `Implemented`.
 
 Implemented in the Vanish increment:
 
@@ -150,6 +151,17 @@ Implemented in the Vanish increment:
 - Report Vanish as active in `/steward status` and document the operational
   concealment boundary.
 
+Implemented in the Vanish completion increment:
+
+- Reassert invisibility at the end of every server tick, because vanilla resets
+  the invisible flag whenever mob effects change (milk, effect expiry,
+  `/effect clear`).
+- Reapply invisibility and tab policy after death or respawn.
+- Hide vanished staff from the player browser for viewers without
+  `steward.vanish.see` and reject stale selections of newly vanished players.
+- Recheck `steward.vanish.see` for online viewers about once per second and
+  resend tab policy when it changes.
+
 Implementation decisions and discovered limitations:
 
 - Entity invisibility and mapped player-info packets were selected instead of
@@ -161,6 +173,9 @@ Implementation decisions and discovered limitations:
 - The current Fabric connection events do not safely suppress targeted vanilla
   join/leave messages. Strict connection-message secrecy therefore remains an
   explicitly documented integration limitation, not a claimed behavior.
+- Invisibility is reasserted by tick reconciliation instead of a mixin, so an
+  effect change can expose the model for at most one tick.
+- Permission changes reach the tab list within about one second, not instantly.
 - Minecraft runtime validation remains required; the item is not Accepted.
 
 ## Items 6-7
@@ -186,7 +201,7 @@ Planned work:
 
 ## Consolidated runtime gate A
 
-Run once after item 4 implementation is build-clean:
+Run once after item 5 implementation is build-clean:
 
 - Freeze, warning, punishment issuance, and revocation reject self-targets.
 - Equal/higher staff targets are denied without the family bypass.
@@ -212,6 +227,13 @@ Run once after item 4 implementation is build-clean:
 - Vanish survives disconnect/reconnect and a full server restart; joining
   viewers receive the correct tab policy for all already vanished staff.
 - Persistence write failure leaves the prior state and visibility unchanged.
+- Milk, potion expiry, and `/effect clear` do not reveal a vanished player.
+- Death and respawn keep the vanished model and tab entry hidden.
+- The player browser hides vanished staff from viewers without
+  `steward.vanish.see`, and selecting from a browser opened before the target
+  vanished is rejected.
+- Granting or revoking `steward.vanish.see` while online updates the tab list
+  within about one second.
 - Record actual 26.2 behavior for armor, held items, particles, sounds,
   collision, commands, and vanilla join/leave messages.
 
@@ -232,7 +254,12 @@ Run once after item 4 implementation is build-clean:
 | 2026-08-13 | Inventory inspection clean build | Build passed | GitHub Actions passed at `d4b8f31` in run `31746908937`. |
 | 2026-08-13 | Vanish static gate | Passed | `git diff --check` passed; stable mapped APIs were selected without new mixins. |
 | 2026-08-13 | Vanish local compilation | Environment blocked | Gradle 9.6.1 distribution download was rejected by the environment proxy before compilation. |
+| 2026-08-19 | Vanish initial remote build | Failed, fixed | GitHub Actions runs `32290224565` and `32290267598` failed on 26.2 server accessors. |
+| 2026-09-29 | Vanish 26.2 accessor fix | Build passed | GitHub Actions passed at `9741fce` in run `36624148646`. |
+| 2026-09-29 | Vanish completion static gate | Passed | `git diff --check` passed; no linter errors in changed files. |
+| 2026-09-29 | Vanish completion local build | Build passed | `gradlew build` succeeded locally with Fabric Loom 1.17.21. |
 
 ## Next action
 
-Implement Staff Chat. Keep roadmap items 1-5 in one deferred runtime gate.
+Obtain a passing GitHub Actions build for the Vanish completion increment and
+record it above. Do not begin Staff Chat until item 5 is `Implemented`.
