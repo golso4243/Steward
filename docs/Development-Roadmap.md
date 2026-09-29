@@ -39,18 +39,19 @@ Build validation and runtime acceptance are tracked separately. An item may be
 | 2 | Teleport integration with staff control and player profiles | Implemented |
 | 3 | Warning lifecycle, warning notes, and evidence | Implemented |
 | 4 | Inventory inspection | Implemented |
-| 5 | Vanish | Active |
+| 5 | Vanish | Implemented |
 | 6 | Staff chat | Planned |
 | 7 | Reports and persistent player staff notes | Planned |
 | 8 | Tests, documentation, metadata, and template cleanup | Planned |
 
 ## Current baseline
 
-- Required integration branch: `agent/warning-lifecycle-roadmap`
+- Active development branch: `v26.2` (Minecraft 26.2 port)
+- Previous integration branch: `agent/warning-lifecycle-roadmap`
 - Previous audit baseline: `7137e337c4aa24e53935a9e9b02e0058b959fc0a`
 - Current implementation baseline before this update:
-  `89e8476d9157ab67d97b008e2c23339e32198f5c`
-- Latest baseline GitHub Actions result: successful
+  `f29e7c4f9c59b3722680b18c11284feba0ebffe9`
+- Latest baseline GitHub Actions result: successful (run `36628016454`)
 - Automated test suite: not yet present
 
 ## Item 1: Hierarchy enforcement
@@ -135,8 +136,7 @@ Remaining after this increment:
 
 ## Item 5: Vanish
 
-Status: `Active`; the completion increment is committed, but an authoritative
-clean build is still required before this item can advance to `Implemented`.
+Status: `Implemented`; consolidated runtime gate pending.
 
 Implemented in the Vanish increment:
 
@@ -258,8 +258,9 @@ Run once after item 5 implementation is build-clean:
 | 2026-09-29 | Vanish 26.2 accessor fix | Build passed | GitHub Actions passed at `9741fce` in run `36624148646`. |
 | 2026-09-29 | Vanish completion static gate | Passed | `git diff --check` passed; no linter errors in changed files. |
 | 2026-09-29 | Vanish completion local build | Build passed | `gradlew build` succeeded locally with Fabric Loom 1.17.21. |
+| 2026-09-29 | Vanish completion remote build | Build passed | GitHub Actions passed at `f29e7c4` in run `36628016454`. |
 
 ## Next action
 
-Obtain a passing GitHub Actions build for the Vanish completion increment and
-record it above. Do not begin Staff Chat until item 5 is `Implemented`.
+Run consolidated runtime gate A for items 1-5, or begin Staff Chat and keep
+items 1-5 in the deferred runtime gate.
